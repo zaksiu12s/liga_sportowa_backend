@@ -53,5 +53,6 @@ This document outlines the visual and structural layout of the Liga Sportowa ZSE
 - **Primary Color**: `gray-900` (Header/Text).
 - **Secondary Color**: `gray-200` / `gray-300` (Containers/Borders).
 - **Accent Color**: `red-600` (Live indicators, school branding accent).
+- **Logo**: Official Red/White square logo (`public/football_league_logo.jpg`).
 - **Typography**: Sans-serif, bold headers for readability.
 - **Responsive**: All views must stack vertically on mobile (as seen in Figma's iPhone frames).

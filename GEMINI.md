@@ -21,6 +21,7 @@ This project is a web application for a football league at **ZSEM (Zespół Szk�
 
 ## Key Documents
 - `public/rules.pdf`: Official league regulations (Regulamin).
+- `public/football_league_logo.jpg`: Official league logo (Minimalistic Black/White branding).
 - `assets_private/project_figma.png`: Visual design reference.
 - `Layout.md`: Detailed layout and design specifications.
 
