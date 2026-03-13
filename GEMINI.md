@@ -4,9 +4,13 @@ This project is a web application for a football league at **ZSEM (Zespół Szk�
 
 ## Core Principles
 - **Direct Supabase Integration:** The application communicates directly with Supabase's PostgreSQL database. There is no custom backend.
-- **Data Management:** Data is managed manually through the Supabase dashboard. The application is primarily responsible for fetching and displaying this data.
-- **Simplicity & Design:** The focus is on clean, readable displays of league information. The design follows a professional, grey-toned aesthetic (as seen in `assets_private/project_figma.png`).
+- **Data Management:** Data is managed manually through the Supabase dashboard.
+- **Minimalistic Design:** The UI is strictly minimalistic, flat, and high-contrast (Black/White/Red).
+  - No animations or complex transitions.
+  - Sharp edges, solid borders, and clear spacing.
+  - Typography-focused hierarchy.
 - **Language:** The entire application interface and content must be in **Polish**.
+- **Deployment:** The project is configured for deployment on GitHub Pages (`gh-pages`).
 
 ## Tournament Structure (ZSEM League 2026)
 1. **Stage 1 (Groups):** 15 teams divided into 3 groups (A, B, C) of 5 teams each.
@@ -21,10 +25,10 @@ This project is a web application for a football league at **ZSEM (Zespół Szk�
 - `Layout.md`: Detailed layout and design specifications.
 
 ## Navigation Structure
-- **Strona Główna (Home)**: About the league, ZSEM logo, and link to rules.
-- **Tabele/Rankingi**: Group stage standings (Stage 1 and Stage 2).
-- **Terminarz**: Schedule of all matches (Live, Upcoming, Past).
-- **Finały**: Knockout bracket visualization.
+- **START**: About the league, ZSEM logo, and link to rules.
+- **TABELE**: Group stage standings (Stage 1 and Stage 2).
+- **MECZE**: Schedule of all matches (Live, Upcoming, Past).
+- **FINAŁY**: Knockout bracket visualization.
 
 ## Tech Stack
 - **Frontend:** React 19 with TypeScript.

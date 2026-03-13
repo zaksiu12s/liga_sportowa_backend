@@ -1,73 +1,61 @@
-# React + TypeScript + Vite
+# Szkolna Liga Piłki Nożnej ZSEM 2026
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Oficjalna aplikacja internetowa dla szkolnej ligi piłki nożnej w **Zespole Szkół Elektryczno-Mechanicznych (ZSEM)** w Nowym Sączu.
 
-Currently, two official plugins are available:
+## 🏆 O Projekcie
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Aplikacja służy do wyświetlania aktualnych tabel, terminarza oraz wyników fazy finałowej rozgrywek piłkarskich. Została zaprojektowana z myślą o szybkości i czytelności, wykorzystując bezpośrednią integrację z bazą danych Supabase.
 
-## React Compiler
+## 🎨 Zasady Projektowe (Minimalizm)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Projekt charakteryzuje się surowym, minimalistycznym stylem:
 
-## Expanding the ESLint configuration
+- **Brak Animacji:** Interfejs jest statyczny, co zapewnia natychmiastowe działanie.
+- **Wysoki Kontrast:** Kolorystyka oparta na czerni, bieli i akcentach czerwieni (barwy ZSEM).
+- **Brutalistyczny Układ:** Ostre krawędzie, wyraźne obramowania i nacisk na typografię.
+- **Płaski Design:** Brak cieni, zaokrągleń i zbędnych dekoracji.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠️ Stos Technologiczny
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Frontend:** React 19 + TypeScript
+- **Stylizowanie:** Tailwind CSS
+- **Narzędzie Budowania:** Vite
+- **Baza Danych:** Supabase (PostgreSQL)
+- **Deployment:** GitHub Pages (`gh-pages`)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📋 Struktura Rozgrywek
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. **Etap 1 (Grupy):** 15 drużyn w 3 grupach (A, B, C).
+2. **Etap 2 (TOP 8):** 8 najlepszych drużyn w 2 grupach.
+3. **Etap 3 (Finały):** Półfinały, mecz o 3. miejsce oraz Wielki Finał.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🚀 Uruchomienie Lokalne
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Sklonuj repozytorium:
+   ```bash
+   git clone https://github.com/zaksiu12s/liga_sportowa_backend.git
+   ```
+2. Zainstaluj zależności:
+   ```bash
+   npm install
+   ```
+3. Skonfiguruj plik `.env` (użyj `.env.example` jako wzoru):
+   ```env
+   VITE_SUPABASE_URL=twoj_url
+   VITE_SUPABASE_ANON_KEY=twoj_klucz
+   ```
+4. Uruchom serwer deweloperski:
+   ```bash
+   npm run dev
+   ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 📂 Struktura Projektu
+
+- `src/components/Layout/`: Główne elementy nawigacyjne (Navbar, Footer).
+- `src/components/Views/`: Główne widoki aplikacji (Home, Standings, Schedule, Finals).
+- `src/utils/supabase.ts`: Konfiguracja klienta Supabase.
+- `src/types/supabase.ts`: Wygenerowane typy bazy danych.
+
+## 📄 Licencja
+
+Projekt stworzony dla społeczności ZSEM Nowy Sącz. Regulamin rozgrywek dostępny w pliku `public/rules.pdf`.
