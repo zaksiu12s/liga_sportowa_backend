@@ -6,6 +6,7 @@ const ScheduleView = () => {
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeFilter, setActiveFilter] = useState<"upcoming" | "finished">("upcoming");
   const itemsPerPage = 5;
 
   useEffect(() => {
@@ -23,16 +24,50 @@ const ScheduleView = () => {
     fetchData();
   }, []);
 
+  // Filtering and Sorting
+  const filteredMatches = matches
+    .filter(match => {
+      if (activeFilter === "upcoming") return match.status === "scheduled" || match.status === "live";
+      return match.status === "finished";
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.scheduled_at || 0).getTime();
+      const dateB = new Date(b.scheduled_at || 0).getTime();
+      // Upcoming: Soonest first | Finished: Most recent first
+      return activeFilter === "upcoming" ? dateA - dateB : dateB - dateA;
+    });
+
   // Pagination calculations
-  const totalPages = Math.ceil(matches.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredMatches.length / itemsPerPage);
   const indexOfLastMatch = currentPage * itemsPerPage;
   const indexOfFirstMatch = indexOfLastMatch - itemsPerPage;
-  const currentMatches = matches.slice(indexOfFirstMatch, indexOfLastMatch);
+  const currentMatches = filteredMatches.slice(indexOfFirstMatch, indexOfLastMatch);
+
+  // Reset pagination on filter change
+  const handleFilterChange = (filter: "upcoming" | "finished") => {
+    setActiveFilter(filter);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="h-full max-w-xl mx-auto flex flex-col py-6 px-4">
-      <div className="text-center border-b-4 border-gray-900 pb-2 inline-block mx-auto w-full mb-12 flex-shrink-0">
-        <h1 className="text-2xl font-black uppercase tracking-widest">MECZE</h1>
+      <div className="flex flex-col items-center gap-6 flex-shrink-0 mb-12">
+        <h1 className="text-2xl font-black uppercase tracking-widest border-b-4 border-gray-900 pb-2">MECZE</h1>
+        
+        {/* Filter Toggle */}
+        <div className="flex space-x-12">
+          {(["upcoming", "finished"] as const).map(f => (
+            <button 
+              key={f}
+              onClick={() => handleFilterChange(f)}
+              className={`text-[10px] font-black tracking-widest border-b-2 transition-all pb-1 uppercase ${
+                activeFilter === f ? "border-red-600 text-gray-900" : "border-transparent text-gray-400 hover:text-gray-900"
+              }`}
+            >
+              {f === "upcoming" ? "Nadchodzące" : "Zakończone"}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex-grow flex flex-col justify-between overflow-hidden pr-2">
