@@ -58,7 +58,7 @@ const ScheduleView = () => {
   return (
     <div className="h-full max-w-xl mx-auto flex flex-col py-2 px-4">
       <div className="flex flex-col items-center gap-6 flex-shrink-0 mb-12">
-        <div className="text-center border-b-4 border-gray-900 pb-2 inline-block mx-auto w-full mb-12 flex-shrink-0">
+        <div className="text-center border-b-4 border-gray-900 pb-2 inline-block mx-auto w-full flex-shrink-0">
           <h1 className="text-2xl font-black uppercase tracking-widest">
             MECZE
           </h1>
