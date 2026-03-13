@@ -1,89 +1,40 @@
 const FinalsView = () => {
   return (
-    <div className="max-w-6xl mx-auto space-y-12 py-8 overflow-x-auto">
-      <div className="text-center mb-16">
-        <h1 className="text-4xl font-black uppercase tracking-tight text-gray-900">
-          Drabinka <span className="text-red-600">Finałowa</span>
-        </h1>
-        <div className="w-24 h-1 bg-red-600 mx-auto mt-4 rounded-full"></div>
+    <div className="max-w-4xl mx-auto py-12 space-y-24">
+      <div className="text-center border-b-4 border-gray-900 pb-2 inline-block mx-auto w-full">
+        <h1 className="text-2xl font-black uppercase tracking-widest">FINAŁY</h1>
       </div>
 
-      {/* Bracket Logic (CSS-based visualization) */}
-      <div className="flex justify-between items-center gap-8 min-w-[800px] px-8">
+      <div className="grid md:grid-cols-3 gap-12 text-center">
         
-        {/* Semi Finals */}
-        <div className="space-y-24 w-64">
-          <div className="text-xs text-gray-400 font-black uppercase tracking-widest mb-4 text-center">Półfinały</div>
-          
-          {/* Match 1 */}
-          <div className="relative">
-            <div className="bg-white border border-gray-100 shadow-sm rounded-xl p-4 space-y-2 relative z-10">
-              <div className="flex justify-between font-bold text-sm">
-                <span>Drużyna 1A</span>
-                <span className="text-red-600">-</span>
-              </div>
-              <div className="flex justify-between font-bold text-sm">
-                <span>Drużyna 2B</span>
-                <span className="text-red-600">-</span>
-              </div>
+        {/* Półfinały */}
+        <div className="space-y-12">
+          <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-8">Półfinały</div>
+          {[1, 2].map(i => (
+            <div key={i} className="py-6 border border-gray-100 hover:border-gray-900 transition-colors">
+              <div className="text-xs font-black uppercase">TEAM {i}A</div>
+              <div className="text-gray-400 my-2 text-[10px] font-bold">VS</div>
+              <div className="text-xs font-black uppercase">TEAM {i}B</div>
             </div>
-            {/* Connector */}
-            <div className="absolute top-1/2 -right-8 w-8 h-[2px] bg-gray-200"></div>
-          </div>
-
-          {/* Match 2 */}
-          <div className="relative">
-            <div className="bg-white border border-gray-100 shadow-sm rounded-xl p-4 space-y-2 relative z-10">
-              <div className="flex justify-between font-bold text-sm">
-                <span>Drużyna 1B</span>
-                <span className="text-red-600">-</span>
-              </div>
-              <div className="flex justify-between font-bold text-sm">
-                <span>Drużyna 2A</span>
-                <span className="text-red-600">-</span>
-              </div>
-            </div>
-            {/* Connector */}
-            <div className="absolute top-1/2 -right-8 w-8 h-[2px] bg-gray-200"></div>
-          </div>
+          ))}
         </div>
 
-        {/* Finals */}
-        <div className="w-80">
-          <div className="text-xs text-red-600 font-black uppercase tracking-widest mb-4 text-center">Wielki Finał</div>
-          <div className="bg-gray-900 text-white border border-gray-800 shadow-2xl rounded-2xl p-8 space-y-4 scale-110 relative">
-             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-tighter shadow-lg whitespace-nowrap">
-               Finał Ligi ZSEM 2026
-             </div>
-             
-             <div className="flex flex-col items-center gap-4">
-                <div className="text-center">
-                  <div className="text-xs text-gray-500 uppercase tracking-widest mb-2">Mecz o 1 Miejsce</div>
-                  <div className="flex items-center gap-6 justify-center">
-                    <span className="text-lg font-black italic">FINALISTA A</span>
-                    <span className="text-3xl font-black text-red-600">VS</span>
-                    <span className="text-lg font-black italic">FINALISTA B</span>
-                  </div>
-                </div>
-                <div className="text-xs text-gray-500 bg-gray-800 px-4 py-2 rounded-lg mt-4 uppercase font-bold">
-                  Data: 23.06.2026 | Godzina 11:00
-                </div>
-             </div>
-          </div>
+        {/* Wielki Finał */}
+        <div className="bg-gray-900 text-white p-12 flex flex-col justify-center border-4 border-gray-900">
+           <div className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-6">Finał Główny</div>
+           <div className="text-lg font-black italic tracking-tighter mb-2 uppercase">Finalista 1</div>
+           <div className="text-red-600 font-black text-xl my-4">VS</div>
+           <div className="text-lg font-black italic tracking-tighter uppercase">Finalista 2</div>
+           <div className="text-[10px] text-gray-500 mt-8 font-bold uppercase tracking-widest">23.06.2026</div>
+        </div>
 
-          {/* 3rd Place */}
-          <div className="mt-32">
-             <div className="text-xs text-gray-400 font-black uppercase tracking-widest mb-4 text-center">Mecz o 3 Miejsce</div>
-             <div className="bg-white border border-gray-100 shadow-sm rounded-xl p-4 opacity-60 grayscale hover:grayscale-0 transition-all">
-                <div className="flex justify-between font-bold text-xs text-gray-500">
-                  <span>Przegrany Półf. 1</span>
-                  <span>-</span>
-                </div>
-                <div className="flex justify-between font-bold text-xs text-gray-500 mt-2">
-                  <span>Przegrany Półf. 2</span>
-                  <span>-</span>
-                </div>
-             </div>
+        {/* 3rd Place */}
+        <div className="flex flex-col justify-end">
+          <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-8">Mecz o 3 Miejsce</div>
+          <div className="py-6 border border-gray-100 grayscale opacity-40">
+              <div className="text-[10px] font-black uppercase">Przegrany P1</div>
+              <div className="text-gray-400 my-1 text-[8px] font-bold">VS</div>
+              <div className="text-[10px] font-black uppercase">Przegrany P2</div>
           </div>
         </div>
 

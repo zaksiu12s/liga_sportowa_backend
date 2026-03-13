@@ -12,23 +12,18 @@ function App() {
 
   const renderView = () => {
     switch (currentView) {
-      case "home":
-        return <HomeView />;
-      case "standings":
-        return <StandingsView />;
-      case "schedule":
-        return <ScheduleView />;
-      case "finals":
-        return <FinalsView />;
-      default:
-        return <HomeView />;
+      case "home": return <HomeView />;
+      case "standings": return <StandingsView />;
+      case "schedule": return <ScheduleView />;
+      case "finals": return <FinalsView />;
+      default: return <HomeView />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-gray-900">
+    <div className="bg-white min-h-screen flex flex-col font-sans text-gray-900">
       <Navbar currentView={currentView} onNavigate={setCurrentView} />
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className="flex-grow container mx-auto px-4 py-6">
         {renderView()}
       </main>
       <Footer />
