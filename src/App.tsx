@@ -1,40 +1,39 @@
-import { useState, useEffect } from "react";
-import supabase from "./utils/supabase";
-import { Tables } from "./types/supabase";
+import { useState } from "react";
+import Navbar from "./components/Layout/Navbar";
+import Footer from "./components/Layout/Footer";
+import HomeView from "./components/Views/HomeView";
+import StandingsView from "./components/Views/StandingsView";
+import ScheduleView from "./components/Views/ScheduleView";
+import FinalsView from "./components/Views/FinalsView";
+import type { View } from "./types/app";
 
-function Page() {
-  const [teams, setTeams] = useState<Tables<"teams">[]>([]);
+function App() {
+  const [currentView, setCurrentView] = useState<View>("home");
 
-  useEffect(() => {
-    const getTeams = async () => {
-      const { data, error } = await supabase.from("teams").select();
-
-      if (error) {
-        console.error(error);
-        return;
-      }
-
-      if (data) {
-        setTeams(data);
-      }
-    };
-
-    getTeams();
-  }, []);
+  const renderView = () => {
+    switch (currentView) {
+      case "home":
+        return <HomeView />;
+      case "standings":
+        return <StandingsView />;
+      case "schedule":
+        return <ScheduleView />;
+      case "finals":
+        return <FinalsView />;
+      default:
+        return <HomeView />;
+    }
+  };
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Drużyny Ligi ZSEM</h1>
-      <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {teams.map((team) => (
-          <li key={team.id} className="border p-4 rounded shadow bg-white">
-            <h2 className="text-xl font-semibold">{team.name}</h2>
-            {team.short_name && <p className="text-gray-600">({team.short_name})</p>}
-          </li>
-        ))}
-      </ul>
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-gray-900">
+      <Navbar currentView={currentView} onNavigate={setCurrentView} />
+      <main className="flex-grow container mx-auto px-4 py-8">
+        {renderView()}
+      </main>
+      <Footer />
     </div>
   );
 }
 
-export default Page;
+export default App;
