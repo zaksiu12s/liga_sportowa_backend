@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://zaksiu12s.github.io/liga_sportowa_backend",
+  "homepage": "https://zaksiu12s.github.io/liga_sportowa_backend/",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
