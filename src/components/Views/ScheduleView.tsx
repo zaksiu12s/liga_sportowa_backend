@@ -49,6 +49,12 @@ const ScheduleView = () => {
     indexOfLastMatch,
   );
 
+  if (currentMatches.length < 5) {
+    currentMatches.push(
+      ...Array(5 - currentMatches.length).fill({ data: "none" }),
+    );
+  }
+
   // Reset pagination on filter change
   const handleFilterChange = (filter: "upcoming" | "finished") => {
     setActiveFilter(filter);
@@ -82,7 +88,7 @@ const ScheduleView = () => {
         </div>
       </div>
 
-      <div className="flex-grow flex flex-col justify-between overflow-hidden pr-2 space-y-12">
+      <div className="flex-grow flex flex-col justify-between overflow-hidden pr-2 space-y-24">
         <div className="space-y-10">
           {loading ? (
             Array.from({ length: 5 }).map((_, i) => (
@@ -97,7 +103,10 @@ const ScheduleView = () => {
             ))
           ) : currentMatches.length > 0 ? (
             currentMatches.map((match) => (
-              <div key={match.id} className="text-center relative">
+              <div
+                key={match.id}
+                className={`text-center relative ${match.data === "none" ? "opacity-0 cursor-default" : ""}`}
+              >
                 {match.status === "live" && (
                   <div className="text-red-600 text-[10px] font-black tracking-widest mb-3">
                     ● NA ŻYWO
