@@ -1,6 +1,6 @@
 const HomeView = () => {
   return (
-    <div className="max-w-2xl mx-auto py-16 space-y-12">
+    <div className="max-w-2xl mx-auto h-full flex flex-col justify-center space-y-12 overflow-hidden px-4">
       <header className="text-center space-y-4">
         <h1 className="text-5xl font-black uppercase tracking-tighter">
           LIGA <span className="text-red-600">ZSEM</span>

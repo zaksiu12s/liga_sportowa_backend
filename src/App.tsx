@@ -21,9 +21,9 @@ function App() {
   };
 
   return (
-    <div className="bg-white min-h-screen flex flex-col font-sans text-gray-900">
+    <div className="bg-white h-screen flex flex-col font-sans text-gray-900 overflow-hidden">
       <Navbar currentView={currentView} onNavigate={setCurrentView} />
-      <main className="flex-grow container mx-auto px-4 py-6">
+      <main className="flex-grow overflow-hidden">
         {renderView()}
       </main>
       <Footer />
