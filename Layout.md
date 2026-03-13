@@ -1,58 +1,47 @@
-# Application Layout Design
+# Application Layout Design (Simplified)
 
-This document outlines the visual and structural layout of the Liga Sportowa ZSEM application, based on the Figma designs and league rules.
+This document outlines the visual and structural layout of the Liga Sportowa ZSEM application, based on the current simplified database structure.
 
 ## Global Layout (Main Wrapper)
-- **Background**: Light Grey (`bg-gray-100` or `bg-slate-50`).
-- **Navbar**: Sticky top, dark grey/black background (`bg-gray-900`), white text.
-  - Links: [Logo ZSEM] | Home | Tabele | Terminarz | Finały
-- **Footer**: Simple dark footer with school info and link to `rules.pdf`.
+- **Style**: Minimalistic, flat, high-contrast (B/W/R).
+- **Background**: Solid White (`bg-white`).
+- **Navbar**: Sticky top, white background, bottom border.
+  - Links: START | TABELE | MECZE | FINAŁY
+- **Footer**: Simple border-top, small uppercase text.
 
 ---
 
-## 1. Strona Główna (Home)
-- **Hero Section**: Large ZSEM logo, title "Szkolna Liga Piłki Nożnej 2026".
-- **About**: Short description of the league (ZSEM + JCE collaboration).
-- **Documents Card**: A dedicated card to download/view the `Regulamin (rules.pdf)`.
-- **Quick Links**: Buttons leading to the current group standings or the next upcoming match.
+## 1. START (Home)
+- **Hero**: Bold LIGA ZSEM title, centered monochromatic logo (as favicon), no scrolling.
+- **Content**: Short description of the league.
+- **Action**: "Regulamin PDF" button with sharp borders.
 
 ---
 
-## 2. Tabele / Rankingi (Standings)
-- **Tabs/Toggle**: Switch between **"Etap 1: Grupy (A, B, C)"** and **"Etap 2: TOP 8"**.
-- **Stage 1 View**:
-  - Three separate tables (Group A, Group B, Group C).
-  - Columns: Rank, Team Name, Played, Goals (F:A), Pts.
-  - Visual highlight for the top 2 teams (Qualifying zone).
-- **Stage 2 View**:
-  - Two tables (Group A, Group B).
-  - Qualification highlights for Semifinals.
+## 2. TABELE (Standings)
+- **Data Source**: Fetched directly from the `teams` table.
+- **Filtering**: Dynamic group buttons based on teams in the DB.
+- **Table Columns**: Rank (#), Team Name, Goals (F:A), Points (PKT).
+- **Visuals**: No shadows, no rounded corners, top 2 teams in red text.
 
 ---
 
-## 3. Terminarz (Schedule)
-- **Filter**: Dropdown to select "Kolejka" (Round) or "All matches".
-- **Match Cards**:
-  - **Live Match**: Red border/pulse effect, "TERAZ" label.
-  - **Upcoming**: Scheduled time, team names, "NASTĘPNY" label for the very next one.
-  - **Completed**: Score clearly visible, greyed out style.
-- **Layout**: List view, centered on the page.
+## 3. MECZE (Schedule)
+- **Data Source**: Fetched from the `matches` table.
+- **Layout**: Centered list of matchups.
+- **Items**: Team A vs Team B, Score (or "VS"), scheduled time and stage info.
+- **Live State**: Pulsing "● NA ŻYWO" indicator removed (minimalism), replaced with static red text.
 
 ---
 
-## 4. Finały (Knockout Bracket)
-- **Visualization**: Horizontal bracket system.
-  - **Semifinals**: 2 matches (1A vs 2B, 1B vs 2A).
-  - **3rd Place Match**: Losers of semifinals.
-  - **Grand Final**: Winners of semifinals.
-- **Design**: Clean connectors (lines) between match boxes.
+## 4. FINAŁY (Knockout Bracket)
+- **Visualization**: Static grid representing Semifinals and Final.
+- **Grand Final**: Highlighted with a black background box.
 
 ---
 
 ## Visual Aesthetics (Tailwind)
-- **Primary Color**: `gray-900` (Header/Text).
-- **Secondary Color**: `gray-200` / `gray-300` (Containers/Borders).
-- **Accent Color**: `red-600` (Live indicators, school branding accent).
-- **Logo**: Official Red/White square logo (`public/football_league_logo.jpg`).
-- **Typography**: Sans-serif, bold headers for readability.
-- **Responsive**: All views must stack vertically on mobile (as seen in Figma's iPhone frames).
+- **Primary Color**: `gray-900` (Black for text and borders).
+- **Accent Color**: `red-600` (ZSEM branding).
+- **Typography**: Sans-serif, extra-bold headers, wide-spaced subtext.
+- **Borders**: Solid 1px or 2px (`border-gray-900` or `border-gray-100`).

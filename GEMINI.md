@@ -38,14 +38,10 @@ This project is a web application for a football league at **ZSEM (Zespół Szk�
 - **Database/Auth:** Supabase (`@supabase/supabase-js`).
 
 ## Database Schema
-The application uses the following tables in the `public` schema:
+The application uses a simplified structure in the `public` schema:
 
-- **teams**: Information about league teams (name, short_name, logo_path, captain).
-- **players**: Student athlete information (first_name, last_name, grade, photo_url).
-- **team_members**: Junction table linking players to teams with specific roles and jersey numbers.
-- **rounds**: Definition of tournament rounds or match weeks.
-- **matches**: Individual game data (home/away teams, scores, scheduled time, status, round).
-- **standings**: Automatically or manually updated league table data (points, wins, losses, goals).
+- **teams**: Contains team names, their group assignment, and real-time standings data (points, goals_for, goals_against).
+- **matches**: Contains match schedules, scores, status (live/finished), and tournament stage.
 
 ## Development Guidelines
 - **Type Safety**: Use the generated types in `src/types/supabase.ts`.
