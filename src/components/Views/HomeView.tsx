@@ -11,13 +11,14 @@ const HomeView = () => {
       </header>
 
       <section className="border-y border-gray-100 py-12 text-sm leading-relaxed text-gray-600 text-center">
-        Oficjalne rozgrywki Zespołu Szkół Elektryczno-Mechanicznych w Nowym Sączu. 
-        Minimalistyczny interfejs dostarczający najnowsze wyniki i tabele.
+        Oficjalne rozgrywki Zespołu Szkół Elektryczno-Mechanicznych w Nowym
+        Sączu. Minimalistyczny interfejs dostarczający najnowsze wyniki i
+        tabele.
       </section>
 
       <div className="flex flex-col items-center space-y-6">
-        <a 
-          href="/rules.pdf" 
+        <a
+          href={`${import.meta.env.BASE_URL}rules.pdf`}
           target="_blank"
           className="text-xs font-black uppercase tracking-[0.2em] px-12 py-4 border-2 border-gray-900 hover:bg-gray-900 hover:text-white transition-all"
         >
