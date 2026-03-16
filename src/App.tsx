@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 // import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
 import HomeView from "./components/Views/HomeView";
@@ -26,12 +27,15 @@ function App() {
   };
 
   return (
-    <div className="bg-white min-h-screen flex flex-col font-sans text-gray-900 overflow-hidden">
-      <br />
-      {/* <Navbar currentView={currentView} onNavigate={setCurrentView} /> */}
-      <main className="flex-grow overflow-hidden">{renderView()}</main>
-      <Footer />
-    </div>
+    <>
+      <div className="bg-white min-h-screen flex flex-col font-sans text-gray-900 overflow-hidden">
+        <br />
+        {/* <Navbar currentView={currentView} onNavigate={setCurrentView} /> */}
+        <main className="flex-grow overflow-hidden">{renderView()}</main>
+        <Footer />
+      </div>
+      <Analytics framework="react" />
+    </>
   );
 }
 
