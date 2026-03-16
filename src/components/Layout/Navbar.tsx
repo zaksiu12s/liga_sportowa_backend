@@ -1,43 +1,37 @@
-import type { View } from "../../types/app";
+import { NavLink, Link } from "react-router-dom";
 
-interface NavbarProps {
-  currentView: View;
-  onNavigate: (view: View) => void;
-}
-
-const Navbar = ({ currentView, onNavigate }: NavbarProps) => {
+const Navbar = () => {
   const navItems = [
-    { id: "home", label: "START" },
-    // { id: "standings", label: "TABELE" },
-    // { id: "schedule", label: "MECZE" },
-    // { id: "finals", label: "FINAŁY" },
+    { id: "/", label: "START" },
+    { id: "/tabele", label: "TABELE" },
+    { id: "/mecze", label: "MECZE" },
+    { id: "/finaly", label: "FINAŁY" },
   ] as const;
 
   return (
-    <nav className="border-b border-gray-100 bg-white sticky top-0 z-50">
+    <nav className="border-b border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div
-          className="flex items-center gap-3 cursor-pointer"
-          onClick={() => onNavigate("home")}
-        >
+        <Link to="/" className="flex items-center gap-3 cursor-pointer">
           <div className="font-black text-lg tracking-tight">
             LIGA <span className="text-red-600">ZSEM</span>
           </div>
-        </div>
+        </Link>
 
         <div className="flex space-x-4 md:space-x-8">
           {navItems.map((item) => (
-            <button
+            <NavLink
               key={item.id}
-              onClick={() => onNavigate(item.id)}
-              className={`text-xs font-bold tracking-widest ${
-                currentView === item.id
-                  ? "text-red-600"
-                  : "text-gray-400 hover:text-gray-900"
-              }`}
+              to={item.id}
+              className={({ isActive }) =>
+                `text-xs font-bold tracking-widest ${
+                  isActive
+                    ? "text-red-600"
+                    : "text-gray-400 hover:text-gray-900"
+                }`
+              }
             >
               {item.label}
-            </button>
+            </NavLink>
           ))}
         </div>
       </div>

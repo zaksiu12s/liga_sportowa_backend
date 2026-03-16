@@ -1,4 +1,4 @@
-const HomeView = () => {
+const HomeView1 = () => {
   return (
     <div className="max-w-2xl mx-auto h-full flex flex-col justify-center space-y-12 overflow-hidden px-4">
       <header className="text-center space-y-4">
@@ -55,4 +55,4 @@ const HomeView = () => {
   );
 };
 
-export default HomeView;
+export default HomeView1;

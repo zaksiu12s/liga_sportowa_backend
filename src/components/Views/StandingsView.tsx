@@ -92,7 +92,7 @@ const StandingsView = () => {
 
       <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar">
         <table className="w-full text-left text-xs uppercase tracking-wider font-bold">
-          <thead className="border-b-2 border-gray-900 sticky top-0 bg-white z-10">
+          <thead className="border-b-2 border-gray-900 sticky top-0  z-10">
             <tr>
               <th className="py-4 px-4 w-12">#</th>
               <th className="py-4">DRUŻYNA</th>
