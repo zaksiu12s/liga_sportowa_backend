@@ -9,8 +9,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "predeploy-github-depracated": "npm run build",
+    "deploy-github-depracated": "gh-pages -d dist",
+    "push-prod": "git checkout prod && git reset --hard master && git push origin prod --force && git checkout master"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.98.0",
