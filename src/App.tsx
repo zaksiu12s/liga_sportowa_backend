@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Analytics } from "@vercel/analytics/react";
 // import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
 import HomeView from "./components/Views/HomeView";
@@ -34,7 +33,6 @@ function App() {
         <main className="flex-grow overflow-hidden">{renderView()}</main>
         <Footer />
       </div>
-      <Analytics framework="react" />
     </>
   );
 }
