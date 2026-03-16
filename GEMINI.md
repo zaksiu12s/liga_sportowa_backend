@@ -36,6 +36,7 @@ This project is a web application for a football league at **ZSEM (Zespół Szk�
 
 ## Tech Stack
 - **Frontend:** React 19 with TypeScript.
+- **Analytics:** Vercel Analytics (`@vercel/analytics`).
 - **Styling:** Tailwind CSS.
 - **Build Tool:** Vite.
 - **Database:** Supabase (`@supabase/supabase-js`).
