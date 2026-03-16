@@ -10,7 +10,7 @@ import FinalsView from "./components/Views/FinalsView";
 function App() {
   return (
     <>
-      <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex flex-col font-sans text-gray-900 overflow-hidden">
+      <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-neutral-950 dark:to-neutral-900 min-h-screen flex flex-col font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300 overflow-hidden">
         <Navbar />
         <main className="flex-grow overflow-hidden">
           <br />

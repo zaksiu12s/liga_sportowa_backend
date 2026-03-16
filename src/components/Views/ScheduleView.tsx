@@ -62,9 +62,9 @@ const ScheduleView = () => {
   };
 
   return (
-    <div className="h-full max-w-xl mx-auto flex flex-col py-2 px-4">
+    <div className="h-full max-w-xl mx-auto flex flex-col py-2 px-4 dark:text-white">
       <div className="flex flex-col items-center gap-6 flex-shrink-0 mb-12">
-        <h1 className="text-2xl font-black uppercase tracking-widest border-b-4 border-gray-900 pb-2">
+        <h1 className="text-2xl font-black uppercase tracking-widest border-b-4 border-gray-900 pb-2 dark:border-white">
           Mecze
         </h1>
 
@@ -76,8 +76,8 @@ const ScheduleView = () => {
               onClick={() => handleFilterChange(f)}
               className={`text-[10px] font-black tracking-widest border-b-2 transition-all pb-1 uppercase ${
                 activeFilter === f
-                  ? "border-red-600 text-gray-900"
-                  : "border-transparent text-gray-400 hover:text-gray-900"
+                  ? "border-red-600 text-gray-900 dark:text-white"
+                  : "border-transparent text-gray-400 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
               {f === "upcoming" ? "Nadchodzące" : "Zakończone"}
@@ -111,19 +111,19 @@ const ScheduleView = () => {
                   </div>
                 )}
                 <div className="flex items-center justify-between gap-4">
-                  <div className="flex-1 text-right text-xs font-black uppercase truncate">
+                  <div className="flex-1 text-right text-xs font-black uppercase truncate dark:text-white">
                     {match.home_team?.name}
                   </div>
-                  <div className="text-2xl font-black min-w-[100px] border-x border-gray-100 px-4 leading-none">
+                  <div className="text-2xl font-black min-w-[100px] border-x border-gray-100 px-4 leading-none dark:border-neutral-800">
                     {match.score_home !== null
                       ? `${match.score_home}:${match.score_away}`
                       : "VS"}
                   </div>
-                  <div className="flex-1 text-left text-xs font-black uppercase truncate">
+                  <div className="flex-1 text-left text-xs font-black uppercase truncate dark:text-white">
                     {match.away_team?.name}
                   </div>
                 </div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-3">
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-3 dark:text-gray-400">
                   {match.scheduled_at ? (
                     <>
                       {new Date(match.scheduled_at).toLocaleDateString(
@@ -152,15 +152,15 @@ const ScheduleView = () => {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-8 py-6 border-t border-gray-100 mt-auto flex-shrink-0">
+          <div className="flex justify-center items-center gap-8 py-6 border-t border-gray-100 mt-auto flex-shrink-0 dark:border-neutral-800">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className={`text-[10px] font-black uppercase tracking-widest ${currentPage === 1 ? "text-gray-200" : "text-gray-900 hover:text-red-600"}`}
+              className={`text-[10px] font-black uppercase tracking-widest ${currentPage === 1 ? "text-gray-200 dark:text-neutral-800" : "text-gray-900 hover:text-red-600 dark:text-white dark:hover:text-red-600"}`}
             >
               Poprzednie
             </button>
-            <span className="text-[10px] font-bold text-gray-400">
+            <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500">
               {currentPage} / {totalPages}
             </span>
             <button
@@ -168,7 +168,7 @@ const ScheduleView = () => {
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
               disabled={currentPage === totalPages}
-              className={`text-[10px] font-black uppercase tracking-widest ${currentPage === totalPages ? "text-gray-200" : "text-gray-900 hover:text-red-600"}`}
+              className={`text-[10px] font-black uppercase tracking-widest ${currentPage === totalPages ? "text-gray-200 dark:text-neutral-800" : "text-gray-900 hover:text-red-600 dark:text-white dark:hover:text-red-600"}`}
             >
               Następne
             </button>
