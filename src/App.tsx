@@ -8,7 +8,7 @@ import HomeView from "./components/Views/HomeView";
 import type { View } from "./types/app";
 
 function App() {
-  const [currentView, setCurrentView] = useState<View>("home");
+  const [currentView] = useState<View>("home");
 
   const renderView = () => {
     switch (currentView) {
