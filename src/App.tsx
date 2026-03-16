@@ -2,9 +2,9 @@ import { useState } from "react";
 // import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
 import HomeView from "./components/Views/HomeView";
-// import StandingsView from "./components/Views/StandingsView";
-// import ScheduleView from "./components/Views/ScheduleView";
-// import FinalsView from "./components/Views/FinalsView";
+import StandingsView from "./components/Views/StandingsView";
+import ScheduleView from "./components/Views/ScheduleView";
+import FinalsView from "./components/Views/FinalsView";
 import type { View } from "./types/app";
 
 function App() {
@@ -12,14 +12,14 @@ function App() {
 
   const renderView = () => {
     switch (currentView) {
-      // case "home":
-      //   return <HomeView />;
-      // case "standings":
-      //   return <StandingsView />;
-      // case "schedule":
-      //   return <ScheduleView />;
-      // case "finals":
-      //   return <FinalsView />;
+      case "home":
+        return <HomeView />;
+      case "standings":
+        return <StandingsView />;
+      case "schedule":
+        return <ScheduleView />;
+      case "finals":
+        return <FinalsView />;
       default:
         return <HomeView />;
     }
