@@ -7,6 +7,7 @@ import { Analytics } from "@vercel/analytics/react";
 
 // Theme logic: Default to light, only use localStorage
 const savedTheme = localStorage.getItem("theme");
+document.documentElement.classList.remove("dark");
 if (savedTheme === "dark") {
   document.documentElement.classList.add("dark");
 } else {
