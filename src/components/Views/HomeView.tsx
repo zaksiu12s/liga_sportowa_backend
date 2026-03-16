@@ -10,12 +10,38 @@ const HomeView = () => {
         </p>
       </header>
 
-      <section className="border-y border-gray-100 py-12 text-sm leading-relaxed text-gray-600 text-center">
-        Oficjalne rozgrywki Zespołu Szkół Elektryczno-Mechanicznych w Nowym
-        Sączu. Minimalistyczny interfejs dostarczający najnowsze wyniki i
-        tabele.
+      <section className="border-y border-gray-100 py-12 text-base leading-relaxed text-gray-600 text-center">
+        Oficjalne rozgrywki Zespołu Szkół Elektryczno-Mechanicznych w Nowym Sącz
+        oraz Jezuickiego Centrum Edukacji w Nowym Sączu
       </section>
 
+      <div className="flex flex-col md:flex-row items-start justify-center gap-6 text-center">
+        <div className="flex flex-1 flex-col items-center space-y-6">
+          <a
+            href={`${import.meta.env.BASE_URL}form.pdf`}
+            target="_blank"
+            className="text-xs font-black uppercase tracking-[0.2em] px-12 py-4 border-2 border-gray-900 hover:bg-gray-900 hover:text-white transition-all"
+          >
+            Formularz zgłoszeniowy
+          </a>
+          <p className="text-gray-600 text-center text-sm">
+            Formularz Zgłoszeniowy Drużyny musi zostać podpisany przez każdego
+            członka (jeden na drużynę)
+          </p>
+        </div>
+        <div className="flex flex-1 flex-col items-center space-y-6">
+          <a
+            href={`${import.meta.env.BASE_URL}consent.pdf`}
+            target="_blank"
+            className="text-xs font-black uppercase tracking-[0.2em] px-12 py-4 border-2 border-gray-900 hover:bg-gray-900 hover:text-white transition-all"
+          >
+            Zgoda na uczestnictwo
+          </a>
+          <p className="text-gray-600 text-center text-sm">
+            Zgoda na uczestnictwo dla każdego uczestnika z osobna
+          </p>
+        </div>
+      </div>
       <div className="flex flex-col items-center space-y-6">
         <a
           href={`${import.meta.env.BASE_URL}rules.pdf`}
