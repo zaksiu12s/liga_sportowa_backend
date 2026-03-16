@@ -10,7 +10,7 @@ const HomeView = () => {
         </p>
       </header>
 
-      <section className="border-y border-gray-100 py-12 text-sm leading-relaxed text-gray-600 text-center">
+      <section className="border-y border-gray-100 py-12 text-base leading-relaxed text-gray-600 text-center">
         Oficjalne rozgrywki Zespołu Szkół Elektryczno-Mechanicznych w Nowym Sącz
         oraz Jezuickiego Centrum Edukacji w Nowym Sączu
       </section>
@@ -24,7 +24,7 @@ const HomeView = () => {
           >
             Formularz zgłoszeniowy
           </a>
-          <p className="text-gray-600 text-center">
+          <p className="text-gray-600 text-center text-sm">
             Formularz Zgłoszeniowy Drużyny musi zostać podpisany przez każdego
             członka (jeden na drużynę)
           </p>
@@ -37,7 +37,7 @@ const HomeView = () => {
           >
             Zgoda na uczestnictwo
           </a>
-          <p className="text-gray-600 text-center">
+          <p className="text-gray-600 text-center text-sm">
             Zgoda na uczestnictwo dla każdego uczestnika z osobna
           </p>
         </div>
