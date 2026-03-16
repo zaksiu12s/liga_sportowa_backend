@@ -16,7 +16,7 @@ const HomeView = () => {
       </section>
 
       <div className="flex flex-col md:flex-row items-start justify-center gap-6 text-center">
-        <div className="flex flex-1 flex-col items-center space-y-6">
+        <div className="flex flex-1 flex-col items-center space-y-6 w-full">
           <a
             href={`${import.meta.env.BASE_URL}form.pdf`}
             target="_blank"
@@ -29,7 +29,7 @@ const HomeView = () => {
             członka (jeden na drużynę)
           </p>
         </div>
-        <div className="flex flex-1 flex-col items-center space-y-6">
+        <div className="flex flex-1 flex-col items-center space-y-6 w-full">
           <a
             href={`${import.meta.env.BASE_URL}consent.pdf`}
             target="_blank"
@@ -48,7 +48,7 @@ const HomeView = () => {
           target="_blank"
           className="text-xs font-black uppercase tracking-[0.2em] px-12 py-4 border-2 border-gray-900 hover:bg-gray-900 hover:text-white transition-all"
         >
-          Regulamin PDF
+          Regulamin
         </a>
       </div>
     </div>

@@ -1,6 +1,6 @@
 # Project Context: liga_sportowa
 
-This project is a web application for a football league at **ZSEM (Zespół Szkół Elektryczno-Mechanicznych)** in Nowy Sącz (zsem.edu.pl).
+This project is a web application for a football league at **ZSEM (Zespół Szkół Elektryczno-Mechanicznych)** and **JCE (Jezuickie Centrum Edukacji)** in Nowy Sącz.
 
 ## Core Principles
 - **Direct Supabase Integration:** The application communicates directly with Supabase's PostgreSQL database. There is no custom backend.
@@ -19,39 +19,43 @@ This project is a web application for a football league at **ZSEM (Zespół Szk�
    - Top 2 from each group advance to the Semifinals.
 3. **Stage 3 (Finals):** Semifinals, 3rd Place Match, and Grand Final.
 
-## Key Documents
+## Key Documents (Public)
 - `public/rules.pdf`: Official league regulations (Regulamin).
+- `public/form.pdf`: Team registration form (Formularz zgłoszeniowy).
+- `public/consent.pdf`: Participation consent form (Zgoda na uczestnictwo).
 - `public/football_league_logo.jpg`: Official league logo (Minimalistic Black/White branding).
+
+## Assets (Private)
 - `assets_private/project_figma.png`: Visual design reference.
-- `Layout.md`: Detailed layout and design specifications.
 
 ## Navigation Structure
-- **START**: About the league, ZSEM logo, and link to rules.
-- **TABELE**: Group stage standings (Stage 1 and Stage 2).
-- **MECZE**: Schedule of all matches (Live, Upcoming, Past).
-- **FINAŁY**: Knockout bracket visualization.
+- **START**: About the league, ZSEM/JCE logo, and links to registration documents and rules.
+- **TABELE** (Currently disabled in App.tsx): Group stage standings (Stage 1 and Stage 2).
+- **MECZE** (Currently disabled in App.tsx): Schedule of all matches (Live, Upcoming, Past) with pagination.
+- **FINAŁY** (Currently disabled in App.tsx): Knockout bracket visualization (Static placeholder).
 
 ## Tech Stack
 - **Frontend:** React 19 with TypeScript.
 - **Styling:** Tailwind CSS.
 - **Build Tool:** Vite.
-- **Database/Auth:** Supabase (`@supabase/supabase-js`).
+- **Database:** Supabase (`@supabase/supabase-js`).
 
 ## Database Schema
-The application uses a simplified structure in the `public` schema:
-
-- **teams**: Contains team names, their group assignment, and real-time standings data (points, goals_for, goals_against).
-- **matches**: Contains match schedules, scores, status (live/finished), and tournament stage.
+The application uses a simplified structure in the `public` schema. See [SUPABASE.md](./SUPABASE.md) for more details.
+- **teams**: `id`, `name`, `group`, `points`, `goals_for`, `goals_against`.
+- **matches**: `id`, `home_team_id`, `away_team_id`, `score_home`, `score_away`, `status` (scheduled/live/finished), `scheduled_at`, `stage`.
 
 ## Development Guidelines
 - **Type Safety**: Use the generated types in `src/types/supabase.ts`.
-- **Database Client**: Use the pre-configured client in `src/utils/supabase.ts`.
-- Use TypeScript for all new components.
-- Adhere to Tailwind CSS for all styling.
+- **Database Client**: Use the pre-configured client in `src/utils/supabase.ts` and data fetching methods in `src/utils/data.ts`.
+- Use TypeScript for all components.
+- Adhere to Tailwind CSS for all styling (no extra CSS files).
 - Keep components modular and focused on data presentation.
 - Environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) must be configured in a `.env` file (not committed).
 
 ## Project Structure
-- `src/utils/supabase.ts`: Supabase client configuration.
 - `src/App.tsx`: Main entry point and layout.
-- `src/components/`: (To be created) UI components for matches, tables, etc.
+- `src/components/Layout/`: Navbar, Footer, and Skeleton components.
+- `src/components/Views/`: Implementation of Home, Standings, Schedule, and Finals views.
+- `src/utils/data.ts`: Centralized data fetching logic using Supabase.
+- `src/types/`: TypeScript definitions for app state and Supabase tables.
