@@ -28,7 +28,7 @@ const Navbar = ({ currentView, onNavigate, onLoginClick }: NavbarProps) => {
           className="text-2xl font-black text-black uppercase tracking-tighter cursor-pointer hover:text-red-600 transition-none"
           onClick={() => onNavigate("home")}
         >
-          ZSEM/JCE
+          LIGA ELEKTRYKA
         </div>
 
         <nav className="hidden md:flex gap-8 items-center">

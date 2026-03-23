@@ -43,11 +43,14 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
     if (!dateString) return "TBD";
     const date = new Date(dateString);
     const dayName = date.toLocaleDateString("pl-PL", { weekday: "long" });
+    const dateNum = date.getDate();
+    const monthName = date.toLocaleDateString("pl-PL", { month: "long" });
+    const year = date.getFullYear();
     const time = date.toLocaleTimeString("pl-PL", {
       hour: "2-digit",
       minute: "2-digit",
     });
-    return `${dayName.toUpperCase()}, ${time}`;
+    return `${dayName.toUpperCase()} ${dateNum} ${monthName.toUpperCase()} ${year}, ${time}`;
   };
 
   return (
@@ -59,7 +62,7 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
             SEZON 2026
           </span>
           <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-8">
-            LIGA <span className="text-red-600">ZSEM/JCE</span>
+            LIGA <span className="text-red-600">ELEKTRYKA</span>
           </h1>
           <p className="text-lg md:text-xl font-bold border-l-8 border-black pl-6 max-w-2xl mb-10">
             NAJWIĘKSZE ROZGRYWKI SPORTOWE W REGIONIE. ARENA DLA TYCH, KTÓRZY NIE BOJĄ SIĘ WALKI O
@@ -83,6 +86,37 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
         </div>
       </section>
 
+      {/* Next Match Teaser */}
+      <section className="border-4 border-black bg-black text-white overflow-hidden mb-16">
+        <div className="bg-white text-black p-8 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <span className="block text-sm font-bold uppercase text-gray-500">GOSPODARZE</span>
+              <span className="text-3xl font-black uppercase">
+                {loading ? "..." : nextMatch?.home_team?.name || "NIEZNANA"}
+              </span>
+            </div>
+            <div className="w-16 h-16 bg-black text-white flex items-center justify-center font-black text-4xl">
+              VS
+            </div>
+            <div className="text-left">
+              <span className="block text-sm font-bold uppercase text-gray-500">GOŚCIE</span>
+              <span className="text-3xl font-black uppercase">
+                {loading ? "..." : nextMatch?.away_team?.name || "NIEZNANA"}
+              </span>
+            </div>
+          </div>
+          <div className="text-center md:text-right">
+            <span className="block text-sm font-bold uppercase tracking-widest text-red-600">
+              NAJBLIŻSZE SPOTKANIE
+            </span>
+            <span className="text-4xl font-black uppercase">
+              {loading ? "..." : formatDateTime(nextMatch?.scheduled_at)}
+            </span>
+          </div>
+        </div>
+      </section>
+
       {/* Bento Grid Info Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
         {/* About Us Card */}
@@ -95,7 +129,7 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
           </h2>
           <div className="space-y-4 font-body text-lg leading-relaxed">
             <p>
-              Liga ZSEM/JCE to nie tylko turniej – to manifestacja sportowego ducha i rywalizacji na
+              Liga Elektryka to nie tylko turniej – to manifestacja sportowego ducha i rywalizacji na
               najwyższym poziomie technikum i liceum. Od lat łączymy pasję do sportu z profesjonalną
               organizacją.
             </p>
@@ -103,6 +137,12 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
               Naszym celem jest promowanie aktywności fizycznej oraz integracja społeczności
               uczniowskiej poprzez zdrowe współzawodnictwo. W tym roku wprowadzamy nową formułę
               rozgrywek i jeszcze wyższe standardy sędziowania.
+            </p>
+            <p>
+              W tym sezonie czeka nas wiele emocji, a każda drużyna będzie walczyć o każdy punkt. Razem tworzymy historię Ligi Elektryka – dołącz do nas i bądź częścią tej niesamowitej przygody!
+            </p>
+            <p className="border-t-4 border-red-600 pt-4 mt-4">
+              <span className="font-black text-red-600">WSPÓŁPRACA Z JCE</span> – Jezuickie Centrum Edukacji. Wspólnie tworzymy przestrzeń dla zdolnych sportowców i entuzjastów, gdzie sport łączy się z edukacją na najwyższym poziomie.
             </p>
           </div>
         </div>
@@ -187,37 +227,6 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
             </div>
             <span className="material-symbols-outlined group-hover:text-white">download</span>
           </a>
-        </div>
-      </section>
-
-      {/* Next Match Teaser */}
-      <section className="border-4 border-black bg-black text-white overflow-hidden">
-        <div className="bg-white text-black p-8 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <span className="block text-sm font-bold uppercase text-gray-500">GOSPODARZE</span>
-              <span className="text-3xl font-black uppercase">
-                {loading ? "..." : nextMatch?.home_team?.name || "NIEZNANA"}
-              </span>
-            </div>
-            <div className="w-16 h-16 bg-black text-white flex items-center justify-center font-black text-4xl">
-              VS
-            </div>
-            <div className="text-left">
-              <span className="block text-sm font-bold uppercase text-gray-500">GOŚCIE</span>
-              <span className="text-3xl font-black uppercase">
-                {loading ? "..." : nextMatch?.away_team?.name || "NIEZNANA"}
-              </span>
-            </div>
-          </div>
-          <div className="text-center md:text-right">
-            <span className="block text-sm font-bold uppercase tracking-widest text-red-600">
-              NAJBLIŻSZE SPOTKANIE
-            </span>
-            <span className="text-4xl font-black uppercase">
-              {loading ? "..." : formatDateTime(nextMatch?.scheduled_at)}
-            </span>
-          </div>
         </div>
       </section>
     </main>
