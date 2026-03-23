@@ -263,7 +263,12 @@ export const matchesApi = {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Create match error:", error);
+      throw new Error(
+        `Failed to create match: ${error.message || "Unknown error"}`
+      );
+    }
     return data as Match;
   },
 
@@ -320,7 +325,12 @@ export const matchesApi = {
       .select("*")
       .order("group_code", { ascending: true });
 
-    if (groupsError) throw groupsError;
+    if (groupsError) {
+      console.error("Error fetching groups:", groupsError);
+      throw new Error(`Failed to fetch groups: ${groupsError.message}`);
+    }
+
+    console.log(`Found ${groups?.length || 0} groups for ${stageName}`);
 
     const schedule = MATCH_SCHEDULES.find((s) => s.round === round);
     if (!schedule) throw new Error(`Schedule not found for round ${round}`);
@@ -330,8 +340,12 @@ export const matchesApi = {
 
     for (const group of groups || []) {
       const teamIds = group.teams?.teams?.map((t: TeamStats) => t.id) || [];
+      console.log(`Group ${group.group_code}: ${teamIds.length} teams`, teamIds);
 
-      if (teamIds.length < 2) continue;
+      if (teamIds.length < 2) {
+        console.warn(`Group ${group.group_code} has less than 2 teams, skipping`);
+        continue;
+      }
 
       const matchData = generateRoundRobinMatches(
         teamIds,
@@ -341,8 +355,28 @@ export const matchesApi = {
         stageName
       );
 
+      console.log(`Generated ${matchData.length} matches for group ${group.group_code}`);
+
       for (const match of matchData) {
         try {
+          // Check if match already exists
+          const { data: existingMatch } = await supabase
+            .from("matches")
+            .select("id")
+            .eq("home_team_id", match.home_team_id)
+            .eq("away_team_id", match.away_team_id)
+            .eq("group", match.group)
+            .eq("stage", match.stage)
+            .eq("round", match.round)
+            .single();
+
+          if (existingMatch) {
+            console.log(
+              `Match already exists: ${match.home_team_id} vs ${match.away_team_id}`
+            );
+            continue;
+          }
+
           const createdMatch = await matchesApi.create({
             ...match,
             score_home: null,
@@ -350,11 +384,14 @@ export const matchesApi = {
           });
           createdMatches.push(createdMatch);
         } catch (error) {
-          console.error("Failed to create match:", error);
+          console.error(
+            `Failed to create match: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
       }
     }
 
+    console.log(`Total matches created: ${createdMatches.length}`);
     return createdMatches;
   },
 

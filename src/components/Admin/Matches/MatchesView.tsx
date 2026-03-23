@@ -61,15 +61,18 @@ export const MatchesView = () => {
   const handleGenerateRound = async () => {
     setLoadingGenerate(true);
     try {
-      await matchesApi.generateRoundRobinMatches(stage as "first_stage" | "second_stage", round);
-      showToast(`Generated round ${round} matches for all groups`, "success");
+      console.log(`[MatchesView] Generating matches for ${stage}, round ${round}`);
+      const result = await matchesApi.generateRoundRobinMatches(stage as "first_stage" | "second_stage", round);
+      console.log(`[MatchesView] Generation complete. Created ${result.length} matches`);
+      showToast(`Generated ${result.length} matches for round ${round}`, "success");
       await loadMatches();
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error(`[MatchesView] Generation error:`, error);
       showToast(
-        error instanceof Error ? error.message : "Failed to generate matches",
+        `Failed to generate matches: ${errorMsg}`,
         "error"
       );
-      console.error("Generate error:", error);
     } finally {
       setLoadingGenerate(false);
     }
