@@ -12,8 +12,8 @@ const Navbar = ({ currentView, onNavigate, onLoginClick }: NavbarProps) => {
 
   const navItems = [
     { id: "home" as const, label: "START" },
+        { id: "schedule" as const, label: "MECZE" },
     { id: "standings" as const, label: "TABELE" },
-    { id: "schedule" as const, label: "MECZE" },
     { id: "finals" as const, label: "FINAŁY" },
   ];
 
