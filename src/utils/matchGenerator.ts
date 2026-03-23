@@ -16,6 +16,21 @@ export const MATCH_SCHEDULES: MatchSchedule[] = [
   { round: 6, date: new Date(2024, 5, 11), timeStart: "17:00", timeEnd: "18:30" },
 ];
 
+export interface FinalMatchSchedule {
+  type: string;
+  date: Date;
+  timeStart: string;
+  timeEnd: string;
+  name: string;
+}
+
+export const FINALS_SCHEDULES: FinalMatchSchedule[] = [
+  { type: "semi-final-a", date: new Date(2024, 5, 22), timeStart: "08:00", timeEnd: "08:20", name: "Semi-Final A" },
+  { type: "semi-final-b", date: new Date(2024, 5, 22), timeStart: "08:20", timeEnd: "08:40", name: "Semi-Final B" },
+  { type: "3rd-place", date: new Date(2024, 5, 23), timeStart: "09:00", timeEnd: "09:20", name: "3rd Place Match" },
+  { type: "final", date: new Date(2024, 5, 23), timeStart: "09:20", timeEnd: "09:40", name: "Final" },
+];
+
 /**
  * Generate round-robin matches for a group with proper league scheduling
  * Each match is 20 minutes long, scheduled sequentially (no overlaps)
