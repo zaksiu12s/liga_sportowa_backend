@@ -1,16 +1,16 @@
-const HomeView = () => {
+const HomeView1 = () => {
   return (
-    <div className="max-w-2xl mx-auto h-full flex flex-col justify-center space-y-12 overflow-hidden px-4">
+    <div className="max-w-2xl mx-auto h-full flex flex-col justify-center space-y-12 overflow-hidden px-4 dark:text-white">
       <header className="text-center space-y-4">
         <h1 className="text-5xl font-black uppercase tracking-tighter">
           LIGA <span className="text-red-600">ZSEM</span>
         </h1>
-        <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+        <p className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-400">
           Szkolna Liga Piłki Nożnej 2026
         </p>
       </header>
 
-      <section className="border-y border-gray-100 py-12 text-base leading-relaxed text-gray-600 text-center">
+      <section className="border-y border-gray-100 py-12 text-base leading-relaxed text-gray-600 text-center dark:border-neutral-800 dark:text-gray-400">
         Oficjalne rozgrywki Zespołu Szkół Elektryczno-Mechanicznych w Nowym Sącz
         oraz Jezuickiego Centrum Edukacji w Nowym Sączu
       </section>
@@ -20,11 +20,11 @@ const HomeView = () => {
           <a
             href={`${import.meta.env.BASE_URL}form.pdf`}
             target="_blank"
-            className="text-xs font-black uppercase tracking-[0.2em] px-12 py-4 border-2 border-gray-900 hover:bg-gray-900 hover:text-white transition-all"
+            className="text-xs font-black uppercase tracking-[0.2em] px-12 py-4 border-2 border-gray-900 hover:bg-gray-900 hover:text-white transition-all dark:border-white dark:hover:bg-white dark:hover:text-black"
           >
             Formularz zgłoszeniowy
           </a>
-          <p className="text-gray-600 text-center text-sm">
+          <p className="text-gray-600 text-center text-sm dark:text-gray-400">
             Formularz Zgłoszeniowy Drużyny musi zostać podpisany przez każdego
             członka (jeden na drużynę)
           </p>
@@ -33,11 +33,11 @@ const HomeView = () => {
           <a
             href={`${import.meta.env.BASE_URL}consent.pdf`}
             target="_blank"
-            className="text-xs font-black uppercase tracking-[0.2em] px-12 py-4 border-2 border-gray-900 hover:bg-gray-900 hover:text-white transition-all"
+            className="text-xs font-black uppercase tracking-[0.2em] px-12 py-4 border-2 border-gray-900 hover:bg-gray-900 hover:text-white transition-all dark:border-white dark:hover:bg-white dark:hover:text-black"
           >
             Zgoda na uczestnictwo
           </a>
-          <p className="text-gray-600 text-center text-sm">
+          <p className="text-gray-600 text-center text-sm dark:text-gray-400">
             Zgoda na uczestnictwo dla każdego uczestnika z osobna
           </p>
         </div>
@@ -46,7 +46,7 @@ const HomeView = () => {
         <a
           href={`${import.meta.env.BASE_URL}rules.pdf`}
           target="_blank"
-          className="text-xs font-black uppercase tracking-[0.2em] px-12 py-4 border-2 border-gray-900 hover:bg-gray-900 hover:text-white transition-all"
+          className="text-xs font-black uppercase tracking-[0.2em] px-12 py-4 border-2 border-gray-900 hover:bg-gray-900 hover:text-white transition-all dark:border-white dark:hover:bg-white dark:hover:text-black"
         >
           Regulamin
         </a>
@@ -55,4 +55,4 @@ const HomeView = () => {
   );
 };
 
-export default HomeView;
+export default HomeView1;
