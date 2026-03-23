@@ -70,14 +70,43 @@ const StandingsView = () => {
         if (error && error.code !== "PGRST116") throw error;
 
         if (data && data.teams) {
-          const sortedTeams = (data.teams.teams || []).sort(
-            (a: TeamStats, b: TeamStats) => {
-              if (b.points !== a.points) return b.points - a.points;
-              return (b.goals_for - b.goals_against) -
-                     (a.goals_for - a.goals_against);
-            }
-          );
-          setTeams(sortedTeams);
+          const teamsArray = data.teams.teams || [];
+
+          // Get team IDs and fetch their names from teams table
+          const teamIds = teamsArray.map((t: any) => t.id);
+
+          if (teamIds.length > 0) {
+            const { data: teamNamesData, error: namesError } = await supabase
+              .from("teams")
+              .select("id, name")
+              .in("id", teamIds);
+
+            if (namesError) throw namesError;
+
+            // Create a map of ID -> name
+            const nameMap = new Map(teamNamesData?.map((t: any) => [t.id, t.name]) || []);
+
+            // Merge names with stats
+            const teamsWithNames: TeamStats[] = teamsArray.map((team: any) => ({
+              id: team.id,
+              name: nameMap.get(team.id) || "NIEZNANA",
+              points: team.points,
+              goals_for: team.goals_for,
+              goals_against: team.goals_against,
+            }));
+
+            const sortedTeams = teamsWithNames.sort(
+              (a: TeamStats, b: TeamStats) => {
+                if (b.points !== a.points) return b.points - a.points;
+                return (b.goals_for - b.goals_against) -
+                       (a.goals_for - a.goals_against);
+              }
+            );
+
+            setTeams(sortedTeams);
+          } else {
+            setTeams([]);
+          }
         } else {
           setTeams([]);
         }
