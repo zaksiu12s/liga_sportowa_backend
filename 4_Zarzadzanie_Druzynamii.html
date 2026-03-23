@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pl"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-secondary-container": "#1b1b1b",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#2f3131",
+                        "tertiary-container": "#eb0000",
+                        "inverse-on-surface": "#f0f1f1",
+                        "secondary": "#5e5e5e",
+                        "surface-variant": "#e2e2e2",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#f9f9f9",
+                        "primary": "#000000",
+                        "on-surface": "#1a1c1c",
+                        "surface": "#f9f9f9",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#ababab",
+                        "primary-fixed-dim": "#474747",
+                        "surface-container": "#eeeeee",
+                        "on-surface-variant": "#474747",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#ffffff",
+                        "surface-container-high": "#e8e8e8",
+                        "surface-container-low": "#f3f3f4",
+                        "on-tertiary-container": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#3b3b3b",
+                        "outline": "#777777",
+                        "tertiary": "#7e0100",
+                        "inverse-primary": "#c6c6c6",
+                        "background": "#f9f9f9",
+                        "secondary-container": "#d4d4d4",
+                        "secondary-fixed": "#c6c6c6",
+                        "surface-tint": "#5e5e5e",
+                        "on-tertiary": "#ffdad4",
+                        "primary-fixed": "#5e5e5e",
+                        "on-primary-container": "#ffffff",
+                        "surface-dim": "#dadada",
+                        "on-secondary-fixed": "#1b1b1b",
+                        "on-primary-fixed-variant": "#e2e2e2",
+                        "on-background": "#1a1c1c",
+                        "on-error-container": "#410002",
+                        "on-primary-fixed": "#ffffff",
+                        "tertiary-fixed": "#c00100",
+                        "outline-variant": "#c6c6c6",
+                        "tertiary-fixed-dim": "#930100",
+                        "on-primary": "#e2e2e2",
+                        "on-tertiary-fixed-variant": "#ffdad4",
+                        "on-secondary-fixed-variant": "#3b3b3b",
+                        "surface-container-highest": "#e2e2e2"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f9f9;
+        }
+        .brutal-shadow {
+            box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+        }
+        .brutal-shadow-red {
+            box-shadow: 4px 4px 0px 0px rgba(255,0,0,1);
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-screen w-64 border-r-2 border-black bg-black text-white p-4 space-y-4 sticky top-0">
+<div class="mb-8">
+<h1 class="text-xl font-black text-white font-headline tracking-tighter">ADMIN PANEL</h1>
+<p class="text-[10px] text-zinc-500 font-bold tracking-widest">LIGA ZSEM v1.0</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 p-3 border-2 border-transparent hover:border-white hover:bg-zinc-800 transition-all font-headline uppercase font-bold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                PANEL KONTROLNY
+            </a>
+<a class="flex items-center gap-3 p-3 bg-red-600 text-white border-2 border-white font-headline uppercase font-bold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+                DRUŻYNY
+            </a>
+<a class="flex items-center gap-3 p-3 border-2 border-transparent hover:border-white hover:bg-zinc-800 transition-all font-headline uppercase font-bold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="sports_soccer">sports_soccer</span>
+                MECZE
+            </a>
+<a class="flex items-center gap-3 p-3 border-2 border-transparent hover:border-white hover:bg-zinc-800 transition-all font-headline uppercase font-bold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+                ZAWODNICY
+            </a>
+</nav>
+<div class="pt-4 border-t border-zinc-800">
+<button class="w-full bg-red-600 hover:bg-red-700 text-white font-headline font-black py-3 border-2 border-white transition-transform active:scale-95 text-sm uppercase">
+                DODAJ WYNIK
+            </button>
+<a class="flex items-center gap-3 p-3 mt-4 text-zinc-400 hover:text-white transition-colors font-headline uppercase font-bold text-xs" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                WYLOGUJ
+            </a>
+</div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 bg-surface">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-6 py-4 bg-white border-b-2 border-black sticky top-0 z-10">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-black text-black tracking-tighter font-headline">LIGA SPORTOWA ZSEM</span>
+<nav class="hidden lg:flex gap-6">
+<a class="text-black font-headline font-bold uppercase tracking-tighter hover:bg-black hover:text-white px-2 py-1 transition-colors duration-100" href="#">PANEL KONTROLNY</a>
+<a class="text-red-600 underline decoration-4 underline-offset-8 font-headline font-bold uppercase tracking-tighter px-2 py-1" href="#">DRUŻYNY</a>
+<a class="text-black font-headline font-bold uppercase tracking-tighter hover:bg-black hover:text-white px-2 py-1 transition-colors duration-100" href="#">MECZE</a>
+<a class="text-black font-headline font-bold uppercase tracking-tighter hover:bg-black hover:text-white px-2 py-1 transition-colors duration-100" href="#">ZAWODNICY</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-black hover:bg-black hover:text-white p-2 transition-colors" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-black hover:bg-black hover:text-white p-2 transition-colors" data-icon="settings">settings</button>
+<div class="w-10 h-10 border-2 border-black overflow-hidden bg-zinc-200">
+<img class="w-full h-full object-cover" data-alt="Administrator profil" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPK-d9nV_HJLzfEbK1kWAX_MqSKYWAD0FaslaV1hSRV8PGy-j1gbfu0jLF9o3YNQLvGw_LxJH5OxCEwJYD4nsIc1cJn_ULmb7qPDscU_4BVlWOEJ5ZVuWTlkK8FgK5piL8W5_OPk88EBbKf6oiaYBkOscb9fwPXfIvESm1M4vdve6TmhndIhIyYcGIWxKiyn_NskDopEObshbixqTUH6Zh93gqzxlUm1hSmY51Ol1K8z2G2cCQtqQrHpqTXB7N8T9MdXovfnqEYh9n"/>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<section class="p-8 max-w-7xl w-full mx-auto">
+<!-- Page Header Container -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+<div>
+<h2 class="text-5xl font-black font-headline text-black uppercase tracking-tighter leading-none mb-2">DRUŻYNY</h2>
+<p class="text-black/60 font-medium font-body uppercase tracking-widest text-xs">ZARZĄDZANIE LISTĄ UCZESTNIKÓW LIGI</p>
+</div>
+<button class="bg-red-600 text-white font-headline font-black px-8 py-4 border-2 border-black brutal-shadow hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all uppercase tracking-tight active:translate-x-0 active:translate-y-0 active:shadow-none">
+                    DODAJ NOWĄ DRUŻYNĘ
+                </button>
+</div>
+<!-- Stats Overview - Bento Style -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+<div class="bg-white border-2 border-black p-6 brutal-shadow">
+<p class="font-label text-xs font-black uppercase tracking-widest mb-1 text-black/50">ŁĄCZNIE DRUŻYN</p>
+<p class="font-headline text-4xl font-black">15</p>
+</div>
+<div class="bg-black text-white border-2 border-black p-6 brutal-shadow">
+<p class="font-label text-xs font-black uppercase tracking-widest mb-1 text-white/50">LIDER TABELI</p>
+<p class="font-headline text-4xl font-black">ELEKTRYK FC</p>
+</div>
+<div class="bg-white border-2 border-black p-6 brutal-shadow">
+<p class="font-label text-xs font-black uppercase tracking-widest mb-1 text-black/50">GRUPY AKTYWNE</p>
+<p class="font-headline text-4xl font-black">3 [A, B, C]</p>
+</div>
+</div>
+<!-- Data Table Container -->
+<div class="bg-white border-2 border-black brutal-shadow overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-black text-white">
+<th class="p-4 font-label text-xs font-black uppercase tracking-widest border-r border-white/20">ID</th>
+<th class="p-4 font-label text-xs font-black uppercase tracking-widest border-r border-white/20">NAZWA DRUŻYNY</th>
+<th class="p-4 font-label text-xs font-black uppercase tracking-widest border-r border-white/20 text-center">GRUPA</th>
+<th class="p-4 font-label text-xs font-black uppercase tracking-widest border-r border-white/20 text-center">PUNKTY</th>
+<th class="p-4 font-label text-xs font-black uppercase tracking-widest border-r border-white/20 text-center">GOLE</th>
+<th class="p-4 font-label text-xs font-black uppercase tracking-widest text-right">AKCJE</th>
+</tr>
+</thead>
+<tbody class="divide-y-2 divide-black">
+<!-- Team Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-4 font-headline font-bold border-r-2 border-black">#01</td>
+<td class="p-4 font-headline font-black text-lg border-r-2 border-black">ELEKTRYK FC</td>
+<td class="p-4 border-r-2 border-black text-center">
+<span class="inline-block bg-black text-white px-3 py-1 font-headline font-bold">A</span>
+</td>
+<td class="p-4 border-r-2 border-black text-center font-headline font-black text-xl">24</td>
+<td class="p-4 border-r-2 border-black text-center font-body font-bold">42:12</td>
+<td class="p-4 text-right space-x-2">
+<button class="bg-black text-white p-2 hover:bg-red-600 transition-colors">
+<span class="material-symbols-outlined block text-sm" data-icon="edit">edit</span>
+</button>
+<button class="border-2 border-black p-2 hover:bg-black hover:text-white transition-colors">
+<span class="material-symbols-outlined block text-sm" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+<!-- Team Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-4 font-headline font-bold border-r-2 border-black">#02</td>
+<td class="p-4 font-headline font-black text-lg border-r-2 border-black">TECH-UNITED</td>
+<td class="p-4 border-r-2 border-black text-center">
+<span class="inline-block bg-black text-white px-3 py-1 font-headline font-bold">A</span>
+</td>
+<td class="p-4 border-r-2 border-black text-center font-headline font-black text-xl">21</td>
+<td class="p-4 border-r-2 border-black text-center font-body font-bold">38:15</td>
+<td class="p-4 text-right space-x-2">
+<button class="bg-black text-white p-2 hover:bg-red-600 transition-colors">
+<span class="material-symbols-outlined block text-sm" data-icon="edit">edit</span>
+</button>
+<button class="border-2 border-black p-2 hover:bg-black hover:text-white transition-colors">
+<span class="material-symbols-outlined block text-sm" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+<!-- Team Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-4 font-headline font-bold border-r-2 border-black">#03</td>
+<td class="p-4 font-headline font-black text-lg border-r-2 border-black">MECHANIK KRAKÓW</td>
+<td class="p-4 border-r-2 border-black text-center">
+<span class="inline-block bg-black text-white px-3 py-1 font-headline font-bold">B</span>
+</td>
+<td class="p-4 border-r-2 border-black text-center font-headline font-black text-xl">19</td>
+<td class="p-4 border-r-2 border-black text-center font-body font-bold">29:18</td>
+<td class="p-4 text-right space-x-2">
+<button class="bg-black text-white p-2 hover:bg-red-600 transition-colors">
+<span class="material-symbols-outlined block text-sm" data-icon="edit">edit</span>
+</button>
+<button class="border-2 border-black p-2 hover:bg-black hover:text-white transition-colors">
+<span class="material-symbols-outlined block text-sm" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+<!-- Team Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-4 font-headline font-bold border-r-2 border-black">#04</td>
+<td class="p-4 font-headline font-black text-lg border-r-2 border-black">CYBER-TEAM ZSEM</td>
+<td class="p-4 border-r-2 border-black text-center">
+<span class="inline-block bg-black text-white px-3 py-1 font-headline font-bold">C</span>
+</td>
+<td class="p-4 border-r-2 border-black text-center font-headline font-black text-xl">18</td>
+<td class="p-4 border-r-2 border-black text-center font-body font-bold">22:10</td>
+<td class="p-4 text-right space-x-2">
+<button class="bg-black text-white p-2 hover:bg-red-600 transition-colors">
+<span class="material-symbols-outlined block text-sm" data-icon="edit">edit</span>
+</button>
+<button class="border-2 border-black p-2 hover:bg-black hover:text-white transition-colors">
+<span class="material-symbols-outlined block text-sm" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 (Simplified repeated data for layout demonstration) -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-4 font-headline font-bold border-r-2 border-black">#05</td>
+<td class="p-4 font-headline font-black text-lg border-r-2 border-black">KODERZY FC</td>
+<td class="p-4 border-r-2 border-black text-center">
+<span class="inline-block bg-black text-white px-3 py-1 font-headline font-bold">B</span>
+</td>
+<td class="p-4 border-r-2 border-black text-center font-headline font-black text-xl">15</td>
+<td class="p-4 border-r-2 border-black text-center font-body font-bold">19:14</td>
+<td class="p-4 text-right space-x-2">
+<button class="bg-black text-white p-2 hover:bg-red-600 transition-colors">
+<span class="material-symbols-outlined block text-sm" data-icon="edit">edit</span>
+</button>
+<button class="border-2 border-black p-2 hover:bg-black hover:text-white transition-colors">
+<span class="material-symbols-outlined block text-sm" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+<!-- More teams... -->
+<tr class="bg-surface-container-low italic">
+<td class="p-4 text-center font-body text-xs text-black/40 uppercase tracking-widest font-black" colspan="6">
+                                    Wyświetlanie 5 z 15 zarejestrowanych drużyn
+                                </td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Footer Pagination / Actions -->
+<div class="flex justify-between items-center mt-8">
+<div class="flex gap-2">
+<button class="border-2 border-black px-4 py-2 font-headline font-black text-sm hover:bg-black hover:text-white transition-colors brutal-shadow">POPRZEDNIA</button>
+<button class="border-2 border-black px-4 py-2 font-headline font-black text-sm bg-black text-white brutal-shadow">1</button>
+<button class="border-2 border-black px-4 py-2 font-headline font-black text-sm hover:bg-black hover:text-white transition-colors brutal-shadow">2</button>
+<button class="border-2 border-black px-4 py-2 font-headline font-black text-sm hover:bg-black hover:text-white transition-colors brutal-shadow">3</button>
+<button class="border-2 border-black px-4 py-2 font-headline font-black text-sm hover:bg-black hover:text-white transition-colors brutal-shadow">NASTĘPNA</button>
+</div>
+<div class="hidden md:block">
+<p class="font-label text-xs font-bold uppercase tracking-widest">Ostatnia aktualizacja: 24.05.2024 14:30</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Nav for Mobile -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-black flex justify-around p-2 z-50">
+<button class="flex flex-col items-center p-2 text-zinc-400">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[10px] font-bold">DASH</span>
+</button>
+<button class="flex flex-col items-center p-2 text-red-600">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="text-[10px] font-bold underline">DRUŻYNY</span>
+</button>
+<button class="flex flex-col items-center p-2 text-zinc-400">
+<span class="material-symbols-outlined" data-icon="sports_soccer">sports_soccer</span>
+<span class="text-[10px] font-bold">MECZE</span>
+</button>
+<button class="flex flex-col items-center p-2 text-zinc-400">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[10px] font-bold">USER</span>
+</button>
+</nav>
+</body></html>

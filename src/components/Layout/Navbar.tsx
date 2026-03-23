@@ -4,9 +4,10 @@ import { useAuth } from "../../hooks/useAuth";
 interface NavbarProps {
   currentView: View;
   onNavigate: (view: View) => void;
+  onLoginClick?: () => void;
 }
 
-const Navbar = ({ currentView, onNavigate }: NavbarProps) => {
+const Navbar = ({ currentView, onNavigate, onLoginClick }: NavbarProps) => {
   const { user, logout } = useAuth();
 
   const navItems = [
@@ -62,12 +63,12 @@ const Navbar = ({ currentView, onNavigate }: NavbarProps) => {
               </button>
             </div>
           ) : (
-            <a
-              href="/admin/login"
+            <button
+              onClick={onLoginClick}
               className="px-4 py-2 bg-white text-black border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-black hover:text-white transition-colors"
             >
               ADMIN LOGIN
-            </a>
+            </button>
           )}
         </div>
       </div>

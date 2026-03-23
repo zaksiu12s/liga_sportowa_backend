@@ -17,19 +17,22 @@ export const Login = () => {
     }
 
     try {
+      console.log("Attempting login with email:", email);
       await login(email, password);
+      console.log("Login successful");
     } catch (err) {
-      setLocalError(error || "Login failed. Please try again.");
+      console.error("Login error:", err);
+      const errorMessage = error || (err instanceof Error ? err.message : "Login failed. Please try again.");
+      setLocalError(errorMessage);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="w-full max-w-md">
-        <div className="bg-white p-12 border-2 border-black">
-          <h1 className="text-3xl font-black uppercase tracking-widest mb-8 text-black">
-            ADMIN PANEL
-          </h1>
+    <div className="w-full max-w-md">
+      <div className="bg-white p-12 border-2 border-black">
+        <h1 className="text-3xl font-black uppercase tracking-widest mb-8 text-black">
+          ADMIN PANEL
+        </h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Input */}
@@ -78,11 +81,14 @@ export const Login = () => {
           </form>
 
           <div className="mt-8 p-4 bg-gray-100 border-2 border-black text-xs text-gray-700">
-            <p className="font-bold mb-2">DEMO CREDENTIALS:</p>
+            <p className="font-bold mb-2">SETUP:</p>
+            <p>1. Go to Supabase project console</p>
+            <p>2. Create a user in Authentication → Users</p>
+            <p>3. Use that email/password to login</p>
+            <p className="mt-3">DEFAULT TEST ACCOUNT:</p>
             <p>Email: admin@liga.com</p>
-            <p>Password: (Check Supabase console)</p>
+            <p>Password: (see browser console for errors)</p>
           </div>
-        </div>
       </div>
     </div>
   );
