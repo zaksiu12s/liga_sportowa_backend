@@ -16,10 +16,6 @@ export const TeamForm = ({
 }: TeamFormProps) => {
   const [formData, setFormData] = useState({
     name: team?.name || "",
-    group: team?.group || "A",
-    points: team?.points || 0,
-    goals_for: team?.goals_for || 0,
-    goals_against: team?.goals_against || 0,
   });
 
   const [error, setError] = useState("");
@@ -30,9 +26,7 @@ export const TeamForm = ({
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name.includes("_") || name.includes("goals") || name === "points"
-        ? parseInt(value) || 0
-        : value,
+      [name]: value,
     }));
   };
 
@@ -65,68 +59,6 @@ export const TeamForm = ({
           onChange={handleChange}
           className="w-full px-3 py-2 bg-white border-2 border-black text-black placeholder-gray-400 focus:outline-none focus:border-red-600"
           placeholder="e.g., Team Alpha"
-          disabled={isLoading}
-        />
-      </div>
-
-      <div>
-        <label className="block text-xs font-black uppercase tracking-widest text-black mb-2">
-          Group
-        </label>
-        <select
-          name="group"
-          value={formData.group}
-          onChange={handleChange}
-          className="w-full px-3 py-2 bg-white border-2 border-black text-black focus:outline-none focus:border-red-600"
-          disabled={isLoading}
-        >
-          <option value="A">A</option>
-          <option value="B">B</option>
-          <option value="C">C</option>
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-xs font-black uppercase tracking-widest text-black mb-2">
-          Points
-        </label>
-        <input
-          type="number"
-          name="points"
-          value={formData.points}
-          onChange={handleChange}
-          className="w-full px-3 py-2 bg-white border-2 border-black text-black focus:outline-none focus:border-red-600"
-          min="0"
-          disabled={isLoading}
-        />
-      </div>
-
-      <div>
-        <label className="block text-xs font-black uppercase tracking-widest text-black mb-2">
-          Goals For
-        </label>
-        <input
-          type="number"
-          name="goals_for"
-          value={formData.goals_for}
-          onChange={handleChange}
-          className="w-full px-3 py-2 bg-white border-2 border-black text-black focus:outline-none focus:border-red-600"
-          min="0"
-          disabled={isLoading}
-        />
-      </div>
-
-      <div>
-        <label className="block text-xs font-black uppercase tracking-widest text-black mb-2">
-          Goals Against
-        </label>
-        <input
-          type="number"
-          name="goals_against"
-          value={formData.goals_against}
-          onChange={handleChange}
-          className="w-full px-3 py-2 bg-white border-2 border-black text-black focus:outline-none focus:border-red-600"
-          min="0"
           disabled={isLoading}
         />
       </div>

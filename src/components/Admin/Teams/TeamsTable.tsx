@@ -106,18 +106,6 @@ export const TeamsTable = () => {
                 Name
               </th>
               <th className="text-center px-4 py-3 font-black text-xs uppercase">
-                Group
-              </th>
-              <th className="text-center px-4 py-3 font-black text-xs uppercase">
-                Pts
-              </th>
-              <th className="text-center px-4 py-3 font-black text-xs uppercase">
-                GF
-              </th>
-              <th className="text-center px-4 py-3 font-black text-xs uppercase">
-                GA
-              </th>
-              <th className="text-center px-4 py-3 font-black text-xs uppercase">
                 Actions
               </th>
             </tr>
@@ -129,12 +117,6 @@ export const TeamsTable = () => {
                 className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
               >
                 <td className="px-4 py-3 font-semibold">{team.name}</td>
-                <td className="px-4 py-3 text-center">{team.group || "-"}</td>
-                <td className="px-4 py-3 text-center font-bold">
-                  {team.points}
-                </td>
-                <td className="px-4 py-3 text-center">{team.goals_for}</td>
-                <td className="px-4 py-3 text-center">{team.goals_against}</td>
                 <td className="px-4 py-3 flex gap-2 justify-center">
                   <button
                     onClick={() => handleOpenModal(team)}

@@ -8,11 +8,52 @@ export interface AdminUser {
 export interface Team {
   id: string;
   name: string;
-  group: string | null;
-  points: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface TeamStats {
+  id: string;
   goals_for: number;
   goals_against: number;
+  points: number;
+}
+
+export interface StageGroup {
+  id: string;
+  group_code: string;
+  teams: {
+    teams: TeamStats[];
+  };
   created_at: string;
+}
+
+export interface StageType {
+  name: "first_stage" | "second_stage" | "final_stage";
+  label: string;
+}
+
+export type FinalMatchType = "semi-final-A" | "semi-final-B" | "final" | "3rd-place";
+
+export interface FinalStageMatch {
+  id: number;
+  type: FinalMatchType;
+  home_team_id: string;
+  away_team_id: string;
+  created_at: string;
+  home_team?: Team;
+  away_team?: Team;
+}
+
+export interface Player {
+  id: string;
+  first_name: string;
+  last_name: string;
+  class_code: string | null;
+  team_id: string;
+  school: string;
+  created_at: string;
+  team?: Team;
 }
 
 export interface Match {
@@ -24,7 +65,12 @@ export interface Match {
   status: "scheduled" | "live" | "finished";
   scheduled_at: string | null;
   stage: string | null;
+  round?: number | null;
+  group?: string | null;
+  notes?: string | null;
   created_at: string;
+  updated_at?: string;
+  goals_scorers?: string[] | null;
   home_team?: Team;
   away_team?: Team;
 }
@@ -32,7 +78,9 @@ export interface Match {
 export type AdminView =
   | "dashboard"
   | "teams"
-  | "matches";
+  | "matches"
+  | "players"
+  | "stages";
 
 export interface AuthState {
   user: AdminUser | null;

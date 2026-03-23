@@ -20,6 +20,8 @@ export const AdminLayout = ({
     { label: "DASHBOARD", view: "dashboard" },
     { label: "TEAMS", view: "teams" },
     { label: "MATCHES", view: "matches" },
+    { label: "PLAYERS", view: "players" },
+    { label: "STAGES", view: "stages" },
   ];
 
   const handleLogout = async () => {

@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { teamsApi, matchesApi } from "../../utils/adminSupabase";
-import type { Team, Match } from "../../types/admin";
+import { matchesApi } from "../../utils/adminSupabase";
+import type { Match } from "../../types/admin";
 
 export const Dashboard = () => {
-  const [teams, setTeams] = useState<Team[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -11,11 +10,7 @@ export const Dashboard = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [teamsData, matchesData] = await Promise.all([
-          teamsApi.getAll(),
-          matchesApi.getAll(),
-        ]);
-        setTeams(teamsData);
+        const matchesData = await matchesApi.getAll();
         setMatches(matchesData);
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -27,11 +22,9 @@ export const Dashboard = () => {
     fetchData();
 
     // Subscribe to real-time updates (polling every 5 seconds)
-    const unsubTeams = teamsApi.subscribe(setTeams);
     const unsubMatches = matchesApi.subscribe(setMatches);
 
     return () => {
-      unsubTeams();
       unsubMatches();
     };
   }, []);
@@ -41,14 +34,14 @@ export const Dashboard = () => {
 
   const stats = [
     {
-      label: "TOTAL TEAMS",
-      value: teams.length,
-      color: "bg-white border-black text-black",
-    },
-    {
       label: "TOTAL MATCHES",
       value: matches.length,
       color: "bg-white border-black text-black",
+    },
+    {
+      label: "SCHEDULED MATCHES",
+      value: matches.filter((m) => m.status === "scheduled").length,
+      color: "bg-blue-100 border-blue-600 text-blue-900",
     },
     {
       label: "ACTIVE MATCHES",
@@ -58,7 +51,7 @@ export const Dashboard = () => {
     {
       label: "FINISHED MATCHES",
       value: finishedMatches,
-      color: "bg-gray-100 border-gray-600 text-gray-900",
+      color: "bg-green-100 border-green-600 text-green-900",
     },
   ];
 
@@ -104,43 +97,8 @@ export const Dashboard = () => {
       {/* Recent Activity */}
       <div className="bg-white border-2 border-black p-8">
         <h3 className="text-lg font-black uppercase tracking-widest mb-6 border-b-2 border-black pb-4">
-          RECENT ACTIVITY
+          MATCH STATUS
         </h3>
-
-        {/* Top Teams */}
-        <div className="mb-8">
-          <h4 className="text-sm font-black uppercase tracking-widest mb-4">
-            TOP 5 TEAMS
-          </h4>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b-2 border-black">
-                <th className="text-left py-2 font-black text-xs uppercase">
-                  TEAM
-                </th>
-                <th className="text-center py-2 font-black text-xs uppercase">
-                  PTS
-                </th>
-                <th className="text-center py-2 font-black text-xs uppercase">
-                  GF
-                </th>
-                <th className="text-center py-2 font-black text-xs uppercase">
-                  GA
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {teams.slice(0, 5).map((team) => (
-                <tr key={team.id} className="border-b border-gray-200">
-                  <td className="py-2">{team.name}</td>
-                  <td className="text-center font-semibold">{team.points}</td>
-                  <td className="text-center">{team.goals_for}</td>
-                  <td className="text-center">{team.goals_against}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
 
         {/* Matches Stats */}
         <div>

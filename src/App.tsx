@@ -10,7 +10,9 @@ import { ProtectedRoute } from "./components/Auth/ProtectedRoute";
 import { AdminLayout } from "./components/Admin/AdminLayout";
 import { Dashboard } from "./components/Admin/Dashboard";
 import { TeamsTable } from "./components/Admin/Teams/TeamsTable";
-import { MatchesTable } from "./components/Admin/Matches/MatchesTable";
+import { MatchesView } from "./components/Admin/Matches/MatchesView";
+import { PlayersTable } from "./components/Admin/Players/PlayersTable";
+import { StagesView } from "./components/Admin/Stages/StagesView";
 import { ToastContainer } from "./components/Admin/Toast";
 import { useAuth } from "./hooks/useAuth";
 import type { View } from "./types/app";
@@ -29,7 +31,9 @@ function App() {
         <AdminLayout currentView={adminView} onViewChange={setAdminView}>
           {adminView === "dashboard" && <Dashboard />}
           {adminView === "teams" && <TeamsTable />}
-          {adminView === "matches" && <MatchesTable />}
+          {adminView === "matches" && <MatchesView />}
+          {adminView === "players" && <PlayersTable />}
+          {adminView === "stages" && <StagesView />}
         </AdminLayout>
         <ToastContainer />
       </ProtectedRoute>
