@@ -5,8 +5,9 @@ import { useToast } from "../Toast";
 import { MatchResultForm } from "./MatchResultForm";
 import { Modal } from "../Modal";
 
-const INITIAL_GROUPS = ["A", "B", "C"];
-const FINAL_GROUPS = ["final", "semi-final-a", "semi-final-b", "3rd-place"];
+const FIRST_STAGE_GROUPS = ["A", "B", "C"];
+const SECOND_STAGE_GROUPS = ["A", "B"];
+const FINAL_STAGE_GROUPS = ["final", "semi-final-a", "semi-final-b", "3rd-place"];
 const STAGES = ["first_stage", "second_stage", "final_stage"];
 
 export const MatchesView = () => {
@@ -20,7 +21,18 @@ export const MatchesView = () => {
   const { showToast } = useToast();
 
   // Determine which groups to show based on stage
-  const availableGroups = stage === "final_stage" ? FINAL_GROUPS : INITIAL_GROUPS;
+  const availableGroups = stage === "final_stage"
+    ? FINAL_STAGE_GROUPS
+    : stage === "second_stage"
+    ? SECOND_STAGE_GROUPS
+    : FIRST_STAGE_GROUPS;
+
+  // Reset group if it's not available for current stage
+  useEffect(() => {
+    if (!availableGroups.includes(selectedGroup)) {
+      setSelectedGroup(availableGroups[0]);
+    }
+  }, [stage]); // Only depend on stage since availableGroups is derived from it
 
   useEffect(() => {
     loadMatches();
@@ -99,7 +111,14 @@ export const MatchesView = () => {
                 onClick={() => {
                   setStage(s as "first_stage" | "second_stage" | "final_stage");
                   setRound(1);
-                  setSelectedGroup(s === "final_stage" ? "final" : "A");
+                  // Set appropriate default group for stage
+                  if (s === "final_stage") {
+                    setSelectedGroup("final");
+                  } else if (s === "second_stage") {
+                    setSelectedGroup("A");
+                  } else {
+                    setSelectedGroup("A");
+                  }
                 }}
                 className={`px-4 py-2 border-2 font-bold text-xs uppercase ${
                   stage === s
