@@ -17,8 +17,9 @@ export const MATCH_SCHEDULES: MatchSchedule[] = [
 ];
 
 /**
- * Generate round-robin matches for a group
- * Each team plays every other team once
+ * Generate round-robin matches for a group with proper league scheduling
+ * Spreads matches across multiple rounds (max 2 matches per round)
+ * Each team plays every other team once, but spread across multiple rounds
  */
 export function generateRoundRobinMatches(
   teamIds: string[],
@@ -45,31 +46,47 @@ export function generateRoundRobinMatches(
     stage: string;
   }> = [];
 
-  // Generate all unique combinations (i, j) where i < j
-  for (let i = 0; i < teamIds.length; i++) {
-    for (let j = i + 1; j < teamIds.length; j++) {
-      // Alternate home/away for each round
-      if (round % 2 === 1) {
-        matches.push({
-          home_team_id: teamIds[i],
-          away_team_id: teamIds[j],
-          round,
-          group: group,
-          scheduled_at: scheduledAt,
-          status: "scheduled",
-          stage: stage,
-        });
-      } else {
-        matches.push({
-          home_team_id: teamIds[j],
-          away_team_id: teamIds[i],
-          round,
-          group: group,
-          scheduled_at: scheduledAt,
-          status: "scheduled",
-          stage: stage,
-        });
-      }
+  const n = teamIds.length;
+  if (n < 2) return matches;
+
+  // Generate all possible pairings
+  const allPairings: Array<[string, string]> = [];
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      allPairings.push([teamIds[i], teamIds[j]]);
+    }
+  }
+
+  // Calculate matches per round (max 2 matches to ensure no team plays twice)
+  const matchesPerRound = Math.max(2, Math.floor(n / 2));
+  const startIndex = (round - 1) * matchesPerRound;
+  const endIndex = Math.min(startIndex + matchesPerRound, allPairings.length);
+
+  // Add matches for this round
+  for (let i = startIndex; i < endIndex; i++) {
+    const [team1, team2] = allPairings[i];
+
+    // Alternate home/away for balance
+    if (i % 2 === 0) {
+      matches.push({
+        home_team_id: team1,
+        away_team_id: team2,
+        round,
+        group: group,
+        scheduled_at: scheduledAt,
+        status: "scheduled",
+        stage: stage,
+      });
+    } else {
+      matches.push({
+        home_team_id: team2,
+        away_team_id: team1,
+        round,
+        group: group,
+        scheduled_at: scheduledAt,
+        status: "scheduled",
+        stage: stage,
+      });
     }
   }
 
