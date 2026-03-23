@@ -1,53 +1,78 @@
 import { useState, useEffect } from "react";
 import type { Match } from "../../../types/admin";
-import { matchesApi } from "../../../utils/adminSupabase";
+import { matchesApi, stagesApi, teamsApi } from "../../../utils/adminSupabase";
 import { useToast } from "../Toast";
 import { MatchResultForm } from "./MatchResultForm";
 import { Modal } from "../Modal";
+import { MATCH_SCHEDULES } from "../../../utils/matchGenerator";
 
 const FIRST_STAGE_GROUPS = ["A", "B", "C"];
 const SECOND_STAGE_GROUPS = ["A", "B"];
 const FINAL_STAGE_GROUPS = ["final", "semi-final-a", "semi-final-b", "3rd-place"];
 const STAGES = ["first_stage", "second_stage", "final_stage"];
 
+interface RoundSchedule {
+  round: number;
+  date: string;
+  timeStart: string;
+  timeEnd: string;
+}
+
 export const MatchesView = () => {
-  const [round, setRound] = useState(1);
+  // Core state
   const [stage, setStage] = useState<"first_stage" | "second_stage" | "final_stage">("first_stage");
-  const [selectedGroup, setSelectedGroup] = useState<string>("A");
+  const [activeTab, setActiveTab] = useState<"generate" | "manual">("generate");
   const [matches, setMatches] = useState<Match[]>([]);
-  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loadingGenerate, setLoadingGenerate] = useState(false);
   const { showToast } = useToast();
 
-  // Determine which groups to show based on stage
-  const availableGroups = stage === "final_stage"
-    ? FINAL_STAGE_GROUPS
-    : stage === "second_stage"
-    ? SECOND_STAGE_GROUPS
-    : FIRST_STAGE_GROUPS;
+  // Auto-generate tab state
+  const [roundSchedules, setRoundSchedules] = useState<RoundSchedule[]>([]);
+  const [loadingGenerate, setLoadingGenerate] = useState(false);
 
-  // Reset group if it's not available for current stage
+  // Manual add tab state
+  const [manualForm, setManualForm] = useState({
+    group: "",
+    round: 1,
+    homeTeamId: "",
+    awayTeamId: "",
+    date: "",
+    time: "",
+  });
+  const [loadingManual, setLoadingManual] = useState(false);
+  const [availableTeams, setAvailableTeams] = useState<Array<{ id: string; name: string }>>([]);
+
+  // Modal state
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Initialize round schedules from MATCH_SCHEDULES
   useEffect(() => {
-    if (!availableGroups.includes(selectedGroup)) {
-      setSelectedGroup(availableGroups[0]);
-    }
-  }, [stage]); // Only depend on stage since availableGroups is derived from it
+    const schedules = MATCH_SCHEDULES.map((schedule) => ({
+      round: schedule.round,
+      date: schedule.date.toISOString().split("T")[0],
+      timeStart: schedule.timeStart,
+      timeEnd: schedule.timeEnd,
+    }));
+    setRoundSchedules(schedules);
+  }, []);
 
+  // Load matches for current stage
   useEffect(() => {
     loadMatches();
-  }, [selectedGroup, round, stage]);
+  }, [stage]);
+
+  // Update available teams when stage/group changes
+  useEffect(() => {
+    if (stage !== "final_stage" && manualForm.group && (stage === "first_stage" || stage === "second_stage")) {
+      loadTeamsForGroup();
+    }
+  }, [stage, manualForm.group]);
 
   const loadMatches = async () => {
     try {
-      console.log(`Loading matches for group: ${selectedGroup}, stage: ${stage}`);
-      const data = await matchesApi.getByGroupAndStage(selectedGroup, stage as "first_stage" | "second_stage" | "final_stage");
-      console.log(`Loaded ${data.length} matches`);
-      if (data.length > 0) {
-        console.log("First match data:", data[0]);
-        console.log("All match statuses:", data.map(m => ({ id: m.id, status: m.status })));
-      }
-      setMatches(data);
+      const data = await matchesApi.getAll();
+      const filtered = data.filter((m) => m.stage === stage);
+      setMatches(filtered);
     } catch (error) {
       console.error("Failed to load matches:", error);
       showToast(
@@ -58,30 +83,132 @@ export const MatchesView = () => {
     }
   };
 
-  const handleGenerateRound = async () => {
+  const loadTeamsForGroup = async () => {
+    try {
+      if (stage === "final_stage") {
+        setAvailableTeams([]);
+        return;
+      }
+
+      const groups = await stagesApi.getGroupsByStage(stage as "first_stage" | "second_stage");
+      const group = groups.find((g) => g.group_code === manualForm.group);
+
+      if (group && group.teams?.teams) {
+        // Fetch all teams to get names
+        const allTeams = await teamsApi.getAll();
+        const teamMap = Object.fromEntries(allTeams.map((t) => [t.id, t.name]));
+
+        // Map group team IDs to names
+        const teams = group.teams.teams.map((t: any) => ({
+          id: t.id,
+          name: teamMap[t.id] || `Team ${t.id.slice(0, 8)}`,
+        }));
+        setAvailableTeams(teams);
+      } else {
+        setAvailableTeams([]);
+      }
+    } catch (error) {
+      console.error("Failed to load teams for group:", error);
+      setAvailableTeams([]);
+    }
+  };
+
+  const getAvailableGroups = () => {
+    if (stage === "final_stage") return FINAL_STAGE_GROUPS;
+    if (stage === "second_stage") return SECOND_STAGE_GROUPS;
+    return FIRST_STAGE_GROUPS;
+  };
+
+  const handleGenerateAll = async () => {
+    if (stage === "final_stage") {
+      showToast("Cannot generate matches for final stage", "error");
+      return;
+    }
+
     setLoadingGenerate(true);
     try {
-      console.log(`[MatchesView] Generating matches for ${stage}, round ${round}`);
-      const result = await matchesApi.generateRoundRobinMatches(stage as "first_stage" | "second_stage", round);
-      console.log(`[MatchesView] Generation complete. Created ${result.length} matches`);
-      showToast(`Generated ${result.length} matches for round ${round}`, "success");
+      console.log(`[MatchesView] Generating all matches for ${stage}`);
+
+      // For each round, generate matches
+      let totalCreated = 0;
+      for (const schedule of roundSchedules) {
+        const scheduledAt = new Date(`${schedule.date}T${schedule.timeStart}:00`).toISOString();
+        const result = await matchesApi.generateRoundRobinMatches(
+          stage as "first_stage" | "second_stage",
+          schedule.round,
+          scheduledAt
+        );
+        totalCreated += result.length;
+      }
+
+      showToast(`Generated ${totalCreated} matches for all rounds`, "success");
       await loadMatches();
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error(`[MatchesView] Generation error:`, error);
-      showToast(
-        `Failed to generate matches: ${errorMsg}`,
-        "error"
-      );
+      showToast(`Failed to generate matches: ${errorMsg}`, "error");
     } finally {
       setLoadingGenerate(false);
     }
   };
 
-  const handleUpdateScore = async (scoreHome: number, scoreAway: number, goalScorers?: { goals: Array<{ team_id: string; player_id: string; time: number }> }) => {
+  const handleAddMatch = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!manualForm.homeTeamId || !manualForm.awayTeamId) {
+      showToast("Please select both teams", "error");
+      return;
+    }
+
+    if (manualForm.homeTeamId === manualForm.awayTeamId) {
+      showToast("Teams must be different", "error");
+      return;
+    }
+
+    if (!manualForm.date || !manualForm.time) {
+      showToast("Please enter date and time", "error");
+      return;
+    }
+
+    setLoadingManual(true);
+    try {
+      const scheduledAt = new Date(`${manualForm.date}T${manualForm.time}:00`).toISOString();
+
+      await matchesApi.create({
+        home_team_id: manualForm.homeTeamId,
+        away_team_id: manualForm.awayTeamId,
+        stage,
+        group: manualForm.group,
+        scheduled_at: scheduledAt,
+        status: "scheduled",
+      } as any);
+
+      showToast("Match added successfully", "success");
+
+      // Reset form
+      setManualForm({
+        group: "",
+        round: 1,
+        homeTeamId: "",
+        awayTeamId: "",
+        date: "",
+        time: "",
+      });
+
+      await loadMatches();
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error("Failed to add match:", error);
+      showToast(`Failed to add match: ${errorMsg}`, "error");
+    } finally {
+      setLoadingManual(false);
+    }
+  };
+
+  const handleUpdateScore = async (scoreHome: number, scoreAway: number) => {
     if (!selectedMatch) return;
     try {
-      await matchesApi.updateMatchScore(selectedMatch.id, scoreHome, scoreAway, goalScorers);
+      await matchesApi.updateMatchScore(selectedMatch.id, scoreHome, scoreAway);
       showToast("Match score updated and standings recalculated", "success");
       setIsModalOpen(false);
       setSelectedMatch(null);
@@ -92,195 +219,332 @@ export const MatchesView = () => {
     }
   };
 
-  // Filter by round - if round column doesn't exist in DB, show all matches
-  const roundMatches = matches; // Show all matches since round column doesn't exist yet
-  const finishedMatches = roundMatches.filter((m) => m.status === "finished");
-  const scheduledMatches = roundMatches.filter((m) => m.status === "scheduled");
-
-  console.log("Render: roundMatches:", roundMatches.length, "finished:", finishedMatches.length, "scheduled:", scheduledMatches.length);
+  // Group matches by group
+  const matchesByGroup = getAvailableGroups().reduce((acc, group) => {
+    acc[group] = matches.filter((m) => m.group === group);
+    return acc;
+  }, {} as Record<string, Match[]>);
 
   return (
     <div className="space-y-6">
-      {/* Stage and Round Selector */}
-      <div className="bg-white border-2 border-black p-4 space-y-4">
-        <div>
-          <label className="block text-xs font-black uppercase tracking-widest mb-2">
-            Stage
-          </label>
-          <div className="flex gap-2 flex-wrap">
-            {STAGES.map((s) => (
-              <button
-                key={s}
-                onClick={() => {
-                  setStage(s as "first_stage" | "second_stage" | "final_stage");
-                  setRound(1);
-                  // Set appropriate default group for stage
-                  if (s === "final_stage") {
-                    setSelectedGroup("final");
-                  } else if (s === "second_stage") {
-                    setSelectedGroup("A");
-                  } else {
-                    setSelectedGroup("A");
-                  }
-                }}
-                className={`px-4 py-2 border-2 font-bold text-xs uppercase ${
-                  stage === s
-                    ? "bg-black text-white border-black"
-                    : "bg-white text-black border-black hover:bg-gray-100"
-                }`}
-              >
-                {s === "first_stage" ? "First Stage" : s === "second_stage" ? "Second Stage" : "Final Stage"}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Round Selector - Only for first/second stage */}
-        {stage !== "final_stage" && (
-          <div>
-            <label className="block text-xs font-black uppercase tracking-widest mb-2">
-              Round
-            </label>
-            <select
-              value={round}
-              onChange={(e) => setRound(parseInt(e.target.value))}
-              className="px-3 py-2 border-2 border-black"
-            >
-              {[1, 2, 3, 4, 5, 6].map((r) => (
-                <option key={r} value={r}>
-                  Round {r}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* Generate Button - Only for first/second stage */}
-        {stage !== "final_stage" && (
-          <button
-            onClick={handleGenerateRound}
-            disabled={loadingGenerate}
-            className="w-full px-4 py-2 bg-black text-white border-2 border-black font-bold text-xs uppercase hover:bg-gray-800 disabled:opacity-50"
-          >
-            {loadingGenerate ? "Generating..." : "Generate Round Matches"}
-          </button>
-        )}
-      </div>
-
-      {/* Group Selector */}
+      {/* Stage Selector */}
       <div className="bg-white border-2 border-black p-4">
         <label className="block text-xs font-black uppercase tracking-widest mb-2">
-          {stage === "final_stage" ? "Match Type" : "Group"}
+          Stage
         </label>
         <div className="flex gap-2 flex-wrap">
-          {availableGroups.map((group) => (
+          {STAGES.map((s) => (
             <button
-              key={group}
-              onClick={() => setSelectedGroup(group)}
+              key={s}
+              onClick={() => {
+                setStage(s as "first_stage" | "second_stage" | "final_stage");
+              }}
               className={`px-4 py-2 border-2 font-bold text-xs uppercase ${
-                selectedGroup === group
+                stage === s
                   ? "bg-black text-white border-black"
                   : "bg-white text-black border-black hover:bg-gray-100"
               }`}
             >
-              {group.toUpperCase()}
+              {s === "first_stage" ? "First Stage" : s === "second_stage" ? "Second Stage" : "Final Stage"}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Finished Matches */}
-      {finishedMatches.length > 0 && (
-        <div className="bg-white border-2 border-black p-4 space-y-3">
-          <h3 className="text-sm font-black uppercase tracking-widest">
-            Finished Matches
-          </h3>
-          {finishedMatches.map((match) => (
-            <div
-              key={match.id}
-              className="flex justify-between items-center border-2 border-black p-3 bg-green-50"
+      {/* Tab Selector */}
+      {stage !== "final_stage" && (
+        <div className="bg-white border-2 border-black p-4">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveTab("generate")}
+              className={`px-4 py-2 border-2 font-bold text-xs uppercase ${
+                activeTab === "generate"
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-black border-black hover:bg-gray-100"
+              }`}
             >
-              <div className="flex-1">
-                <div className="font-bold">
-                  {match.home_team?.name || "TBD"} vs {match.away_team?.name || "TBD"}
-                </div>
-                <div className="text-sm text-gray-600">
-                  Final: {match.score_home} - {match.score_away}
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setSelectedMatch(match);
-                  setIsModalOpen(true);
-                }}
-                className="px-3 py-1 border-2 border-black font-bold text-xs hover:bg-blue-100"
-              >
-                Edit
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Scheduled Matches */}
-      {scheduledMatches.length > 0 && (
-        <div className="bg-white border-2 border-black p-4 space-y-3">
-          <h3 className="text-sm font-black uppercase tracking-widest">
-            Scheduled Matches
-          </h3>
-          {scheduledMatches.map((match) => (
-            <div
-              key={match.id}
-              className="flex justify-between items-center border-2 border-black p-3 bg-gray-50"
+              Generate Multiple Rounds
+            </button>
+            <button
+              onClick={() => setActiveTab("manual")}
+              className={`px-4 py-2 border-2 font-bold text-xs uppercase ${
+                activeTab === "manual"
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-black border-black hover:bg-gray-100"
+              }`}
             >
-              <div className="flex-1">
-                <div className="font-bold">
-                  {match.home_team?.name || "TBD"} vs {match.away_team?.name || "TBD"}
-                </div>
-                <div className="text-xs text-gray-600">
-                  {match.scheduled_at
-                    ? new Date(match.scheduled_at).toLocaleString()
-                    : "TBD"}
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setSelectedMatch(match);
-                  setIsModalOpen(true);
-                }}
-                className="px-3 py-1 border-2 border-black font-bold text-xs hover:bg-blue-100"
-              >
-                Enter Result
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* No Matches Found Message */}
-      {roundMatches.length === 0 && (
-        <div className="text-center text-gray-500 py-8 border-2 border-black bg-white">
-          No matches for round {round} in group {selectedGroup.toUpperCase()}.
-          {stage === "first_stage" || stage === "second_stage"
-            ? " Generate them using the button above."
-            : ""}
-        </div>
-      )}
-
-      {/* Debug: Show all matches regardless of status */}
-      {roundMatches.length > 0 && finishedMatches.length === 0 && scheduledMatches.length === 0 && (
-        <div className="bg-yellow-50 border-2 border-yellow-400 p-4">
-          <div className="font-bold text-yellow-900 mb-2">
-            DEBUG: {roundMatches.length} matches loaded but none have status "finished" or "scheduled"
+              Add Single Match
+            </button>
           </div>
-          <div className="space-y-2">
-            {roundMatches.map(m => (
-              <div key={m.id} className="text-xs bg-white border border-yellow-300 p-2">
-                {m.home_team?.name || `Team ${m.home_team_id}`} vs {m.away_team?.name || `Team ${m.away_team_id}`}
-                <span className="ml-2 font-mono text-red-600">(status: "{m.status}" | score: {m.score_home}-{m.score_away})</span>
+        </div>
+      )}
+
+      {/* TAB 1: Generate Multiple Rounds */}
+      {stage !== "final_stage" && activeTab === "generate" && (
+        <div className="bg-white border-2 border-black p-4 space-y-4">
+          <h3 className="text-sm font-black uppercase tracking-widest">Round Schedules</h3>
+
+          {/* Round date inputs */}
+          <div className="space-y-3">
+            {roundSchedules.map((schedule, idx) => (
+              <div key={schedule.round} className="border-2 border-black p-3 bg-gray-50 space-y-2">
+                <div className="flex gap-2 items-center">
+                  <label className="text-xs font-bold uppercase w-12">Round {schedule.round}:</label>
+                  <input
+                    type="date"
+                    value={schedule.date}
+                    onChange={(e) => {
+                      const updated = [...roundSchedules];
+                      updated[idx].date = e.target.value;
+                      setRoundSchedules(updated);
+                    }}
+                    className="px-2 py-1 border-2 border-black text-xs"
+                  />
+                  <input
+                    type="time"
+                    value={schedule.timeStart}
+                    onChange={(e) => {
+                      const updated = [...roundSchedules];
+                      updated[idx].timeStart = e.target.value;
+                      setRoundSchedules(updated);
+                    }}
+                    className="px-2 py-1 border-2 border-black text-xs"
+                  />
+                  <span className="text-xs font-bold">-</span>
+                  <input
+                    type="time"
+                    value={schedule.timeEnd}
+                    onChange={(e) => {
+                      const updated = [...roundSchedules];
+                      updated[idx].timeEnd = e.target.value;
+                      setRoundSchedules(updated);
+                    }}
+                    className="px-2 py-1 border-2 border-black text-xs"
+                  />
+                </div>
               </div>
             ))}
           </div>
+
+          {/* Generate button */}
+          <button
+            onClick={handleGenerateAll}
+            disabled={loadingGenerate}
+            className="w-full px-4 py-2 bg-black text-white border-2 border-black font-bold text-xs uppercase hover:bg-gray-800 disabled:opacity-50"
+          >
+            {loadingGenerate ? "Generating..." : "Generate All Matches for This Stage"}
+          </button>
+        </div>
+      )}
+
+      {/* TAB 2: Add Single Match */}
+      {stage !== "final_stage" && activeTab === "manual" && (
+        <div className="bg-white border-2 border-black p-4">
+          <h3 className="text-sm font-black uppercase tracking-widest mb-4">Add Single Match</h3>
+
+          <form onSubmit={handleAddMatch} className="space-y-3">
+            {/* Group selector */}
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest mb-1">
+                Group
+              </label>
+              <select
+                value={manualForm.group}
+                onChange={(e) => {
+                  setManualForm({ ...manualForm, group: e.target.value });
+                }}
+                className="w-full px-3 py-2 border-2 border-black text-xs"
+              >
+                <option value="">Select group</option>
+                {getAvailableGroups().map((g) => (
+                  <option key={g} value={g}>
+                    {g.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Round selector */}
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest mb-1">
+                Round
+              </label>
+              <select
+                value={manualForm.round}
+                onChange={(e) => setManualForm({ ...manualForm, round: parseInt(e.target.value) })}
+                className="w-full px-3 py-2 border-2 border-black text-xs"
+              >
+                {[1, 2, 3, 4, 5, 6].map((r) => (
+                  <option key={r} value={r}>
+                    Round {r}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Home team selector */}
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest mb-1">
+                Home Team
+              </label>
+              <select
+                value={manualForm.homeTeamId}
+                onChange={(e) => setManualForm({ ...manualForm, homeTeamId: e.target.value })}
+                className="w-full px-3 py-2 border-2 border-black text-xs"
+                disabled={!manualForm.group}
+              >
+                <option value="">Select team</option>
+                {availableTeams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Away team selector */}
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest mb-1">
+                Away Team
+              </label>
+              <select
+                value={manualForm.awayTeamId}
+                onChange={(e) => setManualForm({ ...manualForm, awayTeamId: e.target.value })}
+                className="w-full px-3 py-2 border-2 border-black text-xs"
+                disabled={!manualForm.group}
+              >
+                <option value="">Select team</option>
+                {availableTeams
+                  .filter((t) => t.id !== manualForm.homeTeamId)
+                  .map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {/* Date input */}
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest mb-1">
+                Date
+              </label>
+              <input
+                type="date"
+                value={manualForm.date}
+                onChange={(e) => setManualForm({ ...manualForm, date: e.target.value })}
+                className="w-full px-3 py-2 border-2 border-black text-xs"
+              />
+            </div>
+
+            {/* Time input */}
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest mb-1">
+                Time
+              </label>
+              <input
+                type="time"
+                value={manualForm.time}
+                onChange={(e) => setManualForm({ ...manualForm, time: e.target.value })}
+                className="w-full px-3 py-2 border-2 border-black text-xs"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loadingManual}
+              className="w-full px-4 py-2 bg-black text-white border-2 border-black font-bold text-xs uppercase hover:bg-gray-800 disabled:opacity-50"
+            >
+              {loadingManual ? "Adding..." : "Add Match"}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Match Display - Group by Group */}
+      {matches.length > 0 && (
+        <div className="space-y-4">
+          {getAvailableGroups().map((group) => {
+            const groupMatches = matchesByGroup[group] || [];
+            const finished = groupMatches.filter((m) => m.status === "finished");
+            const scheduled = groupMatches.filter((m) => m.status === "scheduled");
+
+            if (groupMatches.length === 0) return null;
+
+            return (
+              <div key={group} className="border-2 border-black bg-white p-4 space-y-3">
+                <h3 className="text-sm font-black uppercase tracking-widest">Group {group.toUpperCase()}</h3>
+
+                {/* Finished matches */}
+                {finished.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-xs font-bold uppercase">Finished</div>
+                    {finished.map((match) => (
+                      <div
+                        key={match.id}
+                        className="flex justify-between items-center border-2 border-black p-2 bg-green-50 text-xs"
+                      >
+                        <div className="flex-1">
+                          <div className="font-bold">
+                            {match.home_team?.name || "TBD"} vs {match.away_team?.name || "TBD"}
+                          </div>
+                          <div className="text-gray-600">
+                            Final: {match.score_home} - {match.score_away}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setSelectedMatch(match);
+                            setIsModalOpen(true);
+                          }}
+                          className="px-2 py-1 border-2 border-black font-bold text-xs hover:bg-blue-100 whitespace-nowrap ml-2"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Scheduled matches */}
+                {scheduled.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-xs font-bold uppercase">Scheduled</div>
+                    {scheduled.map((match) => (
+                      <div
+                        key={match.id}
+                        className="flex justify-between items-center border-2 border-black p-2 bg-gray-50 text-xs"
+                      >
+                        <div className="flex-1">
+                          <div className="font-bold">
+                            {match.home_team?.name || "TBD"} vs {match.away_team?.name || "TBD"}
+                          </div>
+                          <div className="text-gray-600">
+                            {match.scheduled_at ? new Date(match.scheduled_at).toLocaleString() : "TBD"}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setSelectedMatch(match);
+                            setIsModalOpen(true);
+                          }}
+                          className="px-2 py-1 border-2 border-black font-bold text-xs hover:bg-blue-100 whitespace-nowrap ml-2"
+                        >
+                          Enter Result
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {matches.length === 0 && (
+        <div className="text-center text-gray-500 py-8 border-2 border-black bg-white">
+          No matches yet. Generate matches or add manually.
         </div>
       )}
 

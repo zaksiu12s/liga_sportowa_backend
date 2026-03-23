@@ -317,7 +317,8 @@ export const matchesApi = {
 
   async generateRoundRobinMatches(
     stageName: "first_stage" | "second_stage",
-    round: number
+    round: number,
+    customScheduledAt?: string
   ): Promise<Match[]> {
     // Get all groups for the stage
     const { data: groups, error: groupsError } = await (supabase as any)
@@ -332,10 +333,15 @@ export const matchesApi = {
 
     console.log(`Found ${groups?.length || 0} groups for ${stageName}`);
 
-    const schedule = MATCH_SCHEDULES.find((s) => s.round === round);
-    if (!schedule) throw new Error(`Schedule not found for round ${round}`);
-
-    const scheduledAt = new Date(schedule.date).toISOString();
+    // Use custom scheduled time or get from defaults
+    let scheduledAt: string;
+    if (customScheduledAt) {
+      scheduledAt = customScheduledAt;
+    } else {
+      const schedule = MATCH_SCHEDULES.find((s) => s.round === round);
+      if (!schedule) throw new Error(`Schedule not found for round ${round}`);
+      scheduledAt = new Date(schedule.date).toISOString();
+    }
     const createdMatches: Match[] = [];
 
     for (const group of groups || []) {
