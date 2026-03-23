@@ -40,6 +40,10 @@ export interface FinalStageMatch {
   type: FinalMatchType;
   home_team_id: string;
   away_team_id: string;
+  scheduled_at?: string | null;
+  status?: "scheduled" | "live" | "finished";
+  score_home?: number | null;
+  score_away?: number | null;
   created_at: string;
   home_team?: Team;
   away_team?: Team;

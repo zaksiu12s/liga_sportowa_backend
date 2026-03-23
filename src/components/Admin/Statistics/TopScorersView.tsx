@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { matchesApi, playersApi, teamsApi } from "../../../utils/adminSupabase";
+import { topScorersApi } from "../../../utils/adminSupabase";
 import { useToast } from "../Toast";
 
 interface TopScorer {
+  id: string;
   playerId: string;
   playerName: string;
   teamId: string;
@@ -24,64 +25,20 @@ export const TopScorersView = () => {
     try {
       setLoading(true);
 
-      // Fetch all data
-      const matches = await matchesApi.getAll();
-      const players = await playersApi.getAll();
-      const teams = await teamsApi.getAll();
+      // Fetch directly from top_scorers table (pre-calculated)
+      const scorers = await topScorersApi.getAll();
 
-      // Create lookup maps
-      const playerMap = Object.fromEntries(players.map((p) => [p.id, p]));
-      const teamMap = Object.fromEntries(teams.map((t) => [t.id, t]));
+      const mapped = scorers.map((scorer) => ({
+        id: scorer.id,
+        playerId: scorer.player_id,
+        playerName: scorer.player_name,
+        teamId: scorer.team_id,
+        teamName: scorer.team_name,
+        goals: scorer.goals,
+        school: scorer.school,
+      }));
 
-      // Aggregate goals by player
-      const goalsByPlayer: Record<
-        string,
-        { goals: number; playerId: string; teamId: string }
-      > = {};
-
-      matches.forEach((match) => {
-        if (!match.goal_scorers?.goals || match.status !== "finished") {
-          return;
-        }
-
-        match.goal_scorers.goals.forEach((goal) => {
-          const key = goal.player_id;
-
-          if (!goalsByPlayer[key]) {
-            goalsByPlayer[key] = {
-              goals: 0,
-              playerId: goal.player_id,
-              teamId: goal.team_id,
-            };
-          }
-
-          goalsByPlayer[key].goals += 1;
-        });
-      });
-
-      // Convert to array and add player/team info
-      const scorers: TopScorer[] = Object.values(goalsByPlayer)
-        .map((scorer) => {
-          const player = playerMap[scorer.playerId];
-          const team = teamMap[scorer.teamId];
-
-          if (!player || !team) return null;
-
-          return {
-            playerId: scorer.playerId,
-            playerName: `${player.first_name} ${player.last_name}`,
-            teamId: scorer.teamId,
-            teamName: team.name,
-            goals: scorer.goals,
-            school: player.school,
-          };
-        })
-        .filter((s) => s !== null) as TopScorer[];
-
-      // Sort by goals DESC
-      scorers.sort((a, b) => b.goals - a.goals);
-
-      setTopScorers(scorers);
+      setTopScorers(mapped);
     } catch (error) {
       console.error("Failed to load top scorers:", error);
       showToast("Failed to load top scorers data", "error");
@@ -136,7 +93,7 @@ export const TopScorersView = () => {
             <tbody>
               {topScorers.map((scorer, idx) => (
                 <tr
-                  key={scorer.playerId}
+                  key={scorer.id}
                   className={`border-b-2 border-black ${
                     idx % 2 === 0 ? "bg-white" : "bg-gray-50"
                   }`}

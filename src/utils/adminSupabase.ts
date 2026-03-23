@@ -257,9 +257,12 @@ export const matchesApi = {
   },
 
   async create(match: Omit<Match, "id" | "created_at">): Promise<Match> {
+    // Remove fields that don't exist in the database
+    const { round, ...matchWithoutRound } = match;
+
     const { data, error } = await supabase
       .from("matches")
-      .insert([match])
+      .insert([matchWithoutRound])
       .select()
       .single();
 
@@ -375,7 +378,7 @@ export const matchesApi = {
             .eq("away_team_id", match.away_team_id)
             .eq("group", match.group)
             .eq("stage", match.stage)
-            .single();
+            .maybeSingle();
 
           if (existingMatch) {
             console.log(
@@ -384,11 +387,8 @@ export const matchesApi = {
             continue;
           }
 
-          // Don't send round field - column doesn't exist in DB
-          const { round: _, ...matchWithoutRound } = match;
-
           const createdMatch = await matchesApi.create({
-            ...matchWithoutRound,
+            ...match,
             score_home: null,
             score_away: null,
           });
@@ -724,7 +724,8 @@ export const finalStageApi = {
   async create(
     type: string,
     homeTeamId: string,
-    awayTeamId: string
+    awayTeamId: string,
+    scheduledAt?: string
   ): Promise<FinalStageMatch> {
     if (homeTeamId === awayTeamId) {
       throw new Error("Home and away teams must be different");
@@ -732,7 +733,12 @@ export const finalStageApi = {
 
     const { data, error } = await (supabase as any)
       .from("final_stage")
-      .insert([{ type, home_team_id: homeTeamId, away_team_id: awayTeamId }])
+      .insert([{
+        type,
+        home_team_id: homeTeamId,
+        away_team_id: awayTeamId,
+        scheduled_at: scheduledAt || null
+      }])
       .select()
       .single();
 
@@ -761,7 +767,8 @@ export const finalStageApi = {
   async update(
     id: number,
     homeTeamId: string,
-    awayTeamId: string
+    awayTeamId: string,
+    scheduledAt?: string
   ): Promise<FinalStageMatch> {
     if (homeTeamId === awayTeamId) {
       throw new Error("Home and away teams must be different");
@@ -769,7 +776,11 @@ export const finalStageApi = {
 
     const { data, error } = await (supabase as any)
       .from("final_stage")
-      .update({ home_team_id: homeTeamId, away_team_id: awayTeamId })
+      .update({
+        home_team_id: homeTeamId,
+        away_team_id: awayTeamId,
+        scheduled_at: scheduledAt || null
+      })
       .eq("id", id)
       .select()
       .single();
@@ -811,5 +822,26 @@ export const finalStageApi = {
     }, 5000);
 
     return () => clearInterval(interval);
+  },
+};
+
+// TOP SCORERS OPERATIONS
+export const topScorersApi = {
+  async getAll(): Promise<Array<{
+    id: string;
+    player_id: string;
+    player_name: string;
+    team_id: string;
+    team_name: string;
+    goals: number;
+    school: string;
+  }>> {
+    const { data, error } = await supabase
+      .from("top_scorers")
+      .select("*")
+      .order("goals", { ascending: false });
+
+    if (error) throw error;
+    return (data || []);
   },
 };

@@ -62,8 +62,8 @@ export const MatchesView = () => {
 
   // Update available rounds based on stage
   const getAvailableRounds = () => {
-    if (stage === "first_stage") return [1, 2, 3, 4, 5];
-    if (stage === "second_stage") return [6, 7];
+    if (stage === "first_stage") return [1, 2, 3, 4];
+    if (stage === "second_stage") return [5, 6];
     return [];
   };
 
@@ -250,10 +250,10 @@ export const MatchesView = () => {
     }
   };
 
-  const handleUpdateScore = async (scoreHome: number, scoreAway: number) => {
+  const handleUpdateScore = async (scoreHome: number, scoreAway: number, goalScorers?: { goals: Array<{ team_id: string; player_id: string; time: number }> }) => {
     if (!selectedMatch) return;
     try {
-      await matchesApi.updateMatchScore(selectedMatch.id, scoreHome, scoreAway);
+      await matchesApi.updateMatchScore(selectedMatch.id, scoreHome, scoreAway, goalScorers);
       showToast("Match score updated and standings recalculated", "success");
       setIsModalOpen(false);
       setSelectedMatch(null);
@@ -378,7 +378,7 @@ export const MatchesView = () => {
       {/* TAB 1: Generate Multiple Rounds */}
       {stage !== "final_stage" && activeTab === "generate" && (
         <div className="bg-white border-2 border-black p-4 space-y-4">
-          <h3 className="text-sm font-black uppercase tracking-widest">Round Schedules {stage === "first_stage" ? "(1-5)" : "(6-7)"}</h3>
+          <h3 className="text-sm font-black uppercase tracking-widest">Round Schedules {stage === "first_stage" ? "(1-4)" : "(5-6)"}</h3>
 
           {/* Round date inputs */}
           <div className="space-y-3">

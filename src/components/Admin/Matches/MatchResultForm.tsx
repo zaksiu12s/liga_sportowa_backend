@@ -30,7 +30,21 @@ export const MatchResultForm = ({
 
   useEffect(() => {
     loadPlayers();
-  }, []);
+    loadExistingGoals();
+  }, [match.id, match.goal_scorers]);
+
+  const loadExistingGoals = () => {
+    // Load existing goals from match if they exist
+    if (match.goal_scorers && match.goal_scorers.goals && Array.isArray(match.goal_scorers.goals)) {
+      const existingGoals = match.goal_scorers.goals.map((goal: any) => ({
+        id: Math.random().toString(36).substr(2, 9),
+        team_id: goal.team_id || "",
+        player_id: goal.player_id || "",
+        time: goal.time || 0,
+      }));
+      setGoals(existingGoals);
+    }
+  };
 
   const loadPlayers = async () => {
     try {
@@ -73,6 +87,28 @@ export const MatchResultForm = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate that all goals have required fields
+    const invalidGoals = goals.filter(g => !g.team_id || !g.player_id);
+    if (invalidGoals.length > 0) {
+      showToast("All goals must have team and player selected", "error");
+      return;
+    }
+
+    // Validate goal count matches score
+    const homeGoals = goals.filter(g => g.team_id === match.home_team_id).length;
+    const awayGoals = goals.filter(g => g.team_id === match.away_team_id).length;
+
+    if (homeGoals !== scoreHome) {
+      showToast(`Home team has ${homeGoals} goal scorers but score is ${scoreHome}`, "error");
+      return;
+    }
+
+    if (awayGoals !== scoreAway) {
+      showToast(`Away team has ${awayGoals} goal scorers but score is ${scoreAway}`, "error");
+      return;
+    }
+
     setLoading(true);
     try {
       const goalScorersData = {
@@ -82,6 +118,14 @@ export const MatchResultForm = ({
           time: Number(g.time),
         })),
       };
+
+      console.log("Submitting match result:", {
+        scoreHome,
+        scoreAway,
+        goalsCount: goals.length,
+        goalScorersData
+      });
+
       await onSubmit(scoreHome, scoreAway, goalScorersData);
     } catch (error) {
       showToast(
@@ -154,11 +198,25 @@ export const MatchResultForm = ({
       </div>
 
       {/* Goal Scorers Section */}
-      <div className="border-2 border-black p-4 space-y-3">
+      <div className="border-2 border-black p-4 space-y-3 bg-blue-50">
         <div className="flex justify-between items-center">
-          <h4 className="font-black text-sm uppercase tracking-widest">
-            Goal Scorers
-          </h4>
+          <div>
+            <h4 className="font-black text-sm uppercase tracking-widest">
+              Goal Scorers
+            </h4>
+            <div className="text-xs text-gray-600 mt-1">
+              Total: <span className="font-bold">{goals.length}</span> {goals.length === 1 ? "goal" : "goals"}
+            </div>
+            <div className="text-xs mt-2 space-y-1">
+              <div className={`${goals.filter(g => g.team_id === match.home_team_id).length === scoreHome ? "text-green-700" : "text-red-700"} font-bold`}>
+                {match.home_team?.name || "Home"}: {goals.filter(g => g.team_id === match.home_team_id).length}/{scoreHome}
+              </div>
+              <div className={`${goals.filter(g => g.team_id === match.away_team_id).length === scoreAway ? "text-green-700" : "text-red-700"} font-bold`}>
+                {match.away_team?.name || "Away"}: {goals.filter(g => g.team_id === match.away_team_id).length}/{scoreAway}
+              </div>
+            </div>
+          </div>
+          </div>
           <button
             type="button"
             onClick={handleAddGoal}
@@ -170,11 +228,13 @@ export const MatchResultForm = ({
         </div>
 
         {goals.length === 0 ? (
-          <div className="text-xs text-gray-500 py-2">No goals added yet</div>
+          <div className="text-xs text-gray-500 py-2 bg-white border-2 border-dashed border-gray-300 p-2 text-center">
+            No goals added yet. Click "+ ADD GOAL" to record scorers.
+          </div>
         ) : (
           <div className="space-y-3">
             {goals.map((goal, idx) => (
-              <div key={goal.id} className="bg-gray-50 border-2 border-gray-300 p-3 space-y-2">
+              <div key={goal.id} className="bg-white border-2 border-blue-300 p-3 space-y-2">
                 <div className="flex justify-between items-start">
                   <div className="font-black text-xs uppercase">Goal {idx + 1}</div>
                   <button
@@ -191,16 +251,17 @@ export const MatchResultForm = ({
                   {/* Team */}
                   <div>
                     <label className="block text-xs font-black uppercase mb-1">
-                      Team
+                      Team *
                     </label>
                     <select
                       value={goal.team_id}
                       onChange={(e) =>
                         handleGoalChange(goal.id, "team_id", e.target.value)
                       }
-                      className="w-full px-2 py-1 border-2 border-black text-xs"
+                      className="w-full px-2 py-1 border-2 border-black text-xs font-bold bg-white"
                       disabled={loading}
                     >
+                      <option value="">-- Select --</option>
                       <option value={match.home_team_id || ""}>
                         {match.home_team?.name || "Home"}
                       </option>
@@ -213,17 +274,17 @@ export const MatchResultForm = ({
                   {/* Player */}
                   <div>
                     <label className="block text-xs font-black uppercase mb-1">
-                      Player
+                      Player *
                     </label>
                     <select
                       value={goal.player_id}
                       onChange={(e) =>
                         handleGoalChange(goal.id, "player_id", e.target.value)
                       }
-                      className="w-full px-2 py-1 border-2 border-black text-xs"
-                      disabled={loading}
+                      className="w-full px-2 py-1 border-2 border-black text-xs bg-white"
+                      disabled={loading || !goal.team_id}
                     >
-                      <option value="">Select player</option>
+                      <option value="">-- Select --</option>
                       {getTeamPlayers(goal.team_id).map((player) => (
                         <option key={player.id} value={player.id}>
                           {player.first_name} {player.last_name}
@@ -235,7 +296,7 @@ export const MatchResultForm = ({
                   {/* Time */}
                   <div>
                     <label className="block text-xs font-black uppercase mb-1">
-                      Time (min)
+                      Time (min) *
                     </label>
                     <input
                       type="number"
@@ -245,7 +306,7 @@ export const MatchResultForm = ({
                       onChange={(e) =>
                         handleGoalChange(goal.id, "time", parseInt(e.target.value) || 0)
                       }
-                      className="w-full px-2 py-1 border-2 border-black text-xs text-center"
+                      className="w-full px-2 py-1 border-2 border-black text-xs text-center font-bold"
                       disabled={loading}
                     />
                   </div>

@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import { matchesApi } from "../../utils/adminSupabase";
-import type { Match } from "../../types/admin";
+import type { Match, AdminView } from "../../types/admin";
 
-export const Dashboard = () => {
+interface DashboardProps {
+  onViewChange: (view: AdminView) => void;
+}
+
+export const Dashboard = ({ onViewChange }: DashboardProps) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -89,8 +93,14 @@ export const Dashboard = () => {
           QUICK ACTIONS
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <QuickActionButton label="+ ADD TEAM" />
-          <QuickActionButton label="+ SCHEDULE MATCH" />
+          <QuickActionButton
+            label="+ ADD TEAM"
+            onClick={() => onViewChange("teams")}
+          />
+          <QuickActionButton
+            label="+ SCHEDULE MATCH"
+            onClick={() => onViewChange("matches")}
+          />
         </div>
       </div>
 
@@ -135,8 +145,17 @@ export const Dashboard = () => {
   );
 };
 
-const QuickActionButton = ({ label }: { label: string }) => (
-  <button className="px-6 py-4 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors">
+const QuickActionButton = ({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    className="px-6 py-4 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors"
+  >
     {label}
   </button>
 );

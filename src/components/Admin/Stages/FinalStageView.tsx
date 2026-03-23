@@ -37,9 +37,9 @@ export const FinalStageView = () => {
     }
   };
 
-  const handleCreate = async (data: { type: string; homeTeamId: string; awayTeamId: string }) => {
+  const handleCreate = async (data: { type: string; homeTeamId: string; awayTeamId: string; scheduledAt?: string }) => {
     try {
-      const newMatch = await finalStageApi.create(data.type, data.homeTeamId, data.awayTeamId);
+      const newMatch = await finalStageApi.create(data.type, data.homeTeamId, data.awayTeamId, data.scheduledAt);
       setMatches([newMatch, ...matches]);
       setIsModalOpen(false);
       setSelectedMatch(undefined);
@@ -49,13 +49,14 @@ export const FinalStageView = () => {
     }
   };
 
-  const handleUpdate = async (data: { type: string; homeTeamId: string; awayTeamId: string }) => {
+  const handleUpdate = async (data: { type: string; homeTeamId: string; awayTeamId: string; scheduledAt?: string }) => {
     if (!selectedMatch) return;
     try {
       const updated = await finalStageApi.update(
         selectedMatch.id,
         data.homeTeamId,
-        data.awayTeamId
+        data.awayTeamId,
+        data.scheduledAt
       );
       setMatches(matches.map((m) => (m.id === selectedMatch.id ? updated : m)));
       setIsModalOpen(false);
@@ -140,7 +141,10 @@ export const FinalStageView = () => {
                     {match.home_team?.name || "TBD"} vs {match.away_team?.name || "TBD"}
                   </div>
                   <div className="text-xs text-gray-600">
-                    {new Date(match.created_at).toLocaleString()}
+                    {match.scheduled_at
+                      ? new Date(match.scheduled_at).toLocaleString()
+                      : "No time set"
+                    }
                   </div>
                 </div>
                 <div className="flex gap-2">

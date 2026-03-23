@@ -30,7 +30,7 @@ function App() {
     return (
       <ProtectedRoute>
         <AdminLayout currentView={adminView} onViewChange={setAdminView}>
-          {adminView === "dashboard" && <Dashboard />}
+          {adminView === "dashboard" && <Dashboard onViewChange={setAdminView} />}
           {adminView === "teams" && <TeamsTable />}
           {adminView === "matches" && <MatchesView />}
           {adminView === "players" && <PlayersTable />}

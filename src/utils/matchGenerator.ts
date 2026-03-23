@@ -8,13 +8,12 @@ export interface MatchSchedule {
 }
 
 export const MATCH_SCHEDULES: MatchSchedule[] = [
-  { round: 1, date: new Date(2024, 3, 16), timeStart: "17:00", timeEnd: "20:00" },
-  { round: 2, date: new Date(2024, 3, 23), timeStart: "17:00", timeEnd: "20:00" },
-  { round: 3, date: new Date(2024, 3, 30), timeStart: "17:00", timeEnd: "20:00" },
-  { round: 4, date: new Date(2024, 4, 21), timeStart: "17:00", timeEnd: "20:00" },
-  { round: 5, date: new Date(2024, 4, 28), timeStart: "17:00", timeEnd: "20:00" },
-  { round: 6, date: new Date(2024, 5, 11), timeStart: "17:00", timeEnd: "18:30" },
-  { round: 7, date: new Date(2024, 5, 18), timeStart: "17:00", timeEnd: "18:30" },
+  { round: 1, date: new Date(Date.UTC(2026, 3, 16)), timeStart: "17:00", timeEnd: "20:00" },
+  { round: 2, date: new Date(Date.UTC(2026, 3, 23)), timeStart: "17:00", timeEnd: "20:00" },
+  { round: 3, date: new Date(Date.UTC(2026, 3, 30)), timeStart: "17:00", timeEnd: "20:00" },
+  { round: 4, date: new Date(Date.UTC(2026, 4, 21)), timeStart: "17:00", timeEnd: "20:00" },
+  { round: 5, date: new Date(Date.UTC(2026, 4, 28)), timeStart: "17:00", timeEnd: "18:30" },
+  { round: 6, date: new Date(Date.UTC(2026, 5, 11)), timeStart: "17:00", timeEnd: "18:30" },
 ];
 
 export interface FinalMatchSchedule {
@@ -26,16 +25,16 @@ export interface FinalMatchSchedule {
 }
 
 export const FINALS_SCHEDULES: FinalMatchSchedule[] = [
-  { type: "semi-final-a", date: new Date(2024, 5, 22), timeStart: "08:00", timeEnd: "08:20", name: "Semi-Final A" },
-  { type: "semi-final-b", date: new Date(2024, 5, 22), timeStart: "08:20", timeEnd: "08:40", name: "Semi-Final B" },
-  { type: "3rd-place", date: new Date(2024, 5, 23), timeStart: "09:00", timeEnd: "09:20", name: "3rd Place Match" },
-  { type: "final", date: new Date(2024, 5, 23), timeStart: "09:20", timeEnd: "09:40", name: "Final" },
+  { type: "semi-final-a", date: new Date(Date.UTC(2026, 5, 22)), timeStart: "08:00", timeEnd: "08:20", name: "Semi-Final A" },
+  { type: "semi-final-b", date: new Date(Date.UTC(2026, 5, 22)), timeStart: "08:20", timeEnd: "08:40", name: "Semi-Final B" },
+  { type: "3rd-place", date: new Date(Date.UTC(2026, 5, 23)), timeStart: "09:00", timeEnd: "09:20", name: "3rd Place Match" },
+  { type: "final", date: new Date(Date.UTC(2026, 5, 23)), timeStart: "09:20", timeEnd: "09:40", name: "Final" },
 ];
 
 /**
  * Generate round-robin matches for a group with proper league scheduling
  * Each match is 20 minutes long, scheduled sequentially (no overlaps)
- * Spreads matches across multiple rounds (max 2 matches per round per group)
+ * Spreads matches across stage rounds; for 5-team groups in first stage it uses 3-3-2-2
  */
 export function generateRoundRobinMatches(
   teamIds: string[],
@@ -74,10 +73,24 @@ export function generateRoundRobinMatches(
     }
   }
 
-  // Calculate matches per round (max 2 matches to ensure no team plays twice)
-  const matchesPerRound = Math.max(2, Math.floor(n / 2));
-  const startIndex = (round - 1) * matchesPerRound;
-  const endIndex = Math.min(startIndex + matchesPerRound, allPairings.length);
+  let startIndex = 0;
+  let endIndex = 0;
+
+  if (stage === "first_stage" && n === 5) {
+    const roundDistribution = [3, 3, 2, 2];
+    if (round < 1 || round > roundDistribution.length) {
+      return matches;
+    }
+
+    startIndex = roundDistribution
+      .slice(0, round - 1)
+      .reduce((sum, value) => sum + value, 0);
+    endIndex = Math.min(startIndex + roundDistribution[round - 1], allPairings.length);
+  } else {
+    const matchesPerRound = Math.max(2, Math.floor(n / 2));
+    startIndex = (round - 1) * matchesPerRound;
+    endIndex = Math.min(startIndex + matchesPerRound, allPairings.length);
+  }
 
   // Add matches for this round
   let matchCount = 0;
@@ -150,6 +163,7 @@ export function updateTeamStats(
   const pointsToAdd = isHomeTeam ? homePoints : awayPoints;
 
   return {
+    ...currentStats,
     points: currentStats.points + pointsToAdd,
     goals_for: currentStats.goals_for + scoreTeam,
     goals_against: currentStats.goals_against + scoreOpponent,
