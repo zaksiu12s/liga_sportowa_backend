@@ -225,12 +225,30 @@ export const MatchesView = () => {
         </div>
       )}
 
+      {/* No Matches Found Message */}
       {roundMatches.length === 0 && (
         <div className="text-center text-gray-500 py-8 border-2 border-black bg-white">
           No matches for round {round} in group {selectedGroup.toUpperCase()}.
-          {stage === "first_stage" || stage === "second_stage" ?
-            " Generate them using the button above." :
-            ""}
+          {stage === "first_stage" || stage === "second_stage"
+            ? " Generate them using the button above."
+            : ""}
+        </div>
+      )}
+
+      {/* Debug: Show all matches regardless of status */}
+      {roundMatches.length > 0 && finishedMatches.length === 0 && scheduledMatches.length === 0 && (
+        <div className="bg-yellow-50 border-2 border-yellow-400 p-4">
+          <div className="font-bold text-yellow-900 mb-2">
+            DEBUG: {roundMatches.length} matches loaded but none have status "finished" or "scheduled"
+          </div>
+          <div className="space-y-2">
+            {roundMatches.map(m => (
+              <div key={m.id} className="text-xs bg-white border border-yellow-300 p-2">
+                {m.home_team?.name || `Team ${m.home_team_id}`} vs {m.away_team?.name || `Team ${m.away_team_id}`}
+                <span className="ml-2 font-mono text-red-600">(status: "{m.status}" | score: {m.score_home}-{m.score_away})</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
