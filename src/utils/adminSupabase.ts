@@ -343,6 +343,7 @@ export const matchesApi = {
       scheduledAt = new Date(schedule.date).toISOString();
     }
     const createdMatches: Match[] = [];
+    let globalMatchIndex = 0; // Track position for 20-minute intervals
 
     for (const group of groups || []) {
       const teamIds = group.teams?.teams?.map((t: TeamStats) => t.id) || [];
@@ -358,7 +359,8 @@ export const matchesApi = {
         group.group_code,
         round,
         scheduledAt,
-        stageName
+        stageName,
+        globalMatchIndex // Pass current position for 20-minute scheduling
       );
 
       console.log(`Generated ${matchData.length} matches for group ${group.group_code}`);
@@ -397,6 +399,9 @@ export const matchesApi = {
           );
         }
       }
+
+      // Update global index for next group
+      globalMatchIndex += matchData.length;
     }
 
     console.log(`Total matches created: ${createdMatches.length}`);

@@ -18,15 +18,16 @@ export const MATCH_SCHEDULES: MatchSchedule[] = [
 
 /**
  * Generate round-robin matches for a group with proper league scheduling
- * Spreads matches across multiple rounds (max 2 matches per round)
- * Each team plays every other team once, but spread across multiple rounds
+ * Each match is 20 minutes long, scheduled sequentially (no overlaps)
+ * Spreads matches across multiple rounds (max 2 matches per round per group)
  */
 export function generateRoundRobinMatches(
   teamIds: string[],
   group: string,
   round: number,
-  scheduledAt: string,
-  stage: "first_stage" | "second_stage" = "first_stage"
+  scheduledAtBase: string,
+  stage: "first_stage" | "second_stage" = "first_stage",
+  matchIndexOffset = 0
 ): Array<{
   home_team_id: string;
   away_team_id: string;
@@ -63,8 +64,16 @@ export function generateRoundRobinMatches(
   const endIndex = Math.min(startIndex + matchesPerRound, allPairings.length);
 
   // Add matches for this round
+  let matchCount = 0;
   for (let i = startIndex; i < endIndex; i++) {
     const [team1, team2] = allPairings[i];
+
+    // Calculate time: each match is 20 minutes apart
+    const baseDate = new Date(scheduledAtBase);
+    const matchIndex = matchIndexOffset + matchCount;
+    const minutesOffset = matchIndex * 20;
+    const matchTime = new Date(baseDate.getTime() + minutesOffset * 60000);
+    const scheduledAt = matchTime.toISOString();
 
     // Alternate home/away for balance
     if (i % 2 === 0) {
@@ -88,6 +97,8 @@ export function generateRoundRobinMatches(
         stage: stage,
       });
     }
+
+    matchCount++;
   }
 
   return matches;
