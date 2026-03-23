@@ -44,6 +44,10 @@ export const MatchesView = () => {
   // Modal state
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingMatch, setEditingMatch] = useState<Match | null>(null);
+  const [editForm, setEditForm] = useState({ date: "", time: "" });
+  const [loadingEdit, setLoadingEdit] = useState(false);
 
   // Initialize round schedules from MATCH_SCHEDULES
   useEffect(() => {
@@ -170,6 +174,23 @@ export const MatchesView = () => {
       return;
     }
 
+    // Validation: Check if teams already played each other in this stage/group
+    const duplicateMatch = matches.some(
+      (m) =>
+        m.stage === stage &&
+        m.group === manualForm.group &&
+        ((m.home_team_id === manualForm.homeTeamId && m.away_team_id === manualForm.awayTeamId) ||
+          (m.home_team_id === manualForm.awayTeamId && m.away_team_id === manualForm.homeTeamId))
+    );
+
+    if (duplicateMatch) {
+      showToast(
+        "These teams already have a match in this group and stage. Teams cannot play twice in the same stage.",
+        "error"
+      );
+      return;
+    }
+
     setLoadingManual(true);
     try {
       const scheduledAt = new Date(`${manualForm.date}T${manualForm.time}:00`).toISOString();
@@ -218,6 +239,57 @@ export const MatchesView = () => {
     } catch (error) {
       showToast("Failed to update match", "error");
       console.error(error);
+    }
+  };
+
+  const handleEditMatch = (match: Match) => {
+    const date = match.scheduled_at ? match.scheduled_at.split("T")[0] : "";
+    const time = match.scheduled_at ? match.scheduled_at.split("T")[1]?.slice(0, 5) : "";
+    setEditingMatch(match);
+    setEditForm({ date, time });
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingMatch) return;
+
+    if (!editForm.date || !editForm.time) {
+      showToast("Please enter date and time", "error");
+      return;
+    }
+
+    setLoadingEdit(true);
+    try {
+      const scheduledAt = new Date(`${editForm.date}T${editForm.time}:00`).toISOString();
+
+      await matchesApi.update(editingMatch.id, {
+        scheduled_at: scheduledAt,
+      });
+
+      showToast("Match updated successfully", "success");
+      setIsEditModalOpen(false);
+      setEditingMatch(null);
+      await loadMatches();
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error("Failed to update match:", error);
+      showToast(`Failed to update match: ${errorMsg}`, "error");
+    } finally {
+      setLoadingEdit(false);
+    }
+  };
+
+  const handleDeleteMatch = async (matchId: string) => {
+    if (!confirm("Are you sure you want to delete this match?")) return;
+
+    try {
+      await matchesApi.delete(matchId);
+      showToast("Match deleted successfully", "success");
+      await loadMatches();
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error("Failed to delete match:", error);
+      showToast(`Failed to delete match: ${errorMsg}`, "error");
     }
   };
 
@@ -494,15 +566,29 @@ export const MatchesView = () => {
                             Final: {match.score_home} - {match.score_away}
                           </div>
                         </div>
-                        <button
-                          onClick={() => {
-                            setSelectedMatch(match);
-                            setIsModalOpen(true);
-                          }}
-                          className="px-2 py-1 border-2 border-black font-bold text-xs hover:bg-blue-100 whitespace-nowrap ml-2"
-                        >
-                          Edit
-                        </button>
+                        <div className="flex gap-1 whitespace-nowrap ml-2">
+                          <button
+                            onClick={() => handleEditMatch(match)}
+                            className="px-2 py-1 border-2 border-black font-bold text-xs hover:bg-yellow-100"
+                          >
+                            Edit Match
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedMatch(match);
+                              setIsModalOpen(true);
+                            }}
+                            className="px-2 py-1 border-2 border-black font-bold text-xs hover:bg-blue-100"
+                          >
+                            Edit Result
+                          </button>
+                          <button
+                            onClick={() => handleDeleteMatch(match.id)}
+                            className="px-2 py-1 border-2 border-red-400 font-bold text-xs text-red-600 hover:bg-red-100"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -525,15 +611,29 @@ export const MatchesView = () => {
                             {match.scheduled_at ? new Date(match.scheduled_at).toLocaleString() : "TBD"}
                           </div>
                         </div>
-                        <button
-                          onClick={() => {
-                            setSelectedMatch(match);
-                            setIsModalOpen(true);
-                          }}
-                          className="px-2 py-1 border-2 border-black font-bold text-xs hover:bg-blue-100 whitespace-nowrap ml-2"
-                        >
-                          Enter Result
-                        </button>
+                        <div className="flex gap-1 whitespace-nowrap ml-2">
+                          <button
+                            onClick={() => handleEditMatch(match)}
+                            className="px-2 py-1 border-2 border-black font-bold text-xs hover:bg-yellow-100"
+                          >
+                            Edit Match
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedMatch(match);
+                              setIsModalOpen(true);
+                            }}
+                            className="px-2 py-1 border-2 border-black font-bold text-xs hover:bg-blue-100"
+                          >
+                            Enter Result
+                          </button>
+                          <button
+                            onClick={() => handleDeleteMatch(match.id)}
+                            className="px-2 py-1 border-2 border-red-400 font-bold text-xs text-red-600 hover:bg-red-100"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -570,6 +670,79 @@ export const MatchesView = () => {
               setSelectedMatch(null);
             }}
           />
+        )}
+      </Modal>
+
+      {/* Edit Match Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        title={`Edit Match Date & Time - ${editingMatch?.home_team?.name || "Team A"} vs ${
+          editingMatch?.away_team?.name || "Team B"
+        }`}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingMatch(null);
+        }}
+      >
+        {editingMatch && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest mb-2">
+                Current Match
+              </label>
+              <div className="border-2 border-black p-3 bg-gray-50 text-sm">
+                <div className="font-bold">
+                  {editingMatch.home_team?.name || "TBD"} vs {editingMatch.away_team?.name || "TBD"}
+                </div>
+                <div className="text-xs text-gray-600">
+                  Group: {editingMatch.group ? editingMatch.group.toUpperCase() : "N/A"}, Stage: {editingMatch.stage}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest mb-2">
+                Date
+              </label>
+              <input
+                type="date"
+                value={editForm.date}
+                onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                className="w-full px-3 py-2 border-2 border-black text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest mb-2">
+                Time
+              </label>
+              <input
+                type="time"
+                value={editForm.time}
+                onChange={(e) => setEditForm({ ...editForm, time: e.target.value })}
+                className="w-full px-3 py-2 border-2 border-black text-sm"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={handleSaveEdit}
+                disabled={loadingEdit}
+                className="flex-1 px-4 py-2 bg-black text-white border-2 border-black font-bold text-xs uppercase hover:bg-gray-800 disabled:opacity-50"
+              >
+                {loadingEdit ? "Saving..." : "Save Changes"}
+              </button>
+              <button
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setEditingMatch(null);
+                }}
+                className="flex-1 px-4 py-2 bg-white text-black border-2 border-black font-bold text-xs uppercase hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         )}
       </Modal>
     </div>
