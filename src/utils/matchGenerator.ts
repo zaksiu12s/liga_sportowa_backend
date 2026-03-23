@@ -12,8 +12,9 @@ export const MATCH_SCHEDULES: MatchSchedule[] = [
   { round: 2, date: new Date(2024, 3, 23), timeStart: "17:00", timeEnd: "20:00" },
   { round: 3, date: new Date(2024, 3, 30), timeStart: "17:00", timeEnd: "20:00" },
   { round: 4, date: new Date(2024, 4, 21), timeStart: "17:00", timeEnd: "20:00" },
-  { round: 5, date: new Date(2024, 4, 28), timeStart: "17:00", timeEnd: "18:30" },
+  { round: 5, date: new Date(2024, 4, 28), timeStart: "17:00", timeEnd: "20:00" },
   { round: 6, date: new Date(2024, 5, 11), timeStart: "17:00", timeEnd: "18:30" },
+  { round: 7, date: new Date(2024, 5, 18), timeStart: "17:00", timeEnd: "18:30" },
 ];
 
 export interface FinalMatchSchedule {
