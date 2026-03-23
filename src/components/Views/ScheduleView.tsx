@@ -36,7 +36,6 @@ const ScheduleView = () => {
     .sort((a, b) => {
       const dateA = new Date(a.scheduled_at || 0).getTime();
       const dateB = new Date(b.scheduled_at || 0).getTime();
-      // Upcoming: Soonest first | Finished: Most recent first
       return activeFilter === "upcoming" ? dateA - dateB : dateB - dateA;
     });
 
@@ -49,7 +48,8 @@ const ScheduleView = () => {
     indexOfLastMatch,
   );
 
-  if (currentMatches.length < 5) {
+  // Dopełnij do 5 tylko jeśli są jakieś mecze
+  if (currentMatches.length > 0 && currentMatches.length < 5) {
     currentMatches.push(
       ...Array(5 - currentMatches.length).fill({ data: "none" }),
     );
@@ -100,9 +100,9 @@ const ScheduleView = () => {
               </div>
             ))
           ) : currentMatches.length > 0 ? (
-            currentMatches.map((match) => (
+            currentMatches.map((match, i) => (
               <div
-                key={match.id}
+                key={match.id ?? i}
                 className={`text-center relative ${match.data === "none" ? "opacity-0 cursor-default" : ""}`}
               >
                 {match.status === "live" && (
@@ -156,7 +156,11 @@ const ScheduleView = () => {
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className={`text-[10px] font-black uppercase tracking-widest ${currentPage === 1 ? "text-gray-200 dark:text-neutral-800" : "text-gray-900 hover:text-red-600 dark:text-white dark:hover:text-red-600"}`}
+              className={`text-[10px] font-black uppercase tracking-widest ${
+                currentPage === 1
+                  ? "text-gray-200 dark:text-neutral-800"
+                  : "text-gray-900 hover:text-red-600 dark:text-white dark:hover:text-red-600"
+              }`}
             >
               Poprzednie
             </button>
@@ -168,7 +172,11 @@ const ScheduleView = () => {
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
               disabled={currentPage === totalPages}
-              className={`text-[10px] font-black uppercase tracking-widest ${currentPage === totalPages ? "text-gray-200 dark:text-neutral-800" : "text-gray-900 hover:text-red-600 dark:text-white dark:hover:text-red-600"}`}
+              className={`text-[10px] font-black uppercase tracking-widest ${
+                currentPage === totalPages
+                  ? "text-gray-200 dark:text-neutral-800"
+                  : "text-gray-900 hover:text-red-600 dark:text-white dark:hover:text-red-600"
+              }`}
             >
               Następne
             </button>
