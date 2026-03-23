@@ -65,7 +65,7 @@ function App() {
   const renderView = () => {
     switch (currentView) {
       case "home":
-        return <HomeView />;
+        return <HomeView onNavigate={setCurrentView} />;
       case "standings":
         return <StandingsView />;
       case "schedule":
@@ -73,19 +73,19 @@ function App() {
       case "finals":
         return <FinalsView />;
       default:
-        return <HomeView />;
+        return <HomeView onNavigate={setCurrentView} />;
     }
   };
 
   return (
     <>
-      <div className="bg-white min-h-screen flex flex-col font-sans text-gray-900 overflow-hidden">
+      <div className="bg-white min-h-screen flex flex-col text-on-surface overflow-x-hidden">
         <Navbar
           currentView={currentView}
           onNavigate={setCurrentView}
           onLoginClick={() => setShowLogin(true)}
         />
-        <main className="flex-grow overflow-hidden">{renderView()}</main>
+        <main className="flex-grow overflow-auto bg-white">{renderView()}</main>
         <Footer />
       </div>
       <ToastContainer />

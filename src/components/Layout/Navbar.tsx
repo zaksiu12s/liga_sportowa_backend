@@ -11,68 +11,64 @@ const Navbar = ({ currentView, onNavigate, onLoginClick }: NavbarProps) => {
   const { user, logout } = useAuth();
 
   const navItems = [
-    { id: "home", label: "START" },
-    { id: "standings", label: "STANDINGS" },
-    { id: "schedule", label: "SCHEDULE" },
-    { id: "finals", label: "FINALS" },
-  ] as const;
+    { id: "home" as const, label: "START" },
+    { id: "standings" as const, label: "TABELE" },
+    { id: "schedule" as const, label: "MECZE" },
+    { id: "finals" as const, label: "FINAŁY" },
+  ];
 
   const handleLogout = async () => {
     await logout();
   };
 
   return (
-    <nav className="border-b-2 border-black bg-white sticky top-0 z-50">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+    <header className="bg-white border-b-2 border-black sticky top-0 z-50">
+      <div className="flex justify-between items-center w-full px-6 py-4 max-w-none">
         <div
-          className="flex items-center gap-3 cursor-pointer"
+          className="text-2xl font-black text-black uppercase tracking-tighter cursor-pointer hover:text-red-600 transition-none"
           onClick={() => onNavigate("home")}
         >
-          <div className="font-black text-lg tracking-tight">
-            LIGA <span className="text-red-600">ZSEM</span>
-          </div>
+          ZSEM/JCE
         </div>
 
-        <div className="flex items-center gap-4">
-          {/* Navigation Items */}
-          <div className="flex space-x-4 md:space-x-8">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
-                className={`text-xs font-bold tracking-widest ${
-                  currentView === item.id
-                    ? "text-red-600"
-                    : "text-gray-400 hover:text-gray-900"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+        <nav className="hidden md:flex gap-8 items-center">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => onNavigate(item.id)}
+              className={`font-black uppercase tracking-tighter transition-none ${
+                currentView === item.id
+                  ? "text-red-600 border-b-4 border-red-600 pb-1"
+                  : "text-black hover:text-red-600"
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
 
-          {/* Auth Button */}
+        <div className="flex items-center gap-4">
           {user ? (
-            <div className="flex items-center gap-3 pl-4 border-l-2 border-black">
-              <div className="text-xs font-semibold text-gray-600">{user.email}</div>
+            <>
+              <span className="material-symbols-outlined text-2xl text-black">account_circle</span>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-red-600 hover:border-red-600 transition-colors"
+                className="px-4 py-2 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-none hidden md:inline-block"
               >
                 LOGOUT
               </button>
-            </div>
+            </>
           ) : (
             <button
               onClick={onLoginClick}
-              className="px-4 py-2 bg-white text-black border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-black hover:text-white transition-colors"
+              className="hidden md:flex items-center gap-2"
             >
-              ADMIN LOGIN
+              <span className="material-symbols-outlined text-2xl text-black">account_circle</span>
             </button>
           )}
         </div>
       </div>
-    </nav>
+    </header>
   );
 };
 

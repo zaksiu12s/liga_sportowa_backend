@@ -1,18 +1,36 @@
 const Footer = () => {
   return (
-    <footer className="border-t border-gray-100 py-12 mt-auto">
-      <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold tracking-widest text-gray-400 uppercase">
-        <div>ZSEM Nowy Sącz 2026</div>
-        <div className="flex space-x-6 mt-4 md:mt-0">
+    <footer className="bg-black border-t-4 border-red-600 mt-20">
+      <div className="flex flex-col md:flex-row justify-between items-center w-full px-8 py-12 gap-6">
+        <div className="text-lg font-black text-white uppercase">ZSEM/JCE LIGA</div>
+        <div className="flex flex-wrap justify-center gap-8">
           <a
             href={`${import.meta.env.BASE_URL}rules.pdf`}
-            className="hover:text-gray-900"
+            className="font-black uppercase text-xs tracking-widest text-gray-400 hover:text-red-500 transition-none"
           >
-            Regulamin
+            REGULAMIN
           </a>
-          <a href="https://zsem.edu.pl" className="hover:text-gray-900">
-            zsem.edu.pl
+          <a
+            href={`${import.meta.env.BASE_URL}consent.pdf`}
+            className="font-black uppercase text-xs tracking-widest text-gray-400 hover:text-red-500 transition-none"
+          >
+            ZGODA
           </a>
+          <a
+            href={`${import.meta.env.BASE_URL}form.pdf`}
+            className="font-black uppercase text-xs tracking-widest text-gray-400 hover:text-red-500 transition-none"
+          >
+            FORMULARZ
+          </a>
+          <a
+            href="#"
+            className="font-black uppercase text-xs tracking-widest text-gray-400 hover:text-red-500 transition-none"
+          >
+            O LIDZE
+          </a>
+        </div>
+        <div className="font-black uppercase text-[10px] tracking-widest text-gray-500 text-center md:text-right">
+          © 2024 LIGA ZSEM/JCE. WSZYSTKIE PRAWA ZASTRZEŻONE.
         </div>
       </div>
     </footer>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html lang="pl"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700;800;900&amp;family=Public+Sans:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed-dim": "#920028",
+              "on-primary": "#e2e2e2",
+              "on-secondary": "#ffffff",
+              "on-tertiary-container": "#ffffff",
+              "surface-container-highest": "#e2e2e2",
+              "on-secondary-container": "#40000c",
+              "on-primary-fixed": "#ffffff",
+              "secondary": "#be0037",
+              "outline-variant": "#c6c6c6",
+              "secondary-fixed": "#ffb3b6",
+              "on-primary-fixed-variant": "#e2e2e2",
+              "on-error": "#ffffff",
+              "background": "#f9f9f9",
+              "on-secondary-fixed": "#40000c",
+              "on-surface-variant": "#474747",
+              "tertiary-fixed": "#be0037",
+              "outline": "#777777",
+              "inverse-primary": "#c6c6c6",
+              "primary-fixed": "#5e5e5e",
+              "inverse-surface": "#303030",
+              "on-primary-container": "#ffffff",
+              "on-tertiary-fixed-variant": "#ffdada",
+              "error-container": "#ffdad6",
+              "surface-bright": "#f9f9f9",
+              "surface-variant": "#e2e2e2",
+              "on-secondary-fixed-variant": "#7c0021",
+              "on-surface": "#1b1b1b",
+              "on-background": "#1b1b1b",
+              "primary": "#000000",
+              "surface-container-low": "#f3f3f3",
+              "surface-container-high": "#e8e8e8",
+              "secondary-fixed-dim": "#ff8890",
+              "surface-tint": "#5e5e5e",
+              "primary-container": "#3b3b3b",
+              "surface-dim": "#dadada",
+              "error": "#ba1a1a",
+              "tertiary-container": "#e21e49",
+              "surface": "#f9f9f9",
+              "inverse-on-surface": "#f1f1f1",
+              "on-error-container": "#410002",
+              "primary-fixed-dim": "#474747",
+              "on-tertiary-fixed": "#ffffff",
+              "tertiary": "#7c0021",
+              "secondary-container": "#ffc6c8",
+              "surface-container": "#eeeeee",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#ffdada"
+            },
+            fontFamily: {
+              "headline": ["Lexend"],
+              "body": ["Public Sans"],
+              "label": ["Lexend"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "0px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #f9f9f9;
+            font-family: 'Public Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .bracket-connector {
+            border-color: #000000;
+        }
+    </style>
+</head>
+<body class="text-on-background">
+<!-- TopNavBar -->
+<nav class="bg-white dark:bg-black flex justify-between items-center w-full px-6 py-4 max-w-none docked full-width top-0 border-b-2 border-black dark:border-white z-50 sticky">
+<div class="text-2xl font-black text-black dark:text-white uppercase font-['Lexend'] tracking-tighter">
+            ZSEM/JCE
+        </div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="font-['Lexend'] font-bold uppercase tracking-tighter text-black dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-none" href="#">START</a>
+<a class="font-['Lexend'] font-bold uppercase tracking-tighter text-black dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-none" href="#">TABELE</a>
+<a class="font-['Lexend'] font-bold uppercase tracking-tighter text-black dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-none" href="#">MECZE</a>
+<a class="font-['Lexend'] font-bold uppercase tracking-tighter text-red-600 dark:text-red-500 border-b-4 border-red-600 dark:border-red-500 pb-1 transition-none" href="#">FINAŁY</a>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-black dark:text-white text-2xl" data-icon="account_circle">account_circle</span>
+</div>
+</nav>
+<main class="min-h-screen pt-12 pb-24 px-4 sm:px-8 max-w-7xl mx-auto">
+<!-- Header Section -->
+<header class="mb-16 border-l-8 border-primary pl-6">
+<h1 class="font-headline font-black text-6xl md:text-8xl uppercase tracking-tighter leading-none">
+                FINAŁY <span class="text-secondary">LIGI</span>
+</h1>
+<p class="font-headline font-bold text-xl md:text-2xl mt-2 tracking-tight">FAZA PUCHAROWA SEZONU 2024</p>
+</header>
+<!-- Knockout Bracket Visualization -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-0 relative overflow-x-auto lg:overflow-visible pb-12">
+<!-- Semifinals Column -->
+<div class="flex flex-col justify-around gap-12 lg:gap-0 min-w-[300px]">
+<h2 class="font-headline font-black text-2xl uppercase mb-8 lg:mb-0 border-b-4 border-black inline-block self-start px-2">PÓŁFINAŁY</h2>
+<!-- Match 1 -->
+<div class="relative py-8">
+<div class="border-2 border-black bg-white p-0 w-full lg:w-64">
+<div class="border-b-2 border-black p-3 flex justify-between items-center bg-surface-container-low">
+<span class="font-headline font-bold uppercase text-sm">TEAM ALPHA</span>
+<span class="font-headline font-black text-xl">2</span>
+</div>
+<div class="p-3 flex justify-between items-center">
+<span class="font-headline font-bold uppercase text-sm">TEAM BETA</span>
+<span class="font-headline font-black text-xl text-secondary">3</span>
+</div>
+</div>
+<!-- Connector Right -->
+<div class="hidden lg:block absolute top-1/2 -right-8 w-8 h-0.5 bg-black"></div>
+</div>
+<!-- Match 2 -->
+<div class="relative py-8">
+<div class="border-2 border-black bg-white p-0 w-full lg:w-64">
+<div class="border-b-2 border-black p-3 flex justify-between items-center">
+<span class="font-headline font-bold uppercase text-sm">TEAM GAMMA</span>
+<span class="font-headline font-black text-xl text-secondary">4</span>
+</div>
+<div class="p-3 flex justify-between items-center bg-surface-container-low">
+<span class="font-headline font-bold uppercase text-sm">TEAM DELTA</span>
+<span class="font-headline font-black text-xl">1</span>
+</div>
+</div>
+<!-- Connector Right -->
+<div class="hidden lg:block absolute top-1/2 -right-8 w-8 h-0.5 bg-black"></div>
+</div>
+</div>
+<!-- Grand Final Column -->
+<div class="flex flex-col justify-center items-center py-12 lg:py-0 min-w-[300px] relative">
+<!-- Vertical Connectors from Semis -->
+<div class="hidden lg:block absolute left-0 top-[25%] bottom-[25%] w-0.5 bg-black"></div>
+<div class="hidden lg:block absolute left-0 top-1/2 w-8 h-0.5 bg-black"></div>
+<h2 class="font-headline font-black text-3xl md:text-4xl uppercase mb-12 border-b-8 border-secondary px-4 text-center">WIELKI FINAŁ</h2>
+<div class="border-4 border-black bg-white p-0 w-full lg:w-80 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+<div class="bg-primary text-white p-2 text-center text-xs font-black tracking-widest uppercase">Mecz o Mistrzostwo</div>
+<div class="border-b-4 border-black p-6 flex justify-between items-center">
+<span class="font-headline font-black uppercase text-xl">TEAM BETA</span>
+<span class="font-headline font-black text-4xl">—</span>
+</div>
+<div class="p-6 flex justify-between items-center">
+<span class="font-headline font-black uppercase text-xl">TEAM GAMMA</span>
+<span class="font-headline font-black text-4xl">—</span>
+</div>
+<div class="bg-secondary p-4 text-center">
+<span class="text-white font-headline font-black text-lg uppercase tracking-widest">CZEKA NA ZWYCIĘZCĘ</span>
+</div>
+</div>
+<!-- Champion Spot -->
+<div class="mt-20 flex flex-col items-center">
+<div class="w-24 h-24 border-4 border-secondary flex items-center justify-center bg-white mb-4">
+<span class="material-symbols-outlined text-secondary text-6xl" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+</div>
+<div class="bg-secondary text-white px-8 py-3 font-headline font-black text-2xl uppercase italic tracking-tighter">
+                        MISTRZ 2024
+                    </div>
+</div>
+</div>
+<!-- 3rd Place & Extras Column -->
+<div class="flex flex-col justify-center gap-12 min-w-[300px] lg:pl-16">
+<div>
+<h2 class="font-headline font-black text-2xl uppercase mb-8 border-b-4 border-black inline-block px-2">O 3. MIEJSCE</h2>
+<div class="border-2 border-black bg-white p-0 w-full lg:w-64">
+<div class="border-b-2 border-black p-3 flex justify-between items-center">
+<span class="font-headline font-bold uppercase text-sm">TEAM ALPHA</span>
+<span class="font-headline font-black text-xl">—</span>
+</div>
+<div class="p-3 flex justify-between items-center">
+<span class="font-headline font-bold uppercase text-sm">TEAM DELTA</span>
+<span class="font-headline font-black text-xl">—</span>
+</div>
+</div>
+</div>
+<div class="mt-8 border-4 border-black p-6 bg-surface-container">
+<h3 class="font-headline font-black text-lg uppercase mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="info">info</span>
+                        INFORMACJA
+                    </h3>
+<p class="font-body text-sm font-bold uppercase leading-tight">
+                        Wszystkie mecze finałowe rozgrywane są w hali głównej ZSEM. Wstęp wolny dla posiadaczy legitymacji.
+                    </p>
+<div class="mt-6 flex flex-col gap-2">
+<div class="flex justify-between border-b border-black pb-1">
+<span class="font-headline text-xs font-bold uppercase">Data finału:</span>
+<span class="font-headline text-xs font-black">15.06.2024</span>
+</div>
+<div class="flex justify-between border-b border-black pb-1">
+<span class="font-headline text-xs font-bold uppercase">Godzina:</span>
+<span class="font-headline text-xs font-black">18:00</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- MVP / Stats Section (Brutalist style) -->
+<section class="mt-24">
+<h2 class="font-headline font-black text-4xl uppercase mb-12 tracking-tighter flex items-center gap-4">
+<span class="bg-black text-white px-4 py-1">TOP</span> KANDYDACI DO MVP
+            </h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Player Card -->
+<div class="border-2 border-black bg-white hover:bg-black group transition-none cursor-pointer">
+<div class="aspect-square bg-surface-container-high overflow-hidden border-b-2 border-black">
+<img class="w-full h-full object-cover filter grayscale group-hover:grayscale-0" data-alt="Koszykarz w akcji na boisku" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo1bluw1pdmHZUmd_VmaAZrWeEe45Wk-Gqf6WGWbFZdIQJyI0WGl8DrcrxZuD41Z5Fub52JHvQQkWLFuFeMzSDgp7aWLU1kAMMpe_h3BBZcfVkUx4Coo_3fivquUdOpK5rF4lp5sWfh2PTw_RBl6AJlQ5lQtaUR3hLIJM5KcoSqtNQMJtxfbM02R6xT9yXElxyb9m70YjsuyNgOJ_R7fD7jXPrSi-Ae8N_uNbRcegWqT-K09P2NnTZ4Cu96IcoMz8c4Bcxedu542s"/>
+</div>
+<div class="p-4">
+<p class="font-headline font-black text-xl uppercase group-hover:text-white">JAN KOWALSKI</p>
+<p class="font-headline font-bold text-secondary uppercase text-sm">TEAM BETA</p>
+<div class="mt-4 flex gap-4">
+<div class="text-center group-hover:text-white">
+<p class="text-[10px] font-black uppercase opacity-60">PTS</p>
+<p class="font-headline font-black text-xl">24.5</p>
+</div>
+<div class="text-center group-hover:text-white">
+<p class="text-[10px] font-black uppercase opacity-60">AST</p>
+<p class="font-headline font-black text-xl">8.2</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Repeat cards as placeholders -->
+<div class="border-2 border-black bg-white hover:bg-black group transition-none cursor-pointer">
+<div class="aspect-square bg-surface-container-high overflow-hidden border-b-2 border-black">
+<img class="w-full h-full object-cover filter grayscale group-hover:grayscale-0" data-alt="Gracz trzymający piłkę do koszykówki" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBj6NZTlhWGtB3nsKEXIR5H9RS8hoitOySDp5-dtiEqHGBQLJdKvLPS9ZLBfY0_EbgF4srJ9FbGiyvAkN7dz6JM-MasEfp0FAxpzFRw-vtIbkAdAbhfn0MJ3Y3-XLUrSVx8loWci0ffj2AtuEjOWiV6BfbLSsUl2vkoycFu_uiQWdt4DrNHYEew2o6yr9A0vb-B_sT6RoLApifrZWw47zgxrI9r1cEINIuj8NvXeHkSeU4Ka7w61kUNQbwtJjTixxI0UUMRAwMkpZI"/>
+</div>
+<div class="p-4">
+<p class="font-headline font-black text-xl uppercase group-hover:text-white">ADAM NOWAK</p>
+<p class="font-headline font-bold text-secondary uppercase text-sm">TEAM GAMMA</p>
+<div class="mt-4 flex gap-4">
+<div class="text-center group-hover:text-white">
+<p class="text-[10px] font-black uppercase opacity-60">PTS</p>
+<p class="font-headline font-black text-xl">21.0</p>
+</div>
+<div class="text-center group-hover:text-white">
+<p class="text-[10px] font-black uppercase opacity-60">REB</p>
+<p class="font-headline font-black text-xl">12.5</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="border-2 border-black bg-white hover:bg-black group transition-none cursor-pointer">
+<div class="aspect-square bg-surface-container-high overflow-hidden border-b-2 border-black">
+<img class="w-full h-full object-cover filter grayscale group-hover:grayscale-0" data-alt="Dynamiczne ujęcie gracza na boisku" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTCCBE6tGgQy_UfpK-mIKygLSZFEjK_psJSWL7234J6OnJsHdxuLtb1lm98bIAkoli1rahkpGRCLGp7ypzw-NUmf1Z7sYphtgmnzni4YFHfLmV8ofNH9oqe6wc7DCAEJn_yO0K5MBv2Q4v5SRqUGZ0yY_eMK_PWc7Rd7FgMl9kAsl8A0NgRwiEe9ceAoAkFwTRVDz5uTVoMd88uN8sDIgQ8wSqEJ_0p3wITBU-sMKmHSbLhW2gWgAmukbSlUDQkbY95Nni2_klmjE"/>
+</div>
+<div class="p-4">
+<p class="font-headline font-black text-xl uppercase group-hover:text-white">MAREK ZIELIŃSKI</p>
+<p class="font-headline font-bold text-secondary uppercase text-sm">TEAM BETA</p>
+<div class="mt-4 flex gap-4">
+<div class="text-center group-hover:text-white">
+<p class="text-[10px] font-black uppercase opacity-60">PTS</p>
+<p class="font-headline font-black text-xl">19.8</p>
+</div>
+<div class="text-center group-hover:text-white">
+<p class="text-[10px] font-black uppercase opacity-60">STL</p>
+<p class="font-headline font-black text-xl">3.4</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="border-2 border-black bg-white hover:bg-black group transition-none cursor-pointer">
+<div class="aspect-square bg-surface-container-high overflow-hidden border-b-2 border-black">
+<img class="w-full h-full object-cover filter grayscale group-hover:grayscale-0" data-alt="Sportowiec na ciemnym tle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDneKCyT6dDvqoFMfsOir-sdQY5jzRleGqguHSEHuWEOamxB7ul7UWAHN7Pt5G-cqvk0iRe5vhtAwemmbbz77naXP3WGh_QdgsMaVoiBppcm1fQIw6gCA9-TAV7P8Lk3mIvAeLP_m2ezLUYdAN5FIjp5JaRBw98lZFlveb0SdPc1-tpd1ZWpbdAZQ6GK4Zkn6NAc5nvPHWPYvUMpil0KOo9fMbZkOV70fPEFlgP4JKANFguiQEFOUBGJF4pJtDvnwP3pW1148rSz3g"/>
+</div>
+<div class="p-4">
+<p class="font-headline font-black text-xl uppercase group-hover:text-white">PIOTR LEWANDOWSKI</p>
+<p class="font-headline font-bold text-secondary uppercase text-sm">TEAM ALPHA</p>
+<div class="mt-4 flex gap-4">
+<div class="text-center group-hover:text-white">
+<p class="text-[10px] font-black uppercase opacity-60">PTS</p>
+<p class="font-headline font-black text-xl">18.2</p>
+</div>
+<div class="text-center group-hover:text-white">
+<p class="text-[10px] font-black uppercase opacity-60">BLK</p>
+<p class="font-headline font-black text-xl">2.1</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-black dark:bg-zinc-900 text-white flex flex-col md:flex-row justify-between items-center w-full px-8 py-12 gap-6 full-width border-t-4 border-red-600 dark:border-red-500">
+<div class="text-lg font-black text-white font-['Lexend'] uppercase">
+            ZSEM/JCE
+        </div>
+<div class="flex flex-wrap justify-center gap-8">
+<a class="font-['Lexend'] font-medium uppercase text-xs tracking-widest text-zinc-400 hover:text-red-500 transition-none" href="#">REGULAMIN</a>
+<a class="font-['Lexend'] font-medium uppercase text-xs tracking-widest text-zinc-400 hover:text-red-500 transition-none" href="#">ZGODA</a>
+<a class="font-['Lexend'] font-medium uppercase text-xs tracking-widest text-zinc-400 hover:text-red-500 transition-none" href="#">FORMULARZ</a>
+<a class="font-['Lexend'] font-medium uppercase text-xs tracking-widest text-zinc-400 hover:text-red-500 transition-none" href="#">O LIDZE</a>
+</div>
+<div class="font-['Lexend'] font-medium uppercase text-xs tracking-widest text-white">
+            © 2024 LIGA ZSEM/JCE. WSZYSTKIE PRAWA ZASTRZEŻONE.
+        </div>
+</footer>
+</body></html>

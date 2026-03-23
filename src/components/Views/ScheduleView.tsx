@@ -5,11 +5,7 @@ import { Skeleton } from "../Layout/Skeleton";
 const ScheduleView = () => {
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [activeFilter, setActiveFilter] = useState<"upcoming" | "finished">(
-    "upcoming",
-  );
-  const itemsPerPage = 5;
+  const [activeStage, setActiveStage] = useState<"1" | "2" | "finals">("1");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,156 +22,163 @@ const ScheduleView = () => {
     fetchData();
   }, []);
 
-  // Filtering and Sorting
-  const filteredMatches = matches
-    .filter((match) => {
-      if (activeFilter === "upcoming")
-        return match.status === "scheduled" || match.status === "live";
-      return match.status === "finished";
-    })
-    .sort((a, b) => {
-      const dateA = new Date(a.scheduled_at || 0).getTime();
-      const dateB = new Date(b.scheduled_at || 0).getTime();
-      // Upcoming: Soonest first | Finished: Most recent first
-      return activeFilter === "upcoming" ? dateA - dateB : dateB - dateA;
-    });
+  const filteredMatches = matches.filter((match) => {
+    if (activeStage === "1") return match.stage === "first_stage";
+    if (activeStage === "2") return match.stage === "second_stage";
+    return match.stage?.includes("final");
+  });
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredMatches.length / itemsPerPage);
-  const indexOfLastMatch = currentPage * itemsPerPage;
-  const indexOfFirstMatch = indexOfLastMatch - itemsPerPage;
-  const currentMatches = filteredMatches.slice(
-    indexOfFirstMatch,
-    indexOfLastMatch,
-  );
-
-  if (currentMatches.length < 5) {
-    currentMatches.push(
-      ...Array(5 - currentMatches.length).fill({ data: "none" }),
-    );
-  }
-
-  // Reset pagination on filter change
-  const handleFilterChange = (filter: "upcoming" | "finished") => {
-    setActiveFilter(filter);
-    setCurrentPage(1);
-  };
+  const sortedMatches = filteredMatches.sort((a, b) => {
+    const dateA = new Date(a.scheduled_at || 0).getTime();
+    const dateB = new Date(b.scheduled_at || 0).getTime();
+    return dateB - dateA;
+  });
 
   return (
-    <div className="h-full max-w-xl mx-auto flex flex-col py-2 px-4">
-      <div className="flex flex-col items-center gap-6 flex-shrink-0 mb-12">
-        <h1 className="text-2xl font-black uppercase tracking-widest border-b-4 border-gray-900 pb-2">
-          Mecze
+    <main className="max-w-7xl mx-auto px-4 py-12">
+      {/* Header */}
+      <header className="mb-12">
+        <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none mb-4">
+          TERMINARZ <span className="text-red-600">MECZÓW</span>
         </h1>
+        <div className="h-2 w-32 bg-black"></div>
+      </header>
 
-        {/* Filter Toggle */}
-        <div className="flex space-x-12">
-          {(["upcoming", "finished"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => handleFilterChange(f)}
-              className={`text-[10px] font-black tracking-widest border-b-2 transition-all pb-1 uppercase ${
-                activeFilter === f
-                  ? "border-red-600 text-gray-900"
-                  : "border-transparent text-gray-400 hover:text-gray-900"
-              }`}
-            >
-              {f === "upcoming" ? "Nadchodzące" : "Zakończone"}
-            </button>
-          ))}
+      {/* Filter Section */}
+      <section className="mb-12">
+        <div className="flex flex-wrap gap-0 border-2 border-black bg-white">
+          <button
+            onClick={() => setActiveStage("1")}
+            className={`flex-1 py-4 px-6 font-black uppercase text-center border-r-2 border-black transition-none ${
+              activeStage === "1"
+                ? "bg-black text-white"
+                : "bg-white text-black hover:bg-gray-100"
+            }`}
+          >
+            ETAP 1
+          </button>
+          <button
+            onClick={() => setActiveStage("2")}
+            className={`flex-1 py-4 px-6 font-black uppercase text-center border-r-2 border-black transition-none ${
+              activeStage === "2"
+                ? "bg-black text-white"
+                : "bg-white text-black hover:bg-gray-100"
+            }`}
+          >
+            ETAP 2
+          </button>
+          <button
+            onClick={() => setActiveStage("finals")}
+            className={`flex-1 py-4 px-6 font-black uppercase text-center transition-none ${
+              activeStage === "finals"
+                ? "bg-black text-white"
+                : "bg-white text-black hover:bg-gray-100"
+            }`}
+          >
+            FINAŁY
+          </button>
         </div>
-      </div>
+      </section>
 
-      <div className="flex-grow flex flex-col justify-between overflow-hidden pr-2 space-y-24">
-        <div className="space-y-10">
-          {loading ? (
-            Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="text-center space-y-3">
-                <div className="flex items-center justify-between gap-4">
-                  <Skeleton className="h-4 flex-1" />
-                  <Skeleton className="h-8 w-20" />
-                  <Skeleton className="h-4 flex-1" />
-                </div>
-                <Skeleton className="h-2 w-32 mx-auto" />
+      {/* Match List */}
+      <div className="grid grid-cols-1 gap-8">
+        {loading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="border-2 border-black bg-white">
+              <div className="p-6 space-y-4">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-12 w-full" />
               </div>
-            ))
-          ) : currentMatches.length > 0 ? (
-            currentMatches.map((match) => (
+            </div>
+          ))
+        ) : sortedMatches.length > 0 ? (
+          sortedMatches.map((match) => (
+            <div key={match.id} className="border-2 border-black bg-white overflow-hidden">
+              {/* Match Status Header */}
               <div
-                key={match.id}
-                className={`text-center relative ${match.data === "none" ? "opacity-0 cursor-default" : ""}`}
+                className={`px-4 py-1 flex justify-between items-center border-b-2 border-black ${
+                  match.status === "live"
+                    ? "bg-red-600 text-white"
+                    : match.status === "finished"
+                      ? "bg-gray-600 text-white"
+                      : "bg-black text-white"
+                }`}
               >
-                {match.status === "live" && (
-                  <div className="text-red-600 text-[10px] font-black tracking-widest mb-3">
-                    ● NA ŻYWO
-                  </div>
-                )}
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex-1 text-right text-xs font-black uppercase truncate">
-                    {match.home_team?.name}
-                  </div>
-                  <div className="text-2xl font-black min-w-[100px] border-x border-gray-100 px-4 leading-none">
-                    {match.score_home !== null
-                      ? `${match.score_home}:${match.score_away}`
-                      : "VS"}
-                  </div>
-                  <div className="flex-1 text-left text-xs font-black uppercase truncate">
-                    {match.away_team?.name}
-                  </div>
+                <span className="font-black text-sm tracking-widest flex items-center gap-2">
+                  {match.status === "live" && (
+                    <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                  )}
+                  {match.status === "live"
+                    ? "NA ŻYWO"
+                    : match.status === "finished"
+                      ? "ZAKOŃCZONE"
+                      : "ZAPLANOWANE"}
+                </span>
+                <span className="font-bold text-sm">
+                  {match.scheduled_at
+                    ? new Date(match.scheduled_at).toLocaleDateString(
+                        "pl-PL",
+                        { day: "2-digit", month: "2-digit", year: "numeric" },
+                      )
+                    : "TBD"}
+                  {match.scheduled_at &&
+                    ` | ${new Date(match.scheduled_at).toLocaleTimeString("pl-PL", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}`}
+                </span>
+              </div>
+
+              {/* Match Content */}
+              <div className={`p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 ${match.status === "finished" ? "grayscale opacity-75" : ""}`}>
+                {/* Home Team */}
+                <div className="flex-1 text-center md:text-right">
+                  <h3 className="text-2xl md:text-4xl font-black uppercase leading-tight mb-2">
+                    {match.home_team?.name || "NIEZNANA"}
+                  </h3>
+                  <p className="text-outline font-bold uppercase tracking-wider text-sm">
+                    GOSPODARZE
+                  </p>
                 </div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-3">
-                  {match.scheduled_at ? (
+
+                {/* Score */}
+                <div className="flex items-center gap-4">
+                  {match.score_home !== null ? (
                     <>
-                      {new Date(match.scheduled_at).toLocaleDateString(
-                        "pl-PL",
-                        { day: "2-digit", month: "2-digit" },
-                      )}
-                      {" | "}
-                      {new Date(match.scheduled_at).toLocaleTimeString(
-                        "pl-PL",
-                        { hour: "2-digit", minute: "2-digit" },
-                      )}
+                      <div className="bg-black text-white w-20 h-24 md:w-28 md:h-32 flex items-center justify-center text-5xl md:text-7xl font-black border-2 border-black">
+                        {match.score_home}
+                      </div>
+                      <div className="text-4xl font-black">:</div>
+                      <div className="bg-black text-white w-20 h-24 md:w-28 md:h-32 flex items-center justify-center text-5xl md:text-7xl font-black border-2 border-black">
+                        {match.score_away}
+                      </div>
                     </>
                   ) : (
-                    "TBD"
+                    <div className="text-2xl font-black bg-gray-100 px-6 py-2 border-2 border-black uppercase tracking-widest">
+                      VS
+                    </div>
                   )}
-                  {match.stage && ` — ${match.stage}`}
+                </div>
+
+                {/* Away Team */}
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-2xl md:text-4xl font-black uppercase leading-tight mb-2">
+                    {match.away_team?.name || "NIEZNANA"}
+                  </h3>
+                  <p className="text-outline font-bold uppercase tracking-wider text-sm">
+                    GOŚCIE
+                  </p>
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest">
-              BRAK MECZÓW
             </div>
-          )}
-        </div>
-
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-8 py-6 border-t border-gray-100 mt-auto flex-shrink-0">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className={`text-[10px] font-black uppercase tracking-widest ${currentPage === 1 ? "text-gray-200" : "text-gray-900 hover:text-red-600"}`}
-            >
-              Poprzednie
-            </button>
-            <span className="text-[10px] font-bold text-gray-400">
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className={`text-[10px] font-black uppercase tracking-widest ${currentPage === totalPages ? "text-gray-200" : "text-gray-900 hover:text-red-600"}`}
-            >
-              Następne
-            </button>
+          ))
+        ) : (
+          <div className="text-center py-20 text-gray-400">
+            <p className="font-black uppercase tracking-widest">BRAK MECZÓW</p>
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 };
 

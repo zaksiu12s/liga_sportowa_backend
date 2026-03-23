@@ -1,150 +1,176 @@
 import { useState, useEffect } from "react";
-import { getTeams } from "../../utils/data";
-import type { Tables } from "../../types/supabase";
+import supabase from "../../utils/supabase";
 import { Skeleton } from "../Layout/Skeleton";
 
-type Team = Tables<"teams">;
+interface TeamStats {
+  id: string;
+  name: string;
+  goals_for: number;
+  goals_against: number;
+  points: number;
+}
 
 const StandingsView = () => {
   const [activeStage, setActiveStage] = useState<1 | 2>(1);
-  const [activeGroup, setActiveGroup] = useState<string>("");
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [activeGroup, setActiveGroup] = useState<string>("A");
+  const [teams, setTeams] = useState<TeamStats[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchStageData = async () => {
       try {
         setLoading(true);
-        const data = await getTeams();
-        const typedData = data as any as Team[];
-        setTeams(typedData);
+        const stageName = activeStage === 1 ? "first_stage" : "second_stage";
 
-        // Auto-select first available group
-        if (typedData.length > 0) {
-          const firstGroup = typedData.find((t) => t.group)?.group;
-          if (firstGroup) setActiveGroup(firstGroup);
+        const { data, error } = await (supabase as any)
+          .from(stageName)
+          .select("*")
+          .eq("group_code", activeGroup)
+          .single();
+
+        if (error && error.code !== "PGRST116") throw error;
+
+        if (data && data.teams) {
+          const sortedTeams = data.teams.teams.sort(
+            (a: TeamStats, b: TeamStats) => {
+              if (b.points !== a.points) return b.points - a.points;
+              return (b.goals_for - b.goals_against) -
+                     (a.goals_for - a.goals_against);
+            }
+          );
+          setTeams(sortedTeams);
+        } else {
+          setTeams([]);
         }
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching standings:", err);
+        setTeams([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, []);
 
-  // Extract unique groups from the database data
-  const availableGroups = Array.from(
-    new Set(teams.filter((t) => t.group).map((t) => t.group!)),
-  ).sort();
+    fetchStageData();
+  }, [activeStage, activeGroup]);
 
-  const filteredTeams = teams.filter((t) => {
-    if (activeStage === 1) return t.group === activeGroup;
-    return false; // To be implemented later (Stage 2)
-  });
+  const availableGroups = ["A", "B", "C"];
 
   return (
-    <div className="h-full max-w-4xl mx-auto flex flex-col py-2 px-4">
-      <div className="flex flex-col items-center gap-6 flex-shrink-0 mb-12">
-        <h1 className="text-2xl font-black uppercase tracking-widest border-b-4 border-gray-900 pb-2">
-          TABELE
+    <main className="max-w-7xl mx-auto px-6 py-12">
+      {/* Header Section */}
+      <header className="mb-16">
+        <h1 className="font-black text-6xl md:text-8xl uppercase tracking-tighter leading-none mb-4">
+          TABELE LIGOWE
         </h1>
+        <div className="h-2 w-32 bg-red-600"></div>
+        <p className="mt-6 font-black text-xl uppercase tracking-widest text-black">
+          SEZON 2026
+        </p>
+      </header>
 
-        <div className="flex space-x-12">
+      {/* Stage Selection */}
+      <section className="mb-20">
+        <div className="flex items-center gap-4 mb-8">
           {[1, 2].map((s) => (
             <button
               key={s}
               onClick={() => setActiveStage(s as 1 | 2)}
-              className={`text-[10px] font-black tracking-widest border-b-2 transition-all pb-1 ${
+              className={`px-4 py-2 font-black text-2xl uppercase transition-none border-2 border-black ${
                 activeStage === s
-                  ? "border-red-600 text-gray-900"
-                  : "border-transparent text-gray-400 hover:text-gray-900"
+                  ? "bg-black text-white"
+                  : "bg-white text-black hover:bg-gray-100"
               }`}
             >
               ETAP {s}
             </button>
           ))}
+          <h2 className="font-extrabold text-4xl uppercase tracking-tight ml-4">
+            {activeStage === 1 ? "FAZA GRUPOWA" : "TOP 8 - ELIMINACJE"}
+          </h2>
         </div>
 
-        {/* Dynamic Groups from DB */}
-        <div className="flex space-x-6">
-          {availableGroups.length > 0
-            ? availableGroups.map((g) => (
-                <button
-                  key={g}
-                  onClick={() => setActiveGroup(g)}
-                  className={`text-xs font-black min-w-[2rem] h-8 px-2 transition-all ${
-                    activeGroup === g
-                      ? "bg-gray-900 text-white"
-                      : "text-gray-400 hover:text-gray-900"
-                  }`}
-                >
-                  {g}
-                </button>
-              ))
-            : !loading && (
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  Brak grup w bazie
-                </span>
-              )}
+        {/* Group Selection */}
+        <div className="flex gap-4 mb-8">
+          {availableGroups.map((g) => (
+            <button
+              key={g}
+              onClick={() => setActiveGroup(g)}
+              className={`w-12 h-12 font-black text-xl transition-none border-2 border-black ${
+                activeGroup === g
+                  ? "bg-black text-white"
+                  : "bg-white text-black hover:bg-gray-100"
+              }`}
+            >
+              {g}
+            </button>
+          ))}
         </div>
-      </div>
 
-      <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar">
-        <table className="w-full text-left text-xs uppercase tracking-wider font-bold">
-          <thead className="border-b-2 border-gray-900 sticky top-0 bg-white z-10">
-            <tr>
-              <th className="py-4 px-4 w-12">#</th>
-              <th className="py-4">DRUŻYNA</th>
-              <th className="py-4 text-center">B</th>
-              <th className="py-4 text-right px-4">PKT</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {loading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i}>
-                  <td className="py-5 px-4">
-                    <Skeleton className="h-4 w-4" />
-                  </td>
-                  <td className="py-5">
-                    <Skeleton className="h-4 w-48" />
-                  </td>
-                  <td className="py-5">
-                    <Skeleton className="h-4 w-12 mx-auto" />
-                  </td>
-                  <td className="py-5 px-4">
-                    <Skeleton className="h-4 w-8 ml-auto" />
-                  </td>
+        {/* Standings Table */}
+        <div className="border-2 border-black bg-white overflow-hidden">
+          {/* Table Header */}
+          <div className="bg-black text-white p-4 border-b-2 border-black">
+            <h3 className="font-black text-2xl">GRUPA {activeGroup}</h3>
+          </div>
+
+          {/* Table Content */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-100 font-black text-xs uppercase tracking-widest border-b-2 border-black">
+                  <th className="p-4">POZ</th>
+                  <th className="p-4">DRUŻYNA</th>
+                  <th className="p-4 text-center">PKT</th>
+                  <th className="p-4 text-center">BZ:BS</th>
                 </tr>
-              ))
-            ) : filteredTeams.length > 0 ? (
-              filteredTeams.map((row, idx) => (
-                <tr
-                  key={row.id}
-                  className={idx < 2 ? "text-red-600" : "text-gray-600"}
-                >
-                  <td className="py-5 px-4">{idx + 1}</td>
-                  <td className="py-5 font-black">{row.name}</td>
-                  <td className="py-5 text-center font-mono opacity-50">
-                    {row.goals_for}:{row.goals_against}
-                  </td>
-                  <td className="py-5 text-right px-4 font-black">
-                    {row.points}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={4} className="py-20 text-center text-gray-400">
-                  BRAK DANYCH
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+              </thead>
+              <tbody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className="border-b-2 border-black">
+                      <td className="p-4">
+                        <Skeleton className="h-4 w-4" />
+                      </td>
+                      <td className="p-4">
+                        <Skeleton className="h-4 w-48" />
+                      </td>
+                      <td className="p-4">
+                        <Skeleton className="h-4 w-8 mx-auto" />
+                      </td>
+                      <td className="p-4">
+                        <Skeleton className="h-4 w-12 mx-auto" />
+                      </td>
+                    </tr>
+                  ))
+                ) : teams.length > 0 ? (
+                  teams.map((row, idx) => (
+                    <tr
+                      key={row.id}
+                      className={`border-b-2 border-black font-bold ${
+                        idx === 0 ? "bg-red-600 text-white" : "hover:bg-gray-50"
+                      }`}
+                    >
+                      <td className="p-4">{idx + 1}</td>
+                      <td className="p-4">{row.name}</td>
+                      <td className="p-4 text-center">{row.points}</td>
+                      <td className="p-4 text-center font-mono">
+                        {row.goals_for}:{row.goals_against}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="py-20 text-center text-gray-400">
+                      BRAK DANYCH
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 };
 

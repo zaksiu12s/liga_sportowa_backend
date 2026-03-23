@@ -1,60 +1,210 @@
-const FinalsView = () => {
-  return (
-    <div className="max-w-4xl mx-auto py-12 space-y-24">
-      <div className="text-center border-b-4 border-gray-900 pb-2 inline-block mx-auto w-full">
-        <h1 className="text-2xl font-black uppercase tracking-widest">
-          FINAŁY
-        </h1>
-      </div>
+import { useState, useEffect } from "react";
+import supabase from "../../utils/supabase";
+import { Skeleton } from "../Layout/Skeleton";
 
-      <div className="grid md:grid-cols-3 gap-12 text-center">
-        {/* Półfinały */}
-        <div className="space-y-12">
-          <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-8">
-            Półfinały
+interface FinalMatch {
+  id: number;
+  type: string;
+  home_team_id: string;
+  away_team_id: string;
+  score_home?: number;
+  score_away?: number;
+}
+
+interface MatchData extends FinalMatch {
+  home_team?: { name: string };
+  away_team?: { name: string };
+}
+
+const FinalsView = () => {
+  const [semifinals, setSemifinals] = useState<MatchData[]>([]);
+  const [finalMatch, setFinalMatch] = useState<MatchData | null>(null);
+  const [thirdPlaceMatch, setThirdPlaceMatch] = useState<MatchData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFinalStageData = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await (supabase as any)
+          .from("final_stage")
+          .select(`
+            *,
+            home_team:teams!final_stage_home_team_id_fkey (name),
+            away_team:teams!final_stage_away_team_id_fkey (name)
+          `)
+          .order("type", { ascending: true });
+
+        if (error) throw error;
+
+        const semifinalMatches = data?.filter(
+          (m: any) => m.type?.includes("semi-final")
+        ) || [];
+        const final = data?.find((m: any) => m.type === "final") || null;
+        const thirdPlace = data?.find((m: any) => m.type === "3rd-place") || null;
+
+        setSemifinals(semifinalMatches as any);
+        setFinalMatch(final as any);
+        setThirdPlaceMatch(thirdPlace as any);
+      } catch (err) {
+        console.error("Error fetching final stage data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFinalStageData();
+  }, []);
+
+  const renderMatch = (match: MatchData | null, title: string) => {
+    if (loading) {
+      return (
+        <div className="border-2 border-black bg-white p-0">
+          <div className="border-b-2 border-black p-3 flex justify-between items-center">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-8" />
           </div>
-          {[1, 2].map((i) => (
-            <div
-              key={i}
-              className="py-6 border border-gray-100 hover:border-gray-900 transition-colors"
-            >
-              <div className="text-xs font-black uppercase">TEAM {i}A</div>
-              <div className="text-gray-400 my-2 text-[10px] font-bold">VS</div>
-              <div className="text-xs font-black uppercase">TEAM {i}B</div>
+          <div className="p-3 flex justify-between items-center">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-8" />
+          </div>
+        </div>
+      );
+    }
+
+    if (!match) {
+      return (
+        <div className="border-2 border-black bg-gray-100 p-6 text-center text-gray-500">
+          <p className="font-black uppercase">{title}</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="border-2 border-black bg-white p-0">
+        <div className="border-b-2 border-black p-3 flex justify-between items-center bg-gray-100">
+          <span className="font-bold uppercase text-sm">{match.home_team?.name || "?"}</span>
+          <span className="font-black text-xl">{match.score_home ?? "—"}</span>
+        </div>
+        <div className="p-3 flex justify-between items-center">
+          <span className="font-bold uppercase text-sm">{match.away_team?.name || "?"}</span>
+          <span className="font-black text-xl">{match.score_away ?? "—"}</span>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <main className="min-h-screen pt-12 pb-24 px-4 sm:px-8 max-w-7xl mx-auto">
+      {/* Header Section */}
+      <header className="mb-16 border-l-8 border-black pl-6">
+        <h1 className="font-black text-6xl md:text-8xl uppercase tracking-tighter leading-none">
+          FINAŁY <span className="text-red-600">LIGI</span>
+        </h1>
+        <p className="font-bold text-xl md:text-2xl mt-2 tracking-tight">FAZA PUCHAROWA SEZONU 2026</p>
+      </header>
+
+      {/* Knockout Bracket Visualization */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-0 relative overflow-x-auto lg:overflow-visible pb-12">
+        {/* Semifinals Column */}
+        <div className="flex flex-col justify-around gap-12 lg:gap-0 min-w-[300px]">
+          <h2 className="font-black text-2xl uppercase mb-8 lg:mb-0 border-b-4 border-black inline-block self-start px-2">
+            PÓŁFINAŁY
+          </h2>
+
+          {semifinals.map((match, idx) => (
+            <div key={match.id} className="relative py-8">
+              {renderMatch(match, `SF${idx + 1}`)}
+              <div className="hidden lg:block absolute top-1/2 -right-8 w-8 h-0.5 bg-black"></div>
             </div>
           ))}
         </div>
 
-        {/* Wielki Finał */}
-        <div className="bg-gray-900 text-white p-12 flex flex-col justify-center border-4 border-gray-900">
-          <div className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-6">
-            Finał Główny
+        {/* Grand Final Column */}
+        <div className="flex flex-col justify-center items-center py-12 lg:py-0 min-w-[300px] relative">
+          {/* Vertical Connectors */}
+          <div className="hidden lg:block absolute left-0 top-[25%] bottom-[25%] w-0.5 bg-black"></div>
+          <div className="hidden lg:block absolute left-0 top-1/2 w-8 h-0.5 bg-black"></div>
+
+          <h2 className="font-black text-3xl md:text-4xl uppercase mb-12 border-b-8 border-red-600 px-4 text-center">
+            WIELKI FINAŁ
+          </h2>
+
+          <div className="border-4 border-black bg-white p-0 w-full lg:w-80">
+            {loading ? (
+              <div>
+                <div className="bg-black text-white p-2 text-center text-xs font-black tracking-widest uppercase">
+                  Mecz o Mistrzostwo
+                </div>
+                <div className="border-b-4 border-black p-6">
+                  <Skeleton className="h-6 w-32 mb-4" />
+                </div>
+                <div className="p-6">
+                  <Skeleton className="h-6 w-32" />
+                </div>
+              </div>
+            ) : finalMatch ? (
+              <>
+                <div className="bg-black text-white p-2 text-center text-xs font-black tracking-widest uppercase">
+                  Mecz o Mistrzostwo
+                </div>
+                <div className="border-b-4 border-black p-6 flex justify-between items-center">
+                  <span className="font-black uppercase text-xl">
+                    {finalMatch.home_team?.name || "?"}
+                  </span>
+                  <span className="font-black text-4xl">{finalMatch.score_home ?? "—"}</span>
+                </div>
+                <div className="p-6 flex justify-between items-center">
+                  <span className="font-black uppercase text-xl">
+                    {finalMatch.away_team?.name || "?"}
+                  </span>
+                  <span className="font-black text-4xl">{finalMatch.score_away ?? "—"}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="bg-black text-white p-2 text-center text-xs font-black tracking-widest uppercase">
+                  Mecz o Mistrzostwo
+                </div>
+                <div className="p-6 text-center text-gray-500">
+                  <p className="font-black uppercase">Czeka na zwycięzcę</p>
+                </div>
+              </>
+            )}
+            <div className="bg-red-600 p-4 text-center">
+              <span className="text-white font-black text-lg uppercase tracking-widest">
+                {!finalMatch?.score_home ? "CZEKA NA ZWYCIĘZCĘ" : "FINAŁ ZAKOŃCZONY"}
+              </span>
+            </div>
           </div>
-          <div className="text-lg font-black italic tracking-tighter mb-2 uppercase">
-            Finalista 1
-          </div>
-          <div className="text-red-600 font-black text-xl my-4">VS</div>
-          <div className="text-lg font-black italic tracking-tighter uppercase">
-            Finalista 2
-          </div>
-          <div className="text-[10px] text-gray-500 mt-8 font-bold uppercase tracking-widest">
-            23.06.2026
+
+          {/* Champion Spot */}
+          <div className="mt-20 flex flex-col items-center">
+            <div className="w-24 h-24 border-4 border-red-600 flex items-center justify-center bg-white mb-4">
+              <span
+                className="material-symbols-outlined text-red-600 text-6xl"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                emoji_events
+              </span>
+            </div>
+            <div className="bg-red-600 text-white px-8 py-3 font-black text-2xl uppercase italic tracking-tighter">
+              MISTRZ 2026
+            </div>
           </div>
         </div>
 
-        {/* 3rd Place */}
-        <div className="flex flex-col justify-end">
-          <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-8">
-            Mecz o 3 Miejsce
-          </div>
-          <div className="py-6 border border-gray-100 grayscale opacity-40">
-            <div className="text-[10px] font-black uppercase">Przegrany P1</div>
-            <div className="text-gray-400 my-1 text-[8px] font-bold">VS</div>
-            <div className="text-[10px] font-black uppercase">Przegrany P2</div>
+        {/* 3rd Place Column */}
+        <div className="flex flex-col justify-center gap-12 min-w-[300px] lg:pl-16">
+          <div>
+            <h2 className="font-black text-2xl uppercase mb-8 border-b-4 border-black inline-block px-2">
+              O 3. MIEJSCE
+            </h2>
+            {renderMatch(thirdPlaceMatch, "3. MIEJSCE")}
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
 

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pl"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700;800;900&amp;family=Public+Sans:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed-dim": "#920028",
+              "on-primary": "#e2e2e2",
+              "on-secondary": "#ffffff",
+              "on-tertiary-container": "#ffffff",
+              "surface-container-highest": "#e2e2e2",
+              "on-secondary-container": "#40000c",
+              "on-primary-fixed": "#ffffff",
+              "secondary": "#be0037",
+              "outline-variant": "#c6c6c6",
+              "secondary-fixed": "#ffb3b6",
+              "on-primary-fixed-variant": "#e2e2e2",
+              "on-error": "#ffffff",
+              "background": "#f9f9f9",
+              "on-secondary-fixed": "#40000c",
+              "on-surface-variant": "#474747",
+              "tertiary-fixed": "#be0037",
+              "outline": "#777777",
+              "inverse-primary": "#c6c6c6",
+              "primary-fixed": "#5e5e5e",
+              "inverse-surface": "#303030",
+              "on-primary-container": "#ffffff",
+              "on-tertiary-fixed-variant": "#ffdada",
+              "error-container": "#ffdad6",
+              "surface-bright": "#f9f9f9",
+              "surface-variant": "#e2e2e2",
+              "on-secondary-fixed-variant": "#7c0021",
+              "on-surface": "#1b1b1b",
+              "on-background": "#1b1b1b",
+              "primary": "#000000",
+              "surface-container-low": "#f3f3f3",
+              "surface-container-high": "#e8e8e8",
+              "secondary-fixed-dim": "#ff8890",
+              "surface-tint": "#5e5e5e",
+              "primary-container": "#3b3b3b",
+              "surface-dim": "#dadada",
+              "error": "#ba1a1a",
+              "tertiary-container": "#e21e49",
+              "surface": "#f9f9f9",
+              "inverse-on-surface": "#f1f1f1",
+              "on-error-container": "#410002",
+              "primary-fixed-dim": "#474747",
+              "on-tertiary-fixed": "#ffffff",
+              "tertiary": "#7c0021",
+              "secondary-container": "#ffc6c8",
+              "surface-container": "#eeeeee",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#ffdada"
+            },
+            fontFamily: {
+              "headline": ["Lexend"],
+              "body": ["Public Sans"],
+              "label": ["Lexend"]
+            },
+            borderRadius: {"DEFAULT": "0", "lg": "0", "xl": "0", "full": "0"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background-color: #f9f9f9;
+        }
+        .brutalist-border {
+            border: 2px solid #000000;
+        }
+        .brutalist-header-border {
+            border-bottom: 4px solid #000000;
+        }
+    </style>
+</head>
+<body class="text-on-background">
+<!-- TopNavBar -->
+<nav class="bg-white dark:bg-black flex justify-between items-center w-full px-6 py-4 max-w-none docked full-width top-0 border-b-2 border-black dark:border-white z-50 sticky">
+<div class="text-2xl font-black text-black dark:text-white uppercase font-['Lexend'] tracking-tighter">
+            ZSEM/JCE
+        </div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="font-['Lexend'] font-bold uppercase tracking-tighter text-black dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-none" href="#">START</a>
+<a class="font-['Lexend'] font-bold uppercase tracking-tighter text-red-600 dark:text-red-500 border-b-4 border-red-600 dark:border-red-500 pb-1" href="#">TABELE</a>
+<a class="font-['Lexend'] font-bold uppercase tracking-tighter text-black dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-none" href="#">MECZE</a>
+<a class="font-['Lexend'] font-bold uppercase tracking-tighter text-black dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-none" href="#">FINAŁY</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-black dark:text-white">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-6 py-12">
+<!-- Header Section -->
+<header class="mb-16">
+<h1 class="font-headline font-black text-6xl md:text-8xl uppercase tracking-tighter leading-none mb-4">TABELE LIGOWE</h1>
+<div class="h-2 w-32 bg-secondary"></div>
+<p class="mt-6 font-headline font-bold text-xl uppercase tracking-widest text-primary">SEZON 2023/2024</p>
+</header>
+<!-- Stage 2: Top 8 (Featured Highlight) -->
+<section class="mb-20">
+<div class="flex items-center gap-4 mb-8">
+<div class="bg-primary text-white px-4 py-2 font-headline font-black text-2xl uppercase">ETAP 2</div>
+<h2 class="font-headline font-extrabold text-4xl uppercase tracking-tight">TOP 8 - ELIMINACJE</h2>
+</div>
+<div class="grid md:grid-cols-2 gap-12">
+<!-- Group A Stage 2 -->
+<div class="brutalist-border bg-white">
+<div class="bg-primary text-white p-4 brutalist-header-border">
+<h3 class="font-headline font-black text-2xl">GRUPA A</h3>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container font-headline font-bold text-xs uppercase tracking-widest border-b-2 border-black">
+<th class="p-4">POZ</th>
+<th class="p-4">DRUŻYNA</th>
+<th class="p-4 text-center">PKT</th>
+<th class="p-4 text-center">BZ:BS</th>
+</tr>
+</thead>
+<tbody class="font-body">
+<tr class="border-b-2 border-black bg-secondary text-white font-bold">
+<td class="p-4">1</td>
+<td class="p-4">FC ELEKTRONIK</td>
+<td class="p-4 text-center">12</td>
+<td class="p-4 text-center">15:3</td>
+</tr>
+<tr class="border-b-2 border-black bg-secondary/10 font-bold">
+<td class="p-4">2</td>
+<td class="p-4">JCE WARRIORS</td>
+<td class="p-4 text-center">9</td>
+<td class="p-4 text-center">10:5</td>
+</tr>
+<tr class="border-b-2 border-black">
+<td class="p-4">3</td>
+<td class="p-4">MECHATRONIKA UNITED</td>
+<td class="p-4 text-center">4</td>
+<td class="p-4 text-center">6:8</td>
+</tr>
+<tr>
+<td class="p-4">4</td>
+<td class="p-4">TECH-SQUAD</td>
+<td class="p-4 text-center">0</td>
+<td class="p-4 text-center">2:17</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Group B Stage 2 -->
+<div class="brutalist-border bg-white">
+<div class="bg-primary text-white p-4 brutalist-header-border">
+<h3 class="font-headline font-black text-2xl">GRUPA B</h3>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container font-headline font-bold text-xs uppercase tracking-widest border-b-2 border-black">
+<th class="p-4">POZ</th>
+<th class="p-4">DRUŻYNA</th>
+<th class="p-4 text-center">PKT</th>
+<th class="p-4 text-center">BZ:BS</th>
+</tr>
+</thead>
+<tbody class="font-body">
+<tr class="border-b-2 border-black bg-secondary text-white font-bold">
+<td class="p-4">1</td>
+<td class="p-4">CYBER-DRAGONS</td>
+<td class="p-4 text-center">10</td>
+<td class="p-4 text-center">12:4</td>
+</tr>
+<tr class="border-b-2 border-black bg-secondary/10 font-bold">
+<td class="p-4">2</td>
+<td class="p-4">ZSEM TITANS</td>
+<td class="p-4 text-center">7</td>
+<td class="p-4 text-center">9:6</td>
+</tr>
+<tr class="border-b-2 border-black">
+<td class="p-4">3</td>
+<td class="p-4">KODERZY FC</td>
+<td class="p-4 text-center">6</td>
+<td class="p-4 text-center">8:8</td>
+</tr>
+<tr>
+<td class="p-4">4</td>
+<td class="p-4">AUTOMATYKA BOYS</td>
+<td class="p-4 text-center">3</td>
+<td class="p-4 text-center">5:16</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<!-- Stage 1: Group Stage (Grid) -->
+<section class="mb-20">
+<div class="flex items-center gap-4 mb-8">
+<div class="bg-white brutalist-border text-primary px-4 py-2 font-headline font-black text-2xl uppercase">ETAP 1</div>
+<h2 class="font-headline font-extrabold text-4xl uppercase tracking-tight">FAZA GRUPOWA</h2>
+</div>
+<div class="grid lg:grid-cols-3 gap-8">
+<!-- Group A -->
+<div class="brutalist-border bg-white flex flex-col">
+<div class="bg-surface-container-high p-4 border-b-2 border-black">
+<h3 class="font-headline font-black text-xl uppercase italic">GRUPA A</h3>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-sm">
+<thead class="bg-primary text-white font-headline text-[10px] uppercase tracking-tighter">
+<tr>
+<th class="p-3 text-left">POZ</th>
+<th class="p-3 text-left">DRUŻYNA</th>
+<th class="p-3 text-center">PKT</th>
+<th class="p-3 text-center">BRAMKI</th>
+</tr>
+</thead>
+<tbody class="font-body">
+<tr class="border-b border-black/10 hover:bg-surface-container transition-none">
+<td class="p-3 font-bold">1.</td>
+<td class="p-3">ELEKTRYK FC</td>
+<td class="p-3 text-center font-bold">15</td>
+<td class="p-3 text-center text-[10px]">20:4</td>
+</tr>
+<tr class="border-b border-black/10 hover:bg-surface-container transition-none">
+<td class="p-3 font-bold">2.</td>
+<td class="p-3">WIRTUOZI KODU</td>
+<td class="p-3 text-center font-bold">12</td>
+<td class="p-3 text-center text-[10px]">14:8</td>
+</tr>
+<tr class="border-b border-black/10 hover:bg-surface-container transition-none">
+<td class="p-3 font-bold">3.</td>
+<td class="p-3">PNEUMATYCY</td>
+<td class="p-3 text-center font-bold">9</td>
+<td class="p-3 text-center text-[10px]">10:12</td>
+</tr>
+<tr class="border-b border-black/10 hover:bg-surface-container transition-none">
+<td class="p-3 font-bold text-red-600">4.</td>
+<td class="p-3">ISKRZENIE</td>
+<td class="p-3 text-center font-bold text-red-600">6</td>
+<td class="p-3 text-center text-[10px]">7:15</td>
+</tr>
+<tr class="hover:bg-surface-container transition-none">
+<td class="p-3 font-bold text-red-600">5.</td>
+<td class="p-3">SYSTEMY SOS</td>
+<td class="p-3 text-center font-bold text-red-600">0</td>
+<td class="p-3 text-center text-[10px]">2:14</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Group B -->
+<div class="brutalist-border bg-white flex flex-col">
+<div class="bg-surface-container-high p-4 border-b-2 border-black">
+<h3 class="font-headline font-black text-xl uppercase italic">GRUPA B</h3>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-sm">
+<thead class="bg-primary text-white font-headline text-[10px] uppercase tracking-tighter">
+<tr>
+<th class="p-3 text-left">POZ</th>
+<th class="p-3 text-left">DRUŻYNA</th>
+<th class="p-3 text-center">PKT</th>
+<th class="p-3 text-center">BRAMKI</th>
+</tr>
+</thead>
+<tbody class="font-body">
+<tr class="border-b border-black/10 hover:bg-surface-container transition-none">
+<td class="p-3 font-bold">1.</td>
+<td class="p-3">HARDWARE HUB</td>
+<td class="p-3 text-center font-bold">13</td>
+<td class="p-3 text-center text-[10px]">18:6</td>
+</tr>
+<tr class="border-b border-black/10 hover:bg-surface-container transition-none">
+<td class="p-3 font-bold">2.</td>
+<td class="p-3">LINUX GANG</td>
+<td class="p-3 text-center font-bold">10</td>
+<td class="p-3 text-center text-[10px]">12:7</td>
+</tr>
+<tr class="border-b border-black/10 hover:bg-surface-container transition-none">
+<td class="p-3 font-bold">3.</td>
+<td class="p-3">JAVA JUNKIES</td>
+<td class="p-3 text-center font-bold">7</td>
+<td class="p-3 text-center text-[10px]">9:11</td>
+</tr>
+<tr class="border-b border-black/10 hover:bg-surface-container transition-none">
+<td class="p-3 font-bold text-red-600">4.</td>
+<td class="p-3">SQL UNITED</td>
+<td class="p-3 text-center font-bold text-red-600">4</td>
+<td class="p-3 text-center text-[10px]">6:13</td>
+</tr>
+<tr class="hover:bg-surface-container transition-none">
+<td class="p-3 font-bold text-red-600">5.</td>
+<td class="p-3">BYTE BY BYTE</td>
+<td class="p-3 text-center font-bold text-red-600">1</td>
+<td class="p-3 text-center text-[10px]">4:12</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Group C -->
+<div class="brutalist-border bg-white flex flex-col">
+<div class="bg-surface-container-high p-4 border-b-2 border-black">
+<h3 class="font-headline font-black text-xl uppercase italic">GRUPA C</h3>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-sm">
+<thead class="bg-primary text-white font-headline text-[10px] uppercase tracking-tighter">
+<tr>
+<th class="p-3 text-left">POZ</th>
+<th class="p-3 text-left">DRUŻYNA</th>
+<th class="p-3 text-center">PKT</th>
+<th class="p-3 text-center">BRAMKI</th>
+</tr>
+</thead>
+<tbody class="font-body">
+<tr class="border-b border-black/10 hover:bg-surface-container transition-none">
+<td class="p-3 font-bold">1.</td>
+<td class="p-3">VOLT VIBES</td>
+<td class="p-3 text-center font-bold">14</td>
+<td class="p-3 text-center text-[10px]">22:5</td>
+</tr>
+<tr class="border-b border-black/10 hover:bg-surface-container transition-none">
+<td class="p-3 font-bold">2.</td>
+<td class="p-3">SIGNAL SQUAD</td>
+<td class="p-3 text-center font-bold">11</td>
+<td class="p-3 text-center text-[10px]">15:9</td>
+</tr>
+<tr class="border-b border-black/10 hover:bg-surface-container transition-none">
+<td class="p-3 font-bold">3.</td>
+<td class="p-3">CHIP CHAMPIONS</td>
+<td class="p-3 text-center font-bold">8</td>
+<td class="p-3 text-center text-[10px]">11:10</td>
+</tr>
+<tr class="border-b border-black/10 hover:bg-surface-container transition-none">
+<td class="p-3 font-bold text-red-600">4.</td>
+<td class="p-3">FIBER FORCE</td>
+<td class="p-3 text-center font-bold text-red-600">5</td>
+<td class="p-3 text-center text-[10px]">8:16</td>
+</tr>
+<tr class="hover:bg-surface-container transition-none">
+<td class="p-3 font-bold text-red-600">5.</td>
+<td class="p-3">NULL POINTERS</td>
+<td class="p-3 text-center font-bold text-red-600">1</td>
+<td class="p-3 text-center text-[10px]">3:19</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Legend Section -->
+<section class="mt-24 p-8 bg-black text-white brutalist-border">
+<h4 class="font-headline font-black text-2xl uppercase mb-6 tracking-tight">LEGENDA OZNACZEŃ</h4>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-8 font-label text-xs tracking-widest">
+<div class="flex flex-col gap-2">
+<span class="text-secondary font-black">POZ</span>
+<span>POZYCJA W TABELI</span>
+</div>
+<div class="flex flex-col gap-2">
+<span class="text-secondary font-black">PKT</span>
+<span>PUNKTY ZDOBYTE</span>
+</div>
+<div class="flex flex-col gap-2">
+<span class="text-secondary font-black">BZ/BS</span>
+<span>BRAMKI ZDOBYTE / STRACONE</span>
+</div>
+<div class="flex flex-col gap-2">
+<span class="text-secondary font-black">AWANS</span>
+<span class="bg-secondary/20 px-2 py-1 inline-block">MIEJSCE PREMIOWANE</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-black dark:bg-zinc-900 text-white dark:text-zinc-100 flex flex-col md:flex-row justify-between items-center w-full px-8 py-12 gap-6 full-width border-t-4 border-red-600 dark:border-red-500">
+<div class="text-lg font-black text-white font-['Lexend'] uppercase tracking-widest">
+            LIGA ZSEM/JCE
+        </div>
+<div class="flex flex-wrap justify-center gap-8 font-['Lexend'] font-medium uppercase text-xs tracking-widest">
+<a class="text-zinc-400 hover:text-red-500 transition-none" href="#">REGULAMIN</a>
+<a class="text-zinc-400 hover:text-red-500 transition-none" href="#">ZGODA</a>
+<a class="text-zinc-400 hover:text-red-500 transition-none" href="#">FORMULARZ</a>
+<a class="text-zinc-400 hover:text-red-500 transition-none" href="#">O LIDZE</a>
+</div>
+<div class="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+            © 2024 LIGA ZSEM/JCE. WSZYSTKIE PRAWA ZASTRZEŻONE.
+        </div>
+</footer>
+</body></html>

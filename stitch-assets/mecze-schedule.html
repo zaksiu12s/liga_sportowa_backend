@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pl"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700;800;900&amp;family=Public+Sans:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed-dim": "#920028",
+              "on-primary": "#e2e2e2",
+              "on-secondary": "#ffffff",
+              "on-tertiary-container": "#ffffff",
+              "surface-container-highest": "#e2e2e2",
+              "on-secondary-container": "#40000c",
+              "on-primary-fixed": "#ffffff",
+              "secondary": "#be0037",
+              "outline-variant": "#c6c6c6",
+              "secondary-fixed": "#ffb3b6",
+              "on-primary-fixed-variant": "#e2e2e2",
+              "on-error": "#ffffff",
+              "background": "#f9f9f9",
+              "on-secondary-fixed": "#40000c",
+              "on-surface-variant": "#474747",
+              "tertiary-fixed": "#be0037",
+              "outline": "#777777",
+              "inverse-primary": "#c6c6c6",
+              "primary-fixed": "#5e5e5e",
+              "inverse-surface": "#303030",
+              "on-primary-container": "#ffffff",
+              "on-tertiary-fixed-variant": "#ffdada",
+              "error-container": "#ffdad6",
+              "surface-bright": "#f9f9f9",
+              "surface-variant": "#e2e2e2",
+              "on-secondary-fixed-variant": "#7c0021",
+              "on-surface": "#1b1b1b",
+              "on-background": "#1b1b1b",
+              "primary": "#000000",
+              "surface-container-low": "#f3f3f3",
+              "surface-container-high": "#e8e8e8",
+              "secondary-fixed-dim": "#ff8890",
+              "surface-tint": "#5e5e5e",
+              "primary-container": "#3b3b3b",
+              "surface-dim": "#dadada",
+              "error": "#ba1a1a",
+              "tertiary-container": "#e21e49",
+              "surface": "#f9f9f9",
+              "inverse-on-surface": "#f1f1f1",
+              "on-error-container": "#410002",
+              "primary-fixed-dim": "#474747",
+              "on-tertiary-fixed": "#ffffff",
+              "tertiary": "#7c0021",
+              "secondary-container": "#ffc6c8",
+              "surface-container": "#eeeeee",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#ffdada"
+            },
+            fontFamily: {
+              "headline": ["Lexend"],
+              "body": ["Public Sans"],
+              "label": ["Lexend"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background-color: #f9f9f9;
+        }
+        .brutalist-border {
+            border: 2px solid #000000;
+        }
+        .brutalist-shadow {
+            box-shadow: 4px 4px 0px 0px #000000;
+        }
+        .scoreboard-font {
+            font-family: 'Lexend', sans-serif;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background">
+<!-- TopNavBar -->
+<nav class="bg-white dark:bg-black flex justify-between items-center w-full px-6 py-4 max-w-none docked full-width top-0 border-b-2 border-black dark:border-white z-50 sticky">
+<div class="text-2xl font-black text-black dark:text-white uppercase font-['Lexend'] tracking-tighter">
+            ZSEM/JCE
+        </div>
+<!-- Desktop Nav -->
+<div class="hidden md:flex gap-8 font-['Lexend'] font-bold uppercase tracking-tighter">
+<a class="text-black dark:text-white hover:text-red-600 dark:hover:text-red-500" href="#">START</a>
+<a class="text-black dark:text-white hover:text-red-600 dark:hover:text-red-500" href="#">TABELE</a>
+<a class="text-red-600 dark:text-red-500 border-b-4 border-red-600 dark:border-red-500 pb-1" href="#">MECZE</a>
+<a class="text-black dark:text-white hover:text-red-600 dark:hover:text-red-500" href="#">FINAŁY</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-black dark:text-white p-1 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-none">
+                account_circle
+            </button>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-4 py-12">
+<!-- Header Section -->
+<header class="mb-12">
+<h1 class="text-6xl md:text-8xl font-black font-headline uppercase tracking-tighter leading-none mb-4">
+                TERMINARZ <span class="text-secondary">MECZÓW</span>
+</h1>
+<div class="h-2 w-32 bg-primary"></div>
+</header>
+<!-- Filter Section -->
+<section class="mb-12">
+<div class="flex flex-wrap gap-0 border-2 border-black bg-white">
+<button class="flex-1 py-4 px-6 font-headline font-black uppercase text-center border-r-2 border-black bg-primary text-white hover:bg-primary transition-none">
+                    ETAP 1
+                </button>
+<button class="flex-1 py-4 px-6 font-headline font-black uppercase text-center border-r-2 border-black bg-white text-black hover:bg-surface-container transition-none">
+                    ETAP 2
+                </button>
+<button class="flex-1 py-4 px-6 font-headline font-black uppercase text-center bg-white text-black hover:bg-surface-container transition-none">
+                    FINAŁY
+                </button>
+</div>
+</section>
+<!-- Match List -->
+<div class="grid grid-cols-1 gap-8">
+<!-- LIVE MATCH -->
+<div class="brutalist-border bg-white overflow-hidden">
+<div class="bg-secondary text-white px-4 py-1 flex justify-between items-center border-b-2 border-black">
+<span class="font-headline font-black text-sm tracking-widest flex items-center gap-2">
+<span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                        LIVE
+                    </span>
+<span class="font-headline font-bold text-sm">BOILER ROOM ARENA</span>
+</div>
+<div class="p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+<!-- Team A -->
+<div class="flex-1 text-center md:text-right">
+<h3 class="text-2xl md:text-4xl font-black font-headline uppercase leading-tight mb-2">ELEKTRONIK RAIDERS</h3>
+<p class="font-body text-outline font-bold uppercase tracking-wider">GOSPODARZE</p>
+</div>
+<!-- Score Board -->
+<div class="flex items-center gap-4">
+<div class="bg-primary text-white w-20 h-24 md:w-28 md:h-32 flex items-center justify-center text-5xl md:text-7xl scoreboard-font brutalist-border">
+                            2
+                        </div>
+<div class="text-4xl font-black">:</div>
+<div class="bg-primary text-white w-20 h-24 md:w-28 md:h-32 flex items-center justify-center text-5xl md:text-7xl scoreboard-font brutalist-border">
+                            1
+                        </div>
+</div>
+<!-- Team B -->
+<div class="flex-1 text-center md:text-left">
+<h3 class="text-2xl md:text-4xl font-black font-headline uppercase leading-tight mb-2">CYBER KRAKÓW</h3>
+<p class="font-body text-outline font-bold uppercase tracking-wider">GOŚCIE</p>
+</div>
+</div>
+<div class="border-t-2 border-black p-4 bg-surface-container-low flex justify-center">
+<button class="bg-black text-white px-8 py-3 font-headline font-bold uppercase tracking-tighter hover:bg-secondary transition-none">
+                        STATYSTYKI NA ŻYWO
+                    </button>
+</div>
+</div>
+<!-- ZAPLANOWANE MATCH -->
+<div class="brutalist-border bg-white overflow-hidden">
+<div class="bg-black text-white px-4 py-1 flex justify-between items-center border-b-2 border-black">
+<span class="font-headline font-black text-sm tracking-widest">ZAPLANOWANE</span>
+<span class="font-headline font-bold text-sm">24.05.2024 | 16:30</span>
+</div>
+<div class="p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 opacity-90">
+<div class="flex-1 text-center md:text-right">
+<h3 class="text-2xl md:text-3xl font-black font-headline uppercase leading-tight">MECHANIK UNITED</h3>
+</div>
+<div class="flex flex-col items-center">
+<div class="text-xl font-headline font-bold bg-surface-container px-6 py-2 brutalist-border uppercase tracking-widest"> VS </div>
+</div>
+<div class="flex-1 text-center md:text-left">
+<h3 class="text-2xl md:text-3xl font-black font-headline uppercase leading-tight">KODERZY JCE</h3>
+</div>
+</div>
+</div>
+<!-- ZAKOŃCZONE MATCH -->
+<div class="brutalist-border bg-surface-container-low overflow-hidden">
+<div class="bg-outline text-white px-4 py-1 flex justify-between items-center border-b-2 border-black">
+<span class="font-headline font-black text-sm tracking-widest">ZAKOŃCZONE</span>
+<span class="font-headline font-bold text-sm">22.05.2024</span>
+</div>
+<div class="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 grayscale">
+<div class="flex-1 text-center md:text-right">
+<h3 class="text-xl md:text-2xl font-black font-headline uppercase leading-tight">HARDWARE KINGS</h3>
+</div>
+<div class="flex items-center gap-2">
+<div class="bg-white text-black w-12 h-16 flex items-center justify-center text-3xl font-black brutalist-border">0</div>
+<div class="text-2xl font-black">-</div>
+<div class="bg-white text-black w-12 h-16 flex items-center justify-center text-3xl font-black brutalist-border">3</div>
+</div>
+<div class="flex-1 text-center md:text-left">
+<h3 class="text-xl md:text-2xl font-black font-headline uppercase leading-tight">NETWORK NINJAS</h3>
+</div>
+</div>
+</div>
+<!-- ZAKOŃCZONE MATCH 2 -->
+<div class="brutalist-border bg-surface-container-low overflow-hidden">
+<div class="bg-outline text-white px-4 py-1 flex justify-between items-center border-b-2 border-black">
+<span class="font-headline font-black text-sm tracking-widest">ZAKOŃCZONE</span>
+<span class="font-headline font-bold text-sm">21.05.2024</span>
+</div>
+<div class="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 grayscale">
+<div class="flex-1 text-center md:text-right">
+<h3 class="text-xl md:text-2xl font-black font-headline uppercase leading-tight">VOLTAGE VETERANS</h3>
+</div>
+<div class="flex items-center gap-2">
+<div class="bg-white text-black w-12 h-16 flex items-center justify-center text-3xl font-black brutalist-border">2</div>
+<div class="text-2xl font-black">-</div>
+<div class="bg-white text-black w-12 h-16 flex items-center justify-center text-3xl font-black brutalist-border">1</div>
+</div>
+<div class="flex-1 text-center md:text-left">
+<h3 class="text-xl md:text-2xl font-black font-headline uppercase leading-tight">CIRCUIT BREAKERS</h3>
+</div>
+</div>
+</div>
+</div>
+<!-- Banner Ad / Announcement -->
+<section class="mt-16 brutalist-border bg-black p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+<div>
+<h2 class="text-white text-3xl md:text-4xl font-black font-headline uppercase leading-none mb-2">FINAŁY SEZONU 2024</h2>
+<p class="text-red-500 font-headline font-bold uppercase tracking-widest">JUŻ WKRÓTCE NA DUŻEJ HALI</p>
+</div>
+<button class="bg-red-600 text-white px-10 py-4 font-headline font-black uppercase tracking-tighter hover:bg-white hover:text-black transition-none brutalist-border border-white">
+                KUP BILETY
+            </button>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-black dark:bg-zinc-900 text-white dark:text-zinc-100 flex flex-col md:flex-row justify-between items-center w-full px-8 py-12 gap-6 full-width border-t-4 border-red-600 dark:border-red-500">
+<div class="text-lg font-black text-white uppercase font-['Lexend'] tracking-tighter">
+            LIGA ZSEM/JCE
+        </div>
+<div class="flex flex-wrap justify-center gap-8 font-['Lexend'] font-medium uppercase text-xs tracking-widest">
+<a class="text-zinc-400 hover:text-red-500 transition-none" href="#">REGULAMIN</a>
+<a class="text-zinc-400 hover:text-red-500 transition-none" href="#">ZGODA</a>
+<a class="text-zinc-400 hover:text-red-500 transition-none" href="#">FORMULARZ</a>
+<a class="text-zinc-400 hover:text-red-500 transition-none" href="#">O LIDZE</a>
+</div>
+<div class="text-zinc-500 font-['Lexend'] font-medium uppercase text-[10px] tracking-widest">
+            © 2024 LIGA ZSEM/JCE. WSZYSTKIE PRAWA ZASTRZEŻONE.
+        </div>
+</footer>
+</body></html>

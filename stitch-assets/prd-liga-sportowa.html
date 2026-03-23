@@ -1,0 +1,26 @@
+# Project Context: liga_sportowa
+Web application for a football league at ZSEM and JCE in Nowy Sącz.
+
+## Core Principles
+- Direct Supabase Integration (PostgreSQL).
+- Minimalistic Design: Flat, high-contrast (Black/White/Red), sharp edges, solid borders.
+- Typography-focused hierarchy.
+- Language: Polish.
+- Deployment: GitHub Pages.
+
+## Tournament Structure (ZSEM League 2026)
+- Stage 1: 15 teams, 3 groups (A, B, C).
+- Stage 2: 8 teams, 2 groups (A, B).
+- Stage 3: Semifinals, 3rd Place, Grand Final.
+
+## Key Assets
+- Rules, registration forms, and logo (Black/White).
+
+## Navigation
+- START, TABELE, MECZE, FINAŁY.
+
+## Database Schema (Public)
+- teams: id, name, group, points, goals_for, goals_against.
+- matches: id, home_team_id, away_team_id, score_home, score_away, status, scheduled_at, stage.
+- players: id, team_id, name, number, position.
+- first_stage, second_stage, final_stage.
