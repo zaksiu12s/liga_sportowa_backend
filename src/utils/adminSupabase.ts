@@ -394,7 +394,7 @@ export const matchesApi = {
       const { data: group, error: groupError } = await (supabase as any)
         .from(match.stage)
         .select("*")
-        .eq("id", match.group)
+        .eq("group_code", match.group)
         .single();
 
       if (groupError) throw groupError;
