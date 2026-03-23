@@ -13,6 +13,7 @@ import { TeamsTable } from "./components/Admin/Teams/TeamsTable";
 import { MatchesView } from "./components/Admin/Matches/MatchesView";
 import { PlayersTable } from "./components/Admin/Players/PlayersTable";
 import { StagesView } from "./components/Admin/Stages/StagesView";
+import { TopScorersView } from "./components/Admin/Statistics/TopScorersView";
 import { ToastContainer } from "./components/Admin/Toast";
 import { useAuth } from "./hooks/useAuth";
 import type { View } from "./types/app";
@@ -34,6 +35,7 @@ function App() {
           {adminView === "matches" && <MatchesView />}
           {adminView === "players" && <PlayersTable />}
           {adminView === "stages" && <StagesView />}
+          {adminView === "top-scorers" && <TopScorersView />}
         </AdminLayout>
         <ToastContainer />
       </ProtectedRoute>

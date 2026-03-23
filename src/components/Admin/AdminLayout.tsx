@@ -22,6 +22,7 @@ export const AdminLayout = ({
     { label: "MATCHES", view: "matches" },
     { label: "PLAYERS", view: "players" },
     { label: "STAGES", view: "stages" },
+    { label: "TOP SCORERS", view: "top-scorers" },
   ];
 
   const handleLogout = async () => {
