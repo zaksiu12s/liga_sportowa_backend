@@ -487,7 +487,7 @@ export const matchesApi = {
 
   async getByGroupAndStage(
     group: string,
-    stageName: "first_stage" | "second_stage"
+    stageName: "first_stage" | "second_stage" | "final_stage"
   ): Promise<Match[]> {
     try {
       const { data, error } = await supabase

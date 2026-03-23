@@ -5,18 +5,22 @@ import { useToast } from "../Toast";
 import { MatchResultForm } from "./MatchResultForm";
 import { Modal } from "../Modal";
 
-const GROUPS = ["A", "B", "C", "final", "semi-final-a", "semi-final-b", "3rd-place"];
-const STAGES = ["first_stage", "second_stage"];
+const INITIAL_GROUPS = ["A", "B", "C"];
+const FINAL_GROUPS = ["final", "semi-final-a", "semi-final-b", "3rd-place"];
+const STAGES = ["first_stage", "second_stage", "final_stage"];
 
 export const MatchesView = () => {
   const [round, setRound] = useState(1);
-  const [stage, setStage] = useState<"first_stage" | "second_stage">("first_stage");
+  const [stage, setStage] = useState<"first_stage" | "second_stage" | "final_stage">("first_stage");
   const [selectedGroup, setSelectedGroup] = useState<string>("A");
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingGenerate, setLoadingGenerate] = useState(false);
   const { showToast } = useToast();
+
+  // Determine which groups to show based on stage
+  const availableGroups = stage === "final_stage" ? FINAL_GROUPS : INITIAL_GROUPS;
 
   useEffect(() => {
     loadMatches();
@@ -25,7 +29,7 @@ export const MatchesView = () => {
   const loadMatches = async () => {
     try {
       console.log(`Loading matches for group: ${selectedGroup}, stage: ${stage}`);
-      const data = await matchesApi.getByGroupAndStage(selectedGroup, stage);
+      const data = await matchesApi.getByGroupAndStage(selectedGroup, stage as "first_stage" | "second_stage" | "final_stage");
       console.log(`Loaded ${data.length} matches`);
       if (data.length > 0) {
         console.log("First match data:", data[0]);
@@ -45,7 +49,7 @@ export const MatchesView = () => {
   const handleGenerateRound = async () => {
     setLoadingGenerate(true);
     try {
-      await matchesApi.generateRoundRobinMatches(stage, round);
+      await matchesApi.generateRoundRobinMatches(stage as "first_stage" | "second_stage", round);
       showToast(`Generated round ${round} matches for all groups`, "success");
       await loadMatches();
     } catch (error) {
@@ -88,14 +92,14 @@ export const MatchesView = () => {
           <label className="block text-xs font-black uppercase tracking-widest mb-2">
             Stage
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {STAGES.map((s) => (
               <button
                 key={s}
                 onClick={() => {
-                  setStage(s as "first_stage" | "second_stage");
+                  setStage(s as "first_stage" | "second_stage" | "final_stage");
                   setRound(1);
-                  setSelectedGroup("A");
+                  setSelectedGroup(s === "final_stage" ? "final" : "A");
                 }}
                 className={`px-4 py-2 border-2 font-bold text-xs uppercase ${
                   stage === s
@@ -103,45 +107,51 @@ export const MatchesView = () => {
                     : "bg-white text-black border-black hover:bg-gray-100"
                 }`}
               >
-                {s === "first_stage" ? "First Stage" : "Second Stage"}
+                {s === "first_stage" ? "First Stage" : s === "second_stage" ? "Second Stage" : "Final Stage"}
               </button>
             ))}
           </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-black uppercase tracking-widest mb-2">
-            Round
-          </label>
-          <select
-            value={round}
-            onChange={(e) => setRound(parseInt(e.target.value))}
-            className="px-3 py-2 border-2 border-black"
-          >
-            {[1, 2, 3, 4, 5, 6].map((r) => (
-              <option key={r} value={r}>
-                Round {r}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Round Selector - Only for first/second stage */}
+        {stage !== "final_stage" && (
+          <div>
+            <label className="block text-xs font-black uppercase tracking-widest mb-2">
+              Round
+            </label>
+            <select
+              value={round}
+              onChange={(e) => setRound(parseInt(e.target.value))}
+              className="px-3 py-2 border-2 border-black"
+            >
+              {[1, 2, 3, 4, 5, 6].map((r) => (
+                <option key={r} value={r}>
+                  Round {r}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
-        <button
-          onClick={handleGenerateRound}
-          disabled={loadingGenerate}
-          className="w-full px-4 py-2 bg-black text-white border-2 border-black font-bold text-xs uppercase hover:bg-gray-800 disabled:opacity-50"
-        >
-          {loadingGenerate ? "Generating..." : "Generate Round Matches"}
-        </button>
+        {/* Generate Button - Only for first/second stage */}
+        {stage !== "final_stage" && (
+          <button
+            onClick={handleGenerateRound}
+            disabled={loadingGenerate}
+            className="w-full px-4 py-2 bg-black text-white border-2 border-black font-bold text-xs uppercase hover:bg-gray-800 disabled:opacity-50"
+          >
+            {loadingGenerate ? "Generating..." : "Generate Round Matches"}
+          </button>
+        )}
       </div>
 
       {/* Group Selector */}
       <div className="bg-white border-2 border-black p-4">
         <label className="block text-xs font-black uppercase tracking-widest mb-2">
-          Group
+          {stage === "final_stage" ? "Match Type" : "Group"}
         </label>
         <div className="flex gap-2 flex-wrap">
-          {GROUPS.map((group) => (
+          {availableGroups.map((group) => (
             <button
               key={group}
               onClick={() => setSelectedGroup(group)}
