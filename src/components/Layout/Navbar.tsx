@@ -16,6 +16,8 @@ const Navbar = ({ currentView, onNavigate, onLoginClick }: NavbarProps) => {
     { id: "home" as const, label: "START" },
     { id: "schedule" as const, label: "MECZE" },
     { id: "standings" as const, label: "TABELE" },
+    { id: "teams" as const, label: "DRUŻYNY" },
+    { id: "scorers" as const, label: "STRZELCY" },
     { id: "finals" as const, label: "FINAŁY" },
   ];
 

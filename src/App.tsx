@@ -5,6 +5,8 @@ import HomeView from "./components/Views/HomeView";
 import StandingsView from "./components/Views/StandingsView";
 import ScheduleView from "./components/Views/ScheduleView";
 import FinalsView from "./components/Views/FinalsView";
+import TeamsView from "./components/Views/TeamsView";
+import TopScorersPageView from "./components/Views/TopScorersView";
 import { Login } from "./components/Auth/Login";
 import { ProtectedRoute } from "./components/Auth/ProtectedRoute";
 import { AdminLayout } from "./components/Admin/AdminLayout";
@@ -72,6 +74,10 @@ function App() {
         return <ScheduleView />;
       case "finals":
         return <FinalsView />;
+      case "teams":
+        return <TeamsView />;
+      case "scorers":
+        return <TopScorersPageView />;
       default:
         return <HomeView onNavigate={setCurrentView} />;
     }

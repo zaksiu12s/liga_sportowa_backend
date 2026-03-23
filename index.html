@@ -3,11 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/jpeg" href="/football_league_logo.jpg" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LIGA ELEKTRYKA</title>
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Liga Elektryka - Turniej piłki nożnej ZSEM/JCE Sezon 2026" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LIGA ELEKTRYKA" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>LIGA ELEKTRYKA</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(err => {
+          console.error('Service Worker registration failed:', err);
+        });
+      }
+    </script>
   </body>
 </html>

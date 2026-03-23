@@ -1,1 +1,1 @@
-export type View = "home" | "standings" | "schedule" | "finals";
+export type View = "home" | "standings" | "schedule" | "finals" | "teams" | "scorers";
