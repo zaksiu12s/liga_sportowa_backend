@@ -16,7 +16,7 @@ export const PlayerForm = ({ player, onSubmit, onCancel }: PlayerFormProps) => {
     last_name: player?.last_name || "",
     class_code: player?.class_code || "",
     team_id: player?.team_id || "",
-    school: player?.school || "zsem",
+    school: player?.school || "",
   });
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export const PlayerForm = ({ player, onSubmit, onCancel }: PlayerFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.first_name || !formData.last_name || !formData.team_id) {
+    if (!formData.first_name || !formData.last_name || !formData.team_id || !formData.school) {
       alert("Please fill all required fields");
       return;
     }
@@ -99,13 +99,17 @@ export const PlayerForm = ({ player, onSubmit, onCancel }: PlayerFormProps) => {
       </div>
 
       <div>
-        <label className="block text-sm font-bold mb-1">School</label>
-        <input
-          type="text"
+        <label className="block text-sm font-bold mb-1">School *</label>
+        <select
           value={formData.school}
           onChange={(e) => setFormData({ ...formData, school: e.target.value })}
           className="w-full px-3 py-2 border-2 border-black"
-        />
+          required
+        >
+          <option value="">Select school</option>
+          <option value="zsem">ZSEM</option>
+          <option value="jce">JCE</option>
+        </select>
       </div>
 
       <div className="flex gap-2 justify-end pt-4">
