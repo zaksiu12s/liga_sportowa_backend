@@ -216,7 +216,6 @@ export const MatchResultForm = ({
               </div>
             </div>
           </div>
-          </div>
           <button
             type="button"
             onClick={handleAddGoal}

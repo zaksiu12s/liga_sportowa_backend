@@ -836,12 +836,20 @@ export const topScorersApi = {
     goals: number;
     school: string;
   }>> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("top_scorers")
       .select("*")
       .order("goals", { ascending: false });
 
     if (error) throw error;
-    return (data || []);
+    return (data || []) as Array<{
+      id: string;
+      player_id: string;
+      player_name: string;
+      team_id: string;
+      team_name: string;
+      goals: number;
+      school: string;
+    }>;
   },
 };
