@@ -60,6 +60,27 @@ export const MatchesView = () => {
     setRoundSchedules(schedules);
   }, []);
 
+  // Update available rounds based on stage
+  const getAvailableRounds = () => {
+    if (stage === "first_stage") return [1, 2, 3, 4];
+    if (stage === "second_stage") return [5, 6];
+    return [];
+  };
+
+  // Get filtered round schedules for current stage
+  const getFilteredRoundSchedules = () => {
+    const availableRounds = getAvailableRounds();
+    return roundSchedules.filter((r) => availableRounds.includes(r.round));
+  };
+
+  // Update manual form round when stage changes
+  useEffect(() => {
+    const availableRounds = getAvailableRounds();
+    if (!availableRounds.includes(manualForm.round)) {
+      setManualForm({ ...manualForm, round: availableRounds[0] || 1 });
+    }
+  }, [stage]);
+
   // Load matches for current stage
   useEffect(() => {
     loadMatches();
@@ -133,9 +154,10 @@ export const MatchesView = () => {
     try {
       console.log(`[MatchesView] Generating all matches for ${stage}`);
 
-      // For each round, generate matches
+      // For each round, generate matches (use filtered schedules)
       let totalCreated = 0;
-      for (const schedule of roundSchedules) {
+      const filteredSchedules = getFilteredRoundSchedules();
+      for (const schedule of filteredSchedules) {
         const scheduledAt = new Date(`${schedule.date}T${schedule.timeStart}:00`).toISOString();
         const result = await matchesApi.generateRoundRobinMatches(
           stage as "first_stage" | "second_stage",
@@ -356,11 +378,11 @@ export const MatchesView = () => {
       {/* TAB 1: Generate Multiple Rounds */}
       {stage !== "final_stage" && activeTab === "generate" && (
         <div className="bg-white border-2 border-black p-4 space-y-4">
-          <h3 className="text-sm font-black uppercase tracking-widest">Round Schedules</h3>
+          <h3 className="text-sm font-black uppercase tracking-widest">Round Schedules {stage === "first_stage" ? "(1-4)" : "(5-6)"}</h3>
 
           {/* Round date inputs */}
           <div className="space-y-3">
-            {roundSchedules.map((schedule, idx) => (
+            {getFilteredRoundSchedules().map((schedule) => (
               <div key={schedule.round} className="border-2 border-black p-3 bg-gray-50 space-y-2">
                 <div className="flex gap-2 items-center">
                   <label className="text-xs font-bold uppercase w-12">Round {schedule.round}:</label>
@@ -369,8 +391,11 @@ export const MatchesView = () => {
                     value={schedule.date}
                     onChange={(e) => {
                       const updated = [...roundSchedules];
-                      updated[idx].date = e.target.value;
-                      setRoundSchedules(updated);
+                      const fullIdx = updated.findIndex((r) => r.round === schedule.round);
+                      if (fullIdx !== -1) {
+                        updated[fullIdx].date = e.target.value;
+                        setRoundSchedules(updated);
+                      }
                     }}
                     className="px-2 py-1 border-2 border-black text-xs"
                   />
@@ -379,8 +404,11 @@ export const MatchesView = () => {
                     value={schedule.timeStart}
                     onChange={(e) => {
                       const updated = [...roundSchedules];
-                      updated[idx].timeStart = e.target.value;
-                      setRoundSchedules(updated);
+                      const fullIdx = updated.findIndex((r) => r.round === schedule.round);
+                      if (fullIdx !== -1) {
+                        updated[fullIdx].timeStart = e.target.value;
+                        setRoundSchedules(updated);
+                      }
                     }}
                     className="px-2 py-1 border-2 border-black text-xs"
                   />
@@ -390,8 +418,11 @@ export const MatchesView = () => {
                     value={schedule.timeEnd}
                     onChange={(e) => {
                       const updated = [...roundSchedules];
-                      updated[idx].timeEnd = e.target.value;
-                      setRoundSchedules(updated);
+                      const fullIdx = updated.findIndex((r) => r.round === schedule.round);
+                      if (fullIdx !== -1) {
+                        updated[fullIdx].timeEnd = e.target.value;
+                        setRoundSchedules(updated);
+                      }
                     }}
                     className="px-2 py-1 border-2 border-black text-xs"
                   />
@@ -448,7 +479,7 @@ export const MatchesView = () => {
                 onChange={(e) => setManualForm({ ...manualForm, round: parseInt(e.target.value) })}
                 className="w-full px-3 py-2 border-2 border-black text-xs"
               >
-                {[1, 2, 3, 4, 5, 6].map((r) => (
+                {getAvailableRounds().map((r) => (
                   <option key={r} value={r}>
                     Round {r}
                   </option>
