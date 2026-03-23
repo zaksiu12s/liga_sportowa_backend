@@ -1,29 +1,28 @@
 import { useState, useEffect } from "react";
-import { getTeams } from "../../utils/data";
-import type { Tables } from "../../types/supabase";
+import { getFirstStage, getSecondStage } from "../../utils/data";
+import type { StageRow, StageTeamRow } from "../../utils/data";
 import { Skeleton } from "../Layout/Skeleton";
-
-type Team = Tables<"teams">;
 
 const StandingsView = () => {
   const [activeStage, setActiveStage] = useState<1 | 2>(1);
   const [activeGroup, setActiveGroup] = useState<string>("");
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [stageData, setStageData] = useState<StageRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await getTeams();
-        const typedData = data as any as Team[];
-        setTeams(typedData);
+        setActiveGroup(""); // reset grupy przy zmianie etapu
+        const data =
+          activeStage === 1 ? await getFirstStage() : await getSecondStage();
+        setStageData(data);
 
-        // Auto-select first available group
-        if (typedData.length > 0) {
-          const firstGroup = typedData.find((t) => t.group)?.group;
-          if (firstGroup) setActiveGroup(firstGroup);
-        }
+        // Auto-select pierwsza dostępna grupa
+        const firstGroup = [
+          ...new Set(data.map((r) => r.group_code)),
+        ].sort()[0];
+        if (firstGroup) setActiveGroup(firstGroup);
       } catch (err) {
         console.error(err);
       } finally {
@@ -31,17 +30,16 @@ const StandingsView = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [activeStage]); // <-- re-fetch przy zmianie etapu
 
-  // Extract unique groups from the database data
+  // Unikalne grupy z bazy
   const availableGroups = Array.from(
-    new Set(teams.filter((t) => t.group).map((t) => t.group!)),
+    new Set(stageData.map((row) => row.group_code)),
   ).sort();
 
-  const filteredTeams = teams.filter((t) => {
-    if (activeStage === 1) return t.group === activeGroup;
-    return false; // To be implemented later (Stage 2)
-  });
+  // Znajdź row dla aktywnej grupy, wyciągnij teams[]
+  const activeRow = stageData.find((r) => r.group_code === activeGroup);
+  const filteredTeams: StageTeamRow[] = activeRow?.teams ?? [];
 
   return (
     <div className="h-full max-w-4xl mx-auto flex flex-col py-2 px-4 dark:text-white">
@@ -66,7 +64,7 @@ const StandingsView = () => {
           ))}
         </div>
 
-        {/* Dynamic Groups from DB */}
+        {/* Grupy dynamicznie z bazy */}
         <div className="flex space-x-6 h-8 items-center">
           {loading ? (
             Array.from({ length: 3 }).map((_, i) => (
@@ -125,11 +123,17 @@ const StandingsView = () => {
             ) : filteredTeams.length > 0 ? (
               filteredTeams.map((row, idx) => (
                 <tr
-                  key={row.id}
-                  className={idx < 2 ? "text-red-600" : "text-gray-600 dark:text-gray-400"}
+                  key={idx}
+                  className={
+                    idx < 2
+                      ? "text-red-600"
+                      : "text-gray-600 dark:text-gray-400"
+                  }
                 >
                   <td className="py-5 px-4">{idx + 1}</td>
-                  <td className="py-5 font-black dark:text-white">{row.name}</td>
+                  <td className="py-5 font-black dark:text-white">
+                    {row.name}
+                  </td>
                   <td className="py-5 text-center font-mono opacity-50">
                     {row.goals_for}:{row.goals_against}
                   </td>

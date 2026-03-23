@@ -86,7 +86,7 @@ const ScheduleView = () => {
         </div>
       </div>
 
-      <div className="flex-grow flex flex-col justify-between overflow-hidden pr-2 space-y-24">
+      <div className="flex-grow flex flex-col justify-between overflow-hidden pr-2 space-y-12">
         <div className="space-y-10">
           {loading ? (
             Array.from({ length: 5 }).map((_, i) => (
@@ -152,7 +152,7 @@ const ScheduleView = () => {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-8 py-6 border-t border-gray-100 mt-auto flex-shrink-0 dark:border-neutral-800">
+          <div className="flex justify-center items-center gap-8 py-2 border-t border-gray-100 mt-auto flex-shrink-0 dark:border-neutral-800">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
