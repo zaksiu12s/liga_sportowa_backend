@@ -80,15 +80,6 @@ export const Login = () => {
             </button>
           </form>
 
-          <div className="mt-8 p-4 bg-gray-100 border-2 border-black text-xs text-gray-700">
-            <p className="font-bold mb-2">SETUP:</p>
-            <p>1. Go to Supabase project console</p>
-            <p>2. Create a user in Authentication → Users</p>
-            <p>3. Use that email/password to login</p>
-            <p className="mt-3">DEFAULT TEST ACCOUNT:</p>
-            <p>Email: admin@liga.com</p>
-            <p>Password: (see browser console for errors)</p>
-          </div>
       </div>
     </div>
   );
