@@ -12,11 +12,50 @@ interface TeamStats {
 
 const StandingsView = () => {
   const [activeStage, setActiveStage] = useState<1 | 2>(1);
-  const [activeGroup, setActiveGroup] = useState<string>("A");
+  const [activeGroup, setActiveGroup] = useState<string>("");
+  const [availableGroups, setAvailableGroups] = useState<string[]>([]);
   const [teams, setTeams] = useState<TeamStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const [groupsLoading, setGroupsLoading] = useState(true);
 
+  // Fetch available groups for the selected stage
   useEffect(() => {
+    const fetchAvailableGroups = async () => {
+      try {
+        setGroupsLoading(true);
+        const stageName = activeStage === 1 ? "first_stage" : "second_stage";
+
+        const { data, error } = await (supabase as any)
+          .from(stageName)
+          .select("group_code")
+          .order("group_code", { ascending: true });
+
+        if (error && error.code !== "PGRST116") throw error;
+
+        const groups = data?.map((row: any) => row.group_code).filter(Boolean) || [];
+        const uniqueGroups = [...new Set(groups)] as string[];
+
+        setAvailableGroups(uniqueGroups);
+
+        // Auto-select first group
+        if (uniqueGroups.length > 0 && !uniqueGroups.includes(activeGroup)) {
+          setActiveGroup(uniqueGroups[0]);
+        }
+      } catch (err) {
+        console.error("Error fetching available groups:", err);
+        setAvailableGroups([]);
+      } finally {
+        setGroupsLoading(false);
+      }
+    };
+
+    fetchAvailableGroups();
+  }, [activeStage]);
+
+  // Fetch teams for the selected group
+  useEffect(() => {
+    if (!activeGroup) return;
+
     const fetchStageData = async () => {
       try {
         setLoading(true);
@@ -31,7 +70,7 @@ const StandingsView = () => {
         if (error && error.code !== "PGRST116") throw error;
 
         if (data && data.teams) {
-          const sortedTeams = data.teams.teams.sort(
+          const sortedTeams = (data.teams.teams || []).sort(
             (a: TeamStats, b: TeamStats) => {
               if (b.points !== a.points) return b.points - a.points;
               return (b.goals_for - b.goals_against) -
@@ -52,8 +91,6 @@ const StandingsView = () => {
 
     fetchStageData();
   }, [activeStage, activeGroup]);
-
-  const availableGroups = ["A", "B", "C"];
 
   return (
     <main className="max-w-7xl mx-auto px-6 py-12">
@@ -91,26 +128,34 @@ const StandingsView = () => {
 
         {/* Group Selection */}
         <div className="flex gap-4 mb-8">
-          {availableGroups.map((g) => (
-            <button
-              key={g}
-              onClick={() => setActiveGroup(g)}
-              className={`w-12 h-12 font-black text-xl transition-none border-2 border-black ${
-                activeGroup === g
-                  ? "bg-black text-white"
-                  : "bg-white text-black hover:bg-gray-100"
-              }`}
-            >
-              {g}
-            </button>
-          ))}
+          {groupsLoading ? (
+            <div className="text-gray-500 font-black">Ładowanie grup...</div>
+          ) : availableGroups.length > 0 ? (
+            availableGroups.map((g) => (
+              <button
+                key={g}
+                onClick={() => setActiveGroup(g)}
+                className={`w-12 h-12 font-black text-xl transition-none border-2 border-black ${
+                  activeGroup === g
+                    ? "bg-black text-white"
+                    : "bg-white text-black hover:bg-gray-100"
+                }`}
+              >
+                {g}
+              </button>
+            ))
+          ) : (
+            <div className="text-gray-500 font-black">Brak dostępnych grup</div>
+          )}
         </div>
 
         {/* Standings Table */}
         <div className="border-2 border-black bg-white overflow-hidden">
           {/* Table Header */}
           <div className="bg-black text-white p-4 border-b-2 border-black">
-            <h3 className="font-black text-2xl">GRUPA {activeGroup}</h3>
+            <h3 className="font-black text-2xl">
+              GRUPA {activeGroup || "—"}
+            </h3>
           </div>
 
           {/* Table Content */}
