@@ -367,7 +367,6 @@ export const matchesApi = {
             .eq("away_team_id", match.away_team_id)
             .eq("group", match.group)
             .eq("stage", match.stage)
-            .eq("round", match.round)
             .single();
 
           if (existingMatch) {
@@ -377,8 +376,11 @@ export const matchesApi = {
             continue;
           }
 
+          // Don't send round field - column doesn't exist in DB
+          const { round: _, ...matchWithoutRound } = match;
+
           const createdMatch = await matchesApi.create({
-            ...match,
+            ...matchWithoutRound,
             score_home: null,
             score_away: null,
           });
