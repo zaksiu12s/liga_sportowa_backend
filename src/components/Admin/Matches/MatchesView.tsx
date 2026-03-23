@@ -181,6 +181,8 @@ export const MatchesView = () => {
         group: manualForm.group,
         scheduled_at: scheduledAt,
         status: "scheduled",
+        score_home: null,
+        score_away: null,
       } as any);
 
       showToast("Match added successfully", "success");
