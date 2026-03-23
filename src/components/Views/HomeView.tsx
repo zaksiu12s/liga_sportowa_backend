@@ -79,38 +79,38 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
         </div>
         <div className="md:col-span-5 bg-black flex items-center justify-center p-0 overflow-hidden min-h-[400px]">
           <img
-            className="w-full h-full object-cover grayscale contrast-125 opacity-80"
-            alt="Abstract dynamic black and white sport arena background"
-            src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1000&h=400&fit=crop&q=80"
+            className="w-full h-full object-cover grayscale contrast-150"
+            alt="Czarno-białe zdjęcie stadionu sportowego"
+            src={`https://www.fototapety.com/media/catalog/product/cache/296967dd00486cb8867f6b6fbb192224/w/0/w03239-small.jpg`}
           />
         </div>
       </section>
 
       {/* Next Match Teaser */}
       <section className="border-4 border-black bg-black text-white overflow-hidden mb-16">
-        <div className="bg-white text-black p-8 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <span className="block text-sm font-bold uppercase text-gray-500">GOSPODARZE</span>
-              <span className="text-3xl font-black uppercase">
+        <div className="bg-white text-black p-4 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8">
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full md:w-auto">
+            <div className="text-center md:text-right">
+              <span className="block text-xs md:text-sm font-bold uppercase text-gray-500">GOSPODARZE</span>
+              <span className="text-2xl md:text-3xl font-black uppercase">
                 {loading ? "..." : nextMatch?.home_team?.name || "NIEZNANA"}
               </span>
             </div>
-            <div className="w-16 h-16 bg-black text-white flex items-center justify-center font-black text-4xl">
+            <div className="w-14 h-14 md:w-16 md:h-16 bg-black text-white flex items-center justify-center font-black text-3xl md:text-4xl flex-shrink-0">
               VS
             </div>
-            <div className="text-left">
-              <span className="block text-sm font-bold uppercase text-gray-500">GOŚCIE</span>
-              <span className="text-3xl font-black uppercase">
+            <div className="text-center md:text-left">
+              <span className="block text-xs md:text-sm font-bold uppercase text-gray-500">GOŚCIE</span>
+              <span className="text-2xl md:text-3xl font-black uppercase">
                 {loading ? "..." : nextMatch?.away_team?.name || "NIEZNANA"}
               </span>
             </div>
           </div>
-          <div className="text-center md:text-right">
-            <span className="block text-sm font-bold uppercase tracking-widest text-red-600">
+          <div className="text-center md:text-right w-full md:w-auto">
+            <span className="block text-xs md:text-sm font-bold uppercase tracking-widest text-red-600">
               NAJBLIŻSZE SPOTKANIE
             </span>
-            <span className="text-4xl font-black uppercase">
+            <span className="text-lg md:text-4xl font-black uppercase">
               {loading ? "..." : formatDateTime(nextMatch?.scheduled_at)}
             </span>
           </div>
