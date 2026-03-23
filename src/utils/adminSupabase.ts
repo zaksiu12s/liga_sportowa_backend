@@ -337,7 +337,8 @@ export const matchesApi = {
         teamIds,
         group.group_code,
         round,
-        scheduledAt
+        scheduledAt,
+        stageName
       );
 
       for (const match of matchData) {

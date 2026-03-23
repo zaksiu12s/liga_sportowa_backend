@@ -24,7 +24,8 @@ export function generateRoundRobinMatches(
   teamIds: string[],
   group: string,
   round: number,
-  scheduledAt: string
+  scheduledAt: string,
+  stage: "first_stage" | "second_stage" = "first_stage"
 ): Array<{
   home_team_id: string;
   away_team_id: string;
@@ -56,7 +57,7 @@ export function generateRoundRobinMatches(
           group: group,
           scheduled_at: scheduledAt,
           status: "scheduled",
-          stage: "first_stage",
+          stage: stage,
         });
       } else {
         matches.push({
@@ -66,7 +67,7 @@ export function generateRoundRobinMatches(
           group: group,
           scheduled_at: scheduledAt,
           status: "scheduled",
-          stage: "first_stage",
+          stage: stage,
         });
       }
     }
