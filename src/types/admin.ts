@@ -68,9 +68,15 @@ export interface Match {
   round?: number | null;
   group?: string | null;
   notes?: string | null;
+  goal_scorers?: {
+    goals: Array<{
+      team_id: string;
+      player_id: string;
+      time: number;
+    }>;
+  } | null;
   created_at: string;
   updated_at?: string;
-  goals_scorers?: string[] | null;
   home_team?: Team;
   away_team?: Team;
 }

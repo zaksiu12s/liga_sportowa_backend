@@ -59,10 +59,10 @@ export const MatchesView = () => {
     }
   };
 
-  const handleUpdateScore = async (scoreHome: number, scoreAway: number) => {
+  const handleUpdateScore = async (scoreHome: number, scoreAway: number, goalScorers?: { goals: Array<{ team_id: string; player_id: string; time: number }> }) => {
     if (!selectedMatch) return;
     try {
-      await matchesApi.updateMatchScore(selectedMatch.id, scoreHome, scoreAway);
+      await matchesApi.updateMatchScore(selectedMatch.id, scoreHome, scoreAway, goalScorers);
       showToast("Match score updated and standings recalculated", "success");
       setIsModalOpen(false);
       setSelectedMatch(null);

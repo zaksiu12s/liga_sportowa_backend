@@ -18,7 +18,7 @@ export const Modal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black opacity-50"
@@ -26,7 +26,7 @@ export const Modal = ({
       ></div>
 
       {/* Modal */}
-      <div className="relative bg-white border-2 border-black w-full max-w-md max-h-96 overflow-y-auto">
+      <div className="relative bg-white border-2 border-black w-full max-w-4xl max-h-[80vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 flex justify-between items-center p-6 border-b-2 border-black bg-white">
           <h3 className="text-lg font-black uppercase tracking-widest text-black">
