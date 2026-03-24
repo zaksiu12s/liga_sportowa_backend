@@ -22,20 +22,21 @@ export type StageRow = Omit<Tables<"first_stage">, "teams"> & {
 
 // ─── Helper: wzbogać teams[] o nazwy z bazy ──────────────────────────────────
 
-async function enrichTeamsWithNames(
-  rawTeams: StageTeamJsonb[],
-): Promise<StageTeamRow[]> {
-  const ids = rawTeams.map((t) => t.id);
+// async function enrichTeamsWithNames(
+//   rawTeams: StageTeamJsonb[],
+// ): Promise<StageTeamRow[]> {
+//   const ids = rawTeams.map((t) => t.id);
 
-  const { data, error } = await supabase
-    .from("teams")
-    .select("*")
-    .order("points", { ascending: false })
-    .order("goals_for", { ascending: false });
+//   const { data, error } = await supabase
+//     .from("teams")
+//     .select("*")
+//     .in("id", ids);
 
-  if (error) throw error;
-  return data;
-}
+//   if (error) throw error;
+//   return data;
+// }
+
+// export { enrichTeamsWithNames };
 
 // ─── Matches ─────────────────────────────────────────────────────────────────
 
