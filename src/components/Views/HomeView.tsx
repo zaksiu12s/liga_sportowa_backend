@@ -6,6 +6,7 @@ interface NextMatchData {
   home_team?: { name: string } | null;
   away_team?: { name: string } | null;
   scheduled_at: string | null;
+  status?: string | null;
 }
 
 interface HomeViewProps {
@@ -53,6 +54,8 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
     return `${dayName.toUpperCase()} ${dateNum} ${monthName.toUpperCase()} ${year}, ${time}`;
   };
 
+  const hasPlannedMatch = !loading && nextMatch?.status === "scheduled";
+
   return (
     <main className="container mx-auto px-6 py-12">
       {/* Hero Section */}
@@ -86,35 +89,37 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
       </section>
 
       {/* Next Match Teaser */}
-      <section className="border-4 border-black bg-black text-white overflow-hidden mb-16">
-        <div className="bg-white text-black p-4 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8">
-          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full md:w-auto">
-            <div className="text-center md:text-right">
-              <span className="block text-xs md:text-sm font-bold uppercase text-gray-500">GOSPODARZE</span>
-              <span className="text-2xl md:text-3xl font-black uppercase">
-                {loading ? "..." : nextMatch?.home_team?.name || "NIEZNANA"}
+      {hasPlannedMatch && (
+        <section className="border-4 border-black bg-black text-white overflow-hidden mb-16">
+          <div className="bg-white text-black p-4 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8">
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full md:w-auto">
+              <div className="text-center md:text-right">
+                <span className="block text-xs md:text-sm font-bold uppercase text-gray-500">GOSPODARZE</span>
+                <span className="text-2xl md:text-3xl font-black uppercase">
+                  {nextMatch?.home_team?.name || "NIEZNANA"}
+                </span>
+              </div>
+              <div className="w-14 h-14 md:w-16 md:h-16 bg-black text-white flex items-center justify-center font-black text-3xl md:text-4xl flex-shrink-0">
+                VS
+              </div>
+              <div className="text-center md:text-left">
+                <span className="block text-xs md:text-sm font-bold uppercase text-gray-500">GOŚCIE</span>
+                <span className="text-2xl md:text-3xl font-black uppercase">
+                  {nextMatch?.away_team?.name || "NIEZNANA"}
+                </span>
+              </div>
+            </div>
+            <div className="text-center md:text-right w-full md:w-auto">
+              <span className="block text-xs md:text-sm font-bold uppercase tracking-widest text-red-600">
+                NAJBLIŻSZE SPOTKANIE
               </span>
-            </div>
-            <div className="w-14 h-14 md:w-16 md:h-16 bg-black text-white flex items-center justify-center font-black text-3xl md:text-4xl flex-shrink-0">
-              VS
-            </div>
-            <div className="text-center md:text-left">
-              <span className="block text-xs md:text-sm font-bold uppercase text-gray-500">GOŚCIE</span>
-              <span className="text-2xl md:text-3xl font-black uppercase">
-                {loading ? "..." : nextMatch?.away_team?.name || "NIEZNANA"}
+              <span className="text-lg md:text-4xl font-black uppercase">
+                {formatDateTime(nextMatch?.scheduled_at)}
               </span>
             </div>
           </div>
-          <div className="text-center md:text-right w-full md:w-auto">
-            <span className="block text-xs md:text-sm font-bold uppercase tracking-widest text-red-600">
-              NAJBLIŻSZE SPOTKANIE
-            </span>
-            <span className="text-lg md:text-4xl font-black uppercase">
-              {loading ? "..." : formatDateTime(nextMatch?.scheduled_at)}
-            </span>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Bento Grid Info Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
