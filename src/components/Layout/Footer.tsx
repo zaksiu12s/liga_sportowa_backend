@@ -60,6 +60,10 @@ const Footer = () => {
     window.open(rulesPdfHref, "_blank", "noopener,noreferrer");
   };
 
+  const handleOpenSourceCode = () => {
+    window.open("https://github.com/zaksiu12s/liga_sportowa_backend", "_blank", "noopener,noreferrer");
+  };
+
   return (
     <footer className="bg-black border-t-4 border-red-600 mt-20 relative">
       <div className="w-full px-3 md:px-8 py-12">
@@ -129,7 +133,7 @@ const Footer = () => {
               <button
                 type="button"
                 onClick={() => setIsGithubModalOpen(false)}
-                className="font-black uppercase text-xs tracking-widest text-gray-700 hover:text-red-600"
+                className="px-3 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-100"
               >
                 Zamknij
               </button>
@@ -156,15 +160,14 @@ const Footer = () => {
                 </a>
               ))}
 
-              <div className="border-t-2 border-black pt-4">
-                <a
-                  href="https://github.com/zaksiu12s/liga_sportowa_backend"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-black uppercase text-xs tracking-widest text-red-700 hover:text-red-500"
+              <div className="border-t-2 border-black pt-4 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleOpenSourceCode}
+                  className="px-4 py-2 border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500"
                 >
-                  Zobacz kod zrodlowy
-                </a>
+                  Zobacz kod zrodlowy strony
+                </button>
               </div>
             </div>
           </div>

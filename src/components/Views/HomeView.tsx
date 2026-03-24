@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { getTeamsCount, getMatchesCount, getNextMatch } from "../../utils/data";
 import type { View } from "../../types/app";
 
@@ -124,11 +125,11 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
     <main className="container mx-auto px-6 py-12">
       {/* Hero Section */}
       <section className="grid grid-cols-1 md:grid-cols-12 gap-0 border-4 border-black mb-16 bg-white overflow-hidden">
-        <div className="md:col-span-7 p-8 md:p-12 flex flex-col justify-center">
+        <div className="md:col-span-7 p-4 sm:p-6 md:p-12 flex flex-col justify-center text-left">
           <span className="bg-red-600 text-white px-4 py-1 self-start font-bold text-sm tracking-widest mb-6">
             SEZON 2026
           </span>
-          <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-8">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-8">
             LIGA <span className="text-red-600">ELEKTRYKA</span>
           </h1>
           <p className="text-lg md:text-xl font-bold border-l-8 border-black pl-6 max-w-2xl mb-10">
@@ -267,9 +268,9 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
         </div>
       </section>
 
-      {selectedDocument && (
+      {selectedDocument && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 md:p-4"
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-3 md:p-4"
           onClick={() => setSelectedDocument(null)}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
@@ -283,29 +284,29 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
             className="w-full max-w-6xl bg-white border-4 border-black shadow-[10px_10px_0px_#dc2626]"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-red-600 bg-white px-4 py-4 md:px-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b-4 border-red-600 bg-white px-4 py-4 md:px-6">
               <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-black">
                 {selectedDocument.title}
               </h3>
-              <div className="flex items-center gap-2 md:gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 w-full md:w-auto">
                 <a
                   href={selectedDocument.href}
                   download
-                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
+                  className="px-[18px] py-[11px] border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200 text-center"
                 >
                   Pobierz
                 </a>
                 <button
                   type="button"
                   onClick={handlePrintDocument}
-                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
+                  className="px-[18px] py-[11px] border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
                 >
                   Drukuj
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedDocument(null)}
-                  className="px-4 py-2 border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500"
+                  className="px-[18px] py-[11px] border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500"
                 >
                   Zamknij
                 </button>
@@ -321,7 +322,8 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
               />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </main>
   );

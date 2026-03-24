@@ -63,7 +63,7 @@ const Navbar = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`nav-animated-link font-black uppercase text-sm md:text-base tracking-tighter ${isActivePath(item.path)
+              className={`nav-animated-link px-[2px] py-[3px] font-black uppercase text-sm md:text-base tracking-tighter ${isActivePath(item.path)
                   ? "nav-animated-link-active text-red-600"
                   : "text-black hover:text-red-600"
                 }`}
