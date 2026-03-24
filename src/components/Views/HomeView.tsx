@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 import type { View } from "../../types/app";
 import { usePublicData } from "../../hooks/usePublicData";
 
@@ -22,9 +21,6 @@ type NextMatchData = {
 
 const HomeView = ({ onNavigate }: HomeViewProps) => {
   const { data } = usePublicData();
-  const [selectedDocument, setSelectedDocument] = useState<DocumentItem | null>(
-    null,
-  );
 
   const documents: DocumentItem[] = [
     {
@@ -43,28 +39,6 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
       href: `${import.meta.env.BASE_URL}consent.pdf`,
     },
   ];
-
-  useEffect(() => {
-    if (!selectedDocument) {
-      return;
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setSelectedDocument(null);
-      }
-    };
-
-    window.addEventListener("keydown", handleEscape);
-
-    return () => {
-      window.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [selectedDocument]);
 
   const formatDateTime = (dateString: string | null | undefined) => {
     if (!dateString) return "TBD";
@@ -88,21 +62,6 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
     (match) => match.status === "scheduled",
   ) as NextMatchData | undefined;
   const hasPlannedMatch = Boolean(nextMatch?.status === "scheduled");
-
-  const handlePrintDocument = () => {
-    if (selectedDocument) {
-      window.open(selectedDocument.href, "_blank", "noopener,noreferrer");
-    }
-  };
-
-  const handleOpenDocument = () => {
-    if (selectedDocument) {
-      window.open(selectedDocument.href, "_blank", "noopener,noreferrer");
-    }
-  };
-
-  const getPdfPreviewUrl = (href: string) =>
-    `${href}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
 
   return (
     <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
@@ -262,10 +221,10 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {documents.map((document) => (
-            <button
-              type="button"
+            <a
               key={document.title}
-              onClick={() => setSelectedDocument(document)}
+              href={document.href}
+              download
               className="group border-2 border-black bg-white p-6 flex items-center justify-between hover:bg-black transition-none text-left"
             >
               <div className="flex items-center gap-4">
@@ -277,92 +236,12 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
                 </span>
               </div>
               <span className="material-symbols-outlined group-hover:text-white">
-                open_in_new
+                download
               </span>
-            </button>
+            </a>
           ))}
         </div>
       </section>
-
-      {selectedDocument &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-            onClick={() => setSelectedDocument(null)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                setSelectedDocument(null);
-              }
-            }}
-            role="button"
-            tabIndex={-1}
-          >
-            <div
-              className="w-full max-w-6xl bg-white border-4 border-black shadow-[10px_10px_0px_#dc2626]"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-red-600 bg-white px-4 py-4 md:px-6">
-                <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-black">
-                  {selectedDocument.title}
-                </h3>
-                <div className="flex items-center gap-2 md:gap-3">
-                  <button
-                    type="button"
-                    onClick={handleOpenDocument}
-                    className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
-                  >
-                    Otworz
-                  </button>
-                  <a
-                    href={selectedDocument.href}
-                    download
-                    className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
-                  >
-                    Pobierz
-                  </a>
-                  <button
-                    type="button"
-                    onClick={handlePrintDocument}
-                    className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
-                  >
-                    Drukuj
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDocument(null)}
-                    className="px-4 py-2 border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500"
-                  >
-                    Zamknij
-                  </button>
-                </div>
-              </div>
-
-              <div className="h-[75vh] md:h-[80vh] bg-gray-200 p-2 md:p-3">
-                <object
-                  aria-label={`Podglad dokumentu ${selectedDocument.title}`}
-                  data={getPdfPreviewUrl(selectedDocument.href)}
-                  type="application/pdf"
-                  className="w-full h-full border-2 border-black bg-white"
-                >
-                  <div className="w-full h-full border-2 border-black bg-white p-6 flex flex-col items-center justify-center gap-3 text-center">
-                    <p className="font-black uppercase text-sm tracking-widest text-black">
-                      Ta przegladarka nie obsluguje podgladu PDF w oknie.
-                    </p>
-                    <a
-                      href={selectedDocument.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-4 py-2 border-2 border-black bg-black text-white font-black uppercase text-xs tracking-widest hover:bg-gray-800"
-                    >
-                      Otworz PDF w nowej karcie
-                    </a>
-                  </div>
-                </object>
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )}
     </main>
   );
 };
