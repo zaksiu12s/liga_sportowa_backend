@@ -122,17 +122,17 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
   const getPdfPreviewUrl = (href: string) => `${href}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
 
   return (
-    <main className="container mx-auto px-6 py-12">
+    <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
       {/* Hero Section */}
       <section className="grid grid-cols-1 md:grid-cols-12 gap-0 border-4 border-black mb-16 bg-white overflow-hidden">
         <div className="md:col-span-7 p-4 sm:p-6 md:p-12 flex flex-col justify-center text-left">
           <span className="bg-red-600 text-white px-4 py-1 self-start font-bold text-sm tracking-widest mb-6">
             SEZON 2026
           </span>
-          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-8">
-            LIGA <span className="text-red-600">ELEKTRYKA</span>
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-6 sm:mb-8 break-words">
+            LIGA <span className="text-red-600 block sm:inline">ELEKTRYKA</span>
           </h1>
-          <p className="text-lg md:text-xl font-bold border-l-8 border-black pl-6 max-w-2xl mb-10">
+          <p className="text-base sm:text-lg md:text-xl font-bold border-l-8 border-black pl-4 sm:pl-6 max-w-2xl mb-8 sm:mb-10">
             NAJWIĘKSZE ROZGRYWKI SPORTOWE W HISTORII ELEKTRYKA! W TYM ROKU WE WSPÓŁPRACY Z JCE BUDUJEMY HISTORIĘ SPORTU SZKOLNEGO NA NOWO!
           </p>
           <div className="flex flex-wrap gap-4">
@@ -144,7 +144,7 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
             </button>
           </div>
         </div>
-        <div className="md:col-span-5 bg-black flex items-center justify-center p-0 overflow-hidden min-h-[400px]">
+        <div className="md:col-span-5 bg-black flex items-center justify-center p-0 overflow-hidden min-h-[260px] sm:min-h-[340px] md:min-h-[400px]">
           <img
             className="w-full h-full object-cover grayscale contrast-150"
             alt="Czarno-białe zdjęcie stadionu sportowego"
@@ -270,7 +270,7 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
 
       {selectedDocument && createPortal(
         <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-3 md:p-4"
+          className="fixed inset-0 z-[70] flex items-start md:items-center justify-center bg-black/80 p-2 sm:p-3 md:p-4 overflow-y-auto"
           onClick={() => setSelectedDocument(null)}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
@@ -281,10 +281,10 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
           tabIndex={-1}
         >
           <div
-            className="w-full max-w-6xl bg-white border-4 border-black shadow-[10px_10px_0px_#dc2626]"
+            className="w-full max-w-6xl max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-1.5rem)] md:max-h-[calc(100dvh-2rem)] bg-white border-4 border-black shadow-[10px_10px_0px_#dc2626] flex flex-col overflow-hidden"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b-4 border-red-600 bg-white px-4 py-4 md:px-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b-4 border-red-600 bg-white px-3 sm:px-4 py-3 sm:py-4 md:px-6 shrink-0">
               <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-black">
                 {selectedDocument.title}
               </h3>
@@ -292,28 +292,28 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
                 <a
                   href={selectedDocument.href}
                   download
-                  className="px-[18px] py-[11px] border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200 text-center"
+                  className="px-[18px] py-[11px] border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200 text-center w-full"
                 >
                   Pobierz
                 </a>
                 <button
                   type="button"
                   onClick={handlePrintDocument}
-                  className="px-[18px] py-[11px] border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
+                  className="px-[18px] py-[11px] border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200 w-full"
                 >
                   Drukuj
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedDocument(null)}
-                  className="px-[18px] py-[11px] border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500"
+                  className="px-[18px] py-[11px] border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500 w-full"
                 >
                   Zamknij
                 </button>
               </div>
             </div>
 
-            <div className="h-[75vh] md:h-[80vh] bg-gray-200 p-2 md:p-3">
+            <div className="flex-1 min-h-[45vh] bg-gray-200 p-2 md:p-3">
               <iframe
                 ref={pdfFrameRef}
                 title={`Podglad dokumentu ${selectedDocument.title}`}
