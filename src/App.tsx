@@ -1,4 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import {
+  Routes,
+  Route,
+  Navigate,
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
 import HomeView from "./components/Views/HomeView";
@@ -23,7 +31,6 @@ import { usePublicData } from "./hooks/usePublicData";
 import { PublicDataProvider } from "./context/PublicDataContext";
 import type { View } from "./types/app";
 import type { AdminView } from "./types/admin";
-import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 const viewToPath = (view: View) => {
   switch (view) {
@@ -44,7 +51,11 @@ const viewToPath = (view: View) => {
   }
 };
 
-const AdminRoute = ({ user, adminView, setAdminView }: {
+const AdminRoute = ({
+  user,
+  adminView,
+  setAdminView,
+}: {
   user: unknown;
   adminView: AdminView;
   setAdminView: React.Dispatch<React.SetStateAction<AdminView>>;
@@ -53,7 +64,9 @@ const AdminRoute = ({ user, adminView, setAdminView }: {
     return (
       <ProtectedRoute>
         <AdminLayout currentView={adminView} onViewChange={setAdminView}>
-          {adminView === "dashboard" && <Dashboard onViewChange={setAdminView} />}
+          {adminView === "dashboard" && (
+            <Dashboard onViewChange={setAdminView} />
+          )}
           {adminView === "teams" && <TeamsTable />}
           {adminView === "matches" && <MatchesView />}
           {adminView === "players" && <PlayersTable />}
@@ -69,7 +82,10 @@ const AdminRoute = ({ user, adminView, setAdminView }: {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="border-b-2 border-black bg-white h-16 flex items-center px-4">
-        <Link to="/" className="font-black text-lg tracking-tight cursor-pointer hover:text-red-600">
+        <Link
+          to="/"
+          className="font-black text-lg tracking-tight cursor-pointer hover:text-red-600"
+        >
           Powrot do Strony Głównej
         </Link>
       </div>
@@ -91,21 +107,23 @@ const PublicRouteContent = ({
   displayLocation: ReturnType<typeof useLocation>;
   navigate: ReturnType<typeof useNavigate>;
 }) => {
-  const {
-    status,
-    errorMessage,
-    syncNow,
-    showHydrationFade,
-    isSwappingData,
-  } = usePublicData();
+  const { status, errorMessage, syncNow, showHydrationFade, isSwappingData } =
+    usePublicData();
 
   if (status === "blocking-load") {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
         <div className="border-4 border-black bg-white p-8 sm:p-10 text-center shadow-[10px_10px_0px_#dc2626] max-w-md w-full">
-          <div className="inline-block w-12 h-12 border-4 border-black border-r-transparent animate-spin mb-5" aria-hidden="true"></div>
-          <h1 className="font-black uppercase text-xl tracking-wide">Ladowanie Danych</h1>
-          <p className="mt-3 text-sm font-bold text-gray-600 uppercase tracking-wider">Pierwsze uruchomienie aplikacji</p>
+          <div
+            className="inline-block w-12 h-12 border-4 border-black border-r-transparent animate-spin mb-5"
+            aria-hidden="true"
+          ></div>
+          <h1 className="font-black uppercase text-xl tracking-wide">
+            Ladowanie Danych
+          </h1>
+          <p className="mt-3 text-sm font-bold text-gray-600 uppercase tracking-wider">
+            Pierwsze uruchomienie aplikacji
+          </p>
         </div>
       </div>
     );
@@ -115,8 +133,12 @@ const PublicRouteContent = ({
     return (
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
         <div className="border-4 border-black bg-white p-8 sm:p-10 text-center shadow-[10px_10px_0px_#dc2626] max-w-lg w-full">
-          <h1 className="font-black uppercase text-2xl tracking-tight">Brak Danych Startowych</h1>
-          <p className="mt-4 text-sm font-bold text-gray-700">{errorMessage || "Nie mozna uruchomic aplikacji w trybie online."}</p>
+          <h1 className="font-black uppercase text-2xl tracking-tight">
+            Brak Danych Startowych
+          </h1>
+          <p className="mt-4 text-sm font-bold text-gray-700">
+            {errorMessage || "Nie mozna uruchomic aplikacji w trybie online."}
+          </p>
           <button
             type="button"
             onClick={() => void syncNow()}
@@ -131,7 +153,9 @@ const PublicRouteContent = ({
 
   return (
     <div className="bg-white min-h-screen flex flex-col text-on-surface overflow-x-hidden relative">
-      {showHydrationFade && <div className="app-hydration-overlay" aria-hidden="true" />}
+      {showHydrationFade && (
+        <div className="app-hydration-overlay" aria-hidden="true" />
+      )}
       <Navbar />
       <main className="flex-grow bg-white pt-[72px] md:pt-[84px]">
         <div
@@ -141,7 +165,9 @@ const PublicRouteContent = ({
           <Routes location={displayLocation}>
             <Route
               path="/"
-              element={<HomeView onNavigate={(view) => navigate(viewToPath(view))} />}
+              element={
+                <HomeView onNavigate={(view) => navigate(viewToPath(view))} />
+              }
             />
             <Route path="/standings" element={<StandingsView />} />
             <Route path="/schedule" element={<ScheduleView />} />
@@ -163,12 +189,16 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [displayLocation, setDisplayLocation] = useState(location);
-  const [transitionStage, setTransitionStage] = useState<"route-fade-in" | "route-fade-out">("route-fade-in");
+  const [transitionStage, setTransitionStage] = useState<
+    "route-fade-in" | "route-fade-out"
+  >("route-fade-in");
   const transitionTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (location.pathname !== displayLocation.pathname) {
-      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
 
       if (prefersReducedMotion) {
         setDisplayLocation(location);
@@ -216,11 +246,17 @@ function App() {
       <Routes>
         <Route
           path="/admin"
-          element={<AdminRoute user={user} adminView={adminView} setAdminView={setAdminView} />}
+          element={
+            <AdminRoute
+              user={user}
+              adminView={adminView}
+              setAdminView={setAdminView}
+            />
+          }
         />
         <Route
           path="*"
-          element={(
+          element={
             <PublicDataProvider>
               <PublicRouteContent
                 transitionStage={transitionStage}
@@ -229,7 +265,7 @@ function App() {
                 navigate={navigate}
               />
             </PublicDataProvider>
-          )}
+          }
         />
       </Routes>
       <ToastContainer />

@@ -21,36 +21,51 @@ const FinalsView = () => {
   const loading = !data;
 
   const semifinals = useMemo(
-    () => (data?.finalStageMatches || []).filter((match) => match.type?.includes("semi-final")) as MatchData[],
-    [data?.finalStageMatches]
+    () =>
+      (data?.finalStageMatches || []).filter((match) =>
+        match.type?.includes("semi-final"),
+      ) as MatchData[],
+    [data?.finalStageMatches],
   );
 
   const finalMatch = useMemo(
-    () => ((data?.finalStageMatches || []).find((match) => match.type === "final") || null) as MatchData | null,
-    [data?.finalStageMatches]
+    () =>
+      ((data?.finalStageMatches || []).find(
+        (match) => match.type === "final",
+      ) || null) as MatchData | null,
+    [data?.finalStageMatches],
   );
 
   const thirdPlaceMatch = useMemo(
-    () => ((data?.finalStageMatches || []).find((match) => match.type === "3rd-place") || null) as MatchData | null,
-    [data?.finalStageMatches]
+    () =>
+      ((data?.finalStageMatches || []).find(
+        (match) => match.type === "3rd-place",
+      ) || null) as MatchData | null,
+    [data?.finalStageMatches],
   );
 
   const isEmptyBracket =
-    !loading &&
-    semifinals.length === 0 &&
-    !finalMatch &&
-    !thirdPlaceMatch;
+    !loading && semifinals.length === 0 && !finalMatch && !thirdPlaceMatch;
 
-  const semifinalEntries = loading || isEmptyBracket
-    ? [
-        { key: "sf-placeholder-1", match: null as MatchData | null, title: "SF1" },
-        { key: "sf-placeholder-2", match: null as MatchData | null, title: "SF2" },
-      ]
-    : semifinals.map((match, idx) => ({
-        key: match.id,
-        match,
-        title: `SF${idx + 1}`,
-      }));
+  const semifinalEntries =
+    loading || isEmptyBracket
+      ? [
+          {
+            key: "sf-placeholder-1",
+            match: null as MatchData | null,
+            title: "SF1",
+          },
+          {
+            key: "sf-placeholder-2",
+            match: null as MatchData | null,
+            title: "SF2",
+          },
+        ]
+      : semifinals.map((match, idx) => ({
+          key: match.id,
+          match,
+          title: `SF${idx + 1}`,
+        }));
 
   const showAnimatedConnectors = loading;
   const showStaticConnectors = !loading && !isEmptyBracket;
@@ -76,7 +91,9 @@ const FinalsView = () => {
         return (
           <div className="border-2 border-black bg-white p-0">
             <div className="border-b-2 border-black p-3 flex justify-between items-center bg-gray-100">
-              <span className="font-black uppercase text-sm tracking-wider text-black">{title}</span>
+              <span className="font-black uppercase text-sm tracking-wider text-black">
+                {title}
+              </span>
               <span className="font-black text-xl text-gray-500">—</span>
             </div>
             <div className="p-4 md:p-5 space-y-2">
@@ -90,11 +107,15 @@ const FinalsView = () => {
       return (
         <div className="border-2 border-black bg-white p-0">
           <div className="border-b-2 border-black p-3 flex justify-between items-center bg-gray-100">
-            <span className="font-black uppercase text-sm tracking-wider">{title}</span>
+            <span className="font-black uppercase text-sm tracking-wider">
+              {title}
+            </span>
             <span className="font-black text-xl">—</span>
           </div>
           <div className="p-4 text-center text-gray-500">
-            <p className="font-black uppercase text-xs tracking-widest">Brak danych</p>
+            <p className="font-black uppercase text-xs tracking-widest">
+              Brak danych
+            </p>
           </div>
         </div>
       );
@@ -103,11 +124,15 @@ const FinalsView = () => {
     return (
       <div className="border-2 border-black bg-white p-0">
         <div className="border-b-2 border-black p-3 flex justify-between items-center bg-gray-100">
-          <span className="font-bold uppercase text-sm">{match.home_team?.name || "?"}</span>
+          <span className="font-bold uppercase text-sm">
+            {match.home_team?.name || "?"}
+          </span>
           <span className="font-black text-xl">{match.score_home ?? "—"}</span>
         </div>
         <div className="p-3 flex justify-between items-center">
-          <span className="font-bold uppercase text-sm">{match.away_team?.name || "?"}</span>
+          <span className="font-bold uppercase text-sm">
+            {match.away_team?.name || "?"}
+          </span>
           <span className="font-black text-xl">{match.score_away ?? "—"}</span>
         </div>
       </div>
@@ -121,7 +146,9 @@ const FinalsView = () => {
         <h1 className="font-black text-4xl md:text-6xl lg:text-8xl uppercase tracking-tighter leading-none">
           FINAŁY <span className="text-red-600">LIGI</span>
         </h1>
-        <p className="font-bold text-lg md:text-2xl mt-2 tracking-tight">FAZA PUCHAROWA SEZONU 2026</p>
+        <p className="font-bold text-lg md:text-2xl mt-2 tracking-tight">
+          FAZA PUCHAROWA SEZONU 2026
+        </p>
       </header>
 
       {/* Knockout Bracket Visualization */}
@@ -196,13 +223,17 @@ const FinalsView = () => {
                   <span className="font-black uppercase text-lg md:text-xl truncate">
                     {finalMatch.home_team?.name || "?"}
                   </span>
-                  <span className="font-black text-3xl md:text-4xl flex-shrink-0">{finalMatch.score_home ?? "—"}</span>
+                  <span className="font-black text-3xl md:text-4xl flex-shrink-0">
+                    {finalMatch.score_home ?? "—"}
+                  </span>
                 </div>
                 <div className="p-3 md:p-6 flex justify-between items-center gap-2">
                   <span className="font-black uppercase text-lg md:text-xl truncate">
                     {finalMatch.away_team?.name || "?"}
                   </span>
-                  <span className="font-black text-3xl md:text-4xl flex-shrink-0">{finalMatch.score_away ?? "—"}</span>
+                  <span className="font-black text-3xl md:text-4xl flex-shrink-0">
+                    {finalMatch.score_away ?? "—"}
+                  </span>
                 </div>
               </>
             ) : (
@@ -212,11 +243,15 @@ const FinalsView = () => {
                 </div>
                 <div className="border-b-4 border-black p-3 md:p-6 flex justify-between items-center gap-2">
                   <div className="h-4 w-24 bg-gray-200" />
-                  <span className="font-black text-3xl md:text-4xl text-gray-500">—</span>
+                  <span className="font-black text-3xl md:text-4xl text-gray-500">
+                    —
+                  </span>
                 </div>
                 <div className="p-3 md:p-6 flex justify-between items-center gap-2">
                   <div className="h-4 w-24 bg-gray-200" />
-                  <span className="font-black text-3xl md:text-4xl text-gray-500">—</span>
+                  <span className="font-black text-3xl md:text-4xl text-gray-500">
+                    —
+                  </span>
                 </div>
               </>
             )}

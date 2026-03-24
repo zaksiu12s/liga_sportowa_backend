@@ -22,7 +22,9 @@ type NextMatchData = {
 
 const HomeView = ({ onNavigate }: HomeViewProps) => {
   const { data } = usePublicData();
-  const [selectedDocument, setSelectedDocument] = useState<DocumentItem | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<DocumentItem | null>(
+    null,
+  );
 
   const documents: DocumentItem[] = [
     {
@@ -82,7 +84,9 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
   const matchesCount = data?.matches.length || 0;
   const loading = !data;
 
-  const nextMatch = (data?.matches || []).find((match) => match.status === "scheduled") as NextMatchData | undefined;
+  const nextMatch = (data?.matches || []).find(
+    (match) => match.status === "scheduled",
+  ) as NextMatchData | undefined;
   const hasPlannedMatch = Boolean(nextMatch?.status === "scheduled");
 
   const handlePrintDocument = () => {
@@ -97,7 +101,8 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
     }
   };
 
-  const getPdfPreviewUrl = (href: string) => `${href}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
+  const getPdfPreviewUrl = (href: string) =>
+    `${href}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
 
   return (
     <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
@@ -111,7 +116,8 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
             LIGA <span className="text-red-600 block sm:inline">ELEKTRYKA</span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl font-bold border-l-8 border-black pl-4 sm:pl-6 max-w-2xl mb-8 sm:mb-10">
-            NAJWIĘKSZE ROZGRYWKI SPORTOWE W HISTORII ELEKTRYKA! W TYM ROKU WE WSPÓŁPRACY Z JCE BUDUJEMY HISTORIĘ SPORTU SZKOLNEGO NA NOWO!
+            NAJWIĘKSZE ROZGRYWKI SPORTOWE W HISTORII ELEKTRYKA! W TYM ROKU WE
+            WSPÓŁPRACY Z JCE BUDUJEMY HISTORIĘ SPORTU SZKOLNEGO NA NOWO!
           </p>
           <div className="flex flex-wrap gap-4">
             <button
@@ -137,7 +143,9 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
           <div className="bg-white text-black p-4 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8">
             <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full md:w-auto">
               <div className="text-center md:text-right">
-                <span className="block text-xs md:text-sm font-bold uppercase text-gray-500">GOSPODARZE</span>
+                <span className="block text-xs md:text-sm font-bold uppercase text-gray-500">
+                  GOSPODARZE
+                </span>
                 <span className="text-2xl md:text-3xl font-black uppercase">
                   {nextMatch?.home_team?.name || "NIEZNANA"}
                 </span>
@@ -146,7 +154,9 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
                 VS
               </div>
               <div className="text-center md:text-left">
-                <span className="block text-xs md:text-sm font-bold uppercase text-gray-500">GOŚCIE</span>
+                <span className="block text-xs md:text-sm font-bold uppercase text-gray-500">
+                  GOŚCIE
+                </span>
                 <span className="text-2xl md:text-3xl font-black uppercase">
                   {nextMatch?.away_team?.name || "NIEZNANA"}
                 </span>
@@ -176,19 +186,35 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
           </h2>
           <div className="space-y-4 font-body text-lg leading-relaxed">
             <p>
-              Liga Elektryka to nie tylko turniej – to manifestacja sportowego ducha i rywalizacji na najwyższym poziomie technikum i liceum. Od lat łączymy pasję do sportu z profesjonalną organizacją.
+              Liga Elektryka to nie tylko turniej – to manifestacja sportowego
+              ducha i rywalizacji na najwyższym poziomie technikum i liceum. Od
+              lat łączymy pasję do sportu z profesjonalną organizacją.
             </p>
             <p>
-              Naszym celem jest promowanie aktywności fizycznej oraz integracja społeczności uczniowskiej poprzez zdrowe współzawodnictwo. W tym roku wprowadzamy nową formułę rozgrywek i jeszcze wyższe standardy sędziowania.
-
+              Naszym celem jest promowanie aktywności fizycznej oraz integracja
+              społeczności uczniowskiej poprzez zdrowe współzawodnictwo. W tym
+              roku wprowadzamy nową formułę rozgrywek i jeszcze wyższe standardy
+              sędziowania.
             </p>
             <p>
-              W tym sezonie czeka nas wiele emocji, a każda drużyna będzie walczyć o każdy punkt. Razem tworzymy historię Ligi Elektryka – dołącz do nas i bądź częścią tej niesamowitej przygody!
+              W tym sezonie czeka nas wiele emocji, a każda drużyna będzie
+              walczyć o każdy punkt. Razem tworzymy historię Ligi Elektryka –
+              dołącz do nas i bądź częścią tej niesamowitej przygody!
             </p>
             <p className="border-t-4 border-red-600 pt-4 mt-4">
-              <span className="font-black text-red-600">WSPÓŁPRACA Z JCE</span> – <a href="https://www.jce.pl" target="_blank" rel="noopener noreferrer" className="no-underline hover:underline">
+              <span className="font-black text-red-600">WSPÓŁPRACA Z JCE</span>{" "}
+              –{" "}
+              <a
+                href="https://www.jce.pl"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="no-underline hover:underline"
+              >
                 Jezuickie Centrum Edukacji
-              </a>. Wspólnie tworzymy przestrzeń dla zdolnych sportowców i entuzjastów, gdzie sport łączy się z edukacją na najwyższym poziomie.
+              </a>
+              . Wspólnie tworzymy przestrzeń dla zdolnych sportowców i
+              entuzjastów, gdzie sport łączy się z edukacją na najwyższym
+              poziomie.
             </p>
           </div>
         </div>
@@ -196,23 +222,33 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
         {/* Stats Card */}
         <div className="border-2 border-black bg-red-600 text-white p-8 flex flex-col justify-between">
           <div>
-            <h2 className="text-3xl font-black uppercase tracking-tighter mb-8">W LICZBACH</h2>
+            <h2 className="text-3xl font-black uppercase tracking-tighter mb-8">
+              W LICZBACH
+            </h2>
             <div className="space-y-6">
               <div>
                 <span className="text-6xl font-black block leading-none">
                   {loading ? "..." : teamsCount}
                 </span>
-                <span className="text-sm font-bold tracking-widest uppercase">DRUŻYN</span>
+                <span className="text-sm font-bold tracking-widest uppercase">
+                  DRUŻYN
+                </span>
               </div>
               <div className="border-t-2 border-white/30 pt-4">
                 <span className="text-6xl font-black block leading-none">
                   {loading ? "..." : matchesCount}
                 </span>
-                <span className="text-sm font-bold tracking-widest uppercase">MECZÓW</span>
+                <span className="text-sm font-bold tracking-widest uppercase">
+                  MECZÓW
+                </span>
               </div>
               <div className="border-t-2 border-white/30 pt-4">
-                <span className="text-6xl font-black block leading-none">1</span>
-                <span className="text-sm font-bold tracking-widest uppercase">MISTRZ</span>
+                <span className="text-6xl font-black block leading-none">
+                  1
+                </span>
+                <span className="text-sm font-bold tracking-widest uppercase">
+                  MISTRZ
+                </span>
               </div>
             </div>
           </div>
@@ -240,90 +276,93 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
                   {document.title}
                 </span>
               </div>
-              <span className="material-symbols-outlined group-hover:text-white">open_in_new</span>
+              <span className="material-symbols-outlined group-hover:text-white">
+                open_in_new
+              </span>
             </button>
           ))}
         </div>
       </section>
 
-      {selectedDocument && createPortal(
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-          onClick={() => setSelectedDocument(null)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              setSelectedDocument(null);
-            }
-          }}
-          role="button"
-          tabIndex={-1}
-        >
+      {selectedDocument &&
+        createPortal(
           <div
-            className="w-full max-w-6xl bg-white border-4 border-black shadow-[10px_10px_0px_#dc2626]"
-            onClick={(event) => event.stopPropagation()}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            onClick={() => setSelectedDocument(null)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                setSelectedDocument(null);
+              }
+            }}
+            role="button"
+            tabIndex={-1}
           >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-red-600 bg-white px-4 py-4 md:px-6">
-              <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-black">
-                {selectedDocument.title}
-              </h3>
-              <div className="flex items-center gap-2 md:gap-3">
-                <button
-                  type="button"
-                  onClick={handleOpenDocument}
-                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
-                >
-                  Otworz
-                </button>
-                <a
-                  href={selectedDocument.href}
-                  download
-                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
-                >
-                  Pobierz
-                </a>
-                <button
-                  type="button"
-                  onClick={handlePrintDocument}
-                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
-                >
-                  Drukuj
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedDocument(null)}
-                  className="px-4 py-2 border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500"
-                >
-                  Zamknij
-                </button>
-              </div>
-            </div>
-
-            <div className="h-[75vh] md:h-[80vh] bg-gray-200 p-2 md:p-3">
-              <object
-                aria-label={`Podglad dokumentu ${selectedDocument.title}`}
-                data={getPdfPreviewUrl(selectedDocument.href)}
-                type="application/pdf"
-                className="w-full h-full border-2 border-black bg-white"
-              >
-                <div className="w-full h-full border-2 border-black bg-white p-6 flex flex-col items-center justify-center gap-3 text-center">
-                  <p className="font-black uppercase text-sm tracking-widest text-black">
-                    Ta przegladarka nie obsluguje podgladu PDF w oknie.
-                  </p>
+            <div
+              className="w-full max-w-6xl bg-white border-4 border-black shadow-[10px_10px_0px_#dc2626]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-red-600 bg-white px-4 py-4 md:px-6">
+                <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-black">
+                  {selectedDocument.title}
+                </h3>
+                <div className="flex items-center gap-2 md:gap-3">
+                  <button
+                    type="button"
+                    onClick={handleOpenDocument}
+                    className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
+                  >
+                    Otworz
+                  </button>
                   <a
                     href={selectedDocument.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 border-2 border-black bg-black text-white font-black uppercase text-xs tracking-widest hover:bg-gray-800"
+                    download
+                    className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
                   >
-                    Otworz PDF w nowej karcie
+                    Pobierz
                   </a>
+                  <button
+                    type="button"
+                    onClick={handlePrintDocument}
+                    className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
+                  >
+                    Drukuj
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDocument(null)}
+                    className="px-4 py-2 border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500"
+                  >
+                    Zamknij
+                  </button>
                 </div>
-              </object>
+              </div>
+
+              <div className="h-[75vh] md:h-[80vh] bg-gray-200 p-2 md:p-3">
+                <object
+                  aria-label={`Podglad dokumentu ${selectedDocument.title}`}
+                  data={getPdfPreviewUrl(selectedDocument.href)}
+                  type="application/pdf"
+                  className="w-full h-full border-2 border-black bg-white"
+                >
+                  <div className="w-full h-full border-2 border-black bg-white p-6 flex flex-col items-center justify-center gap-3 text-center">
+                    <p className="font-black uppercase text-sm tracking-widest text-black">
+                      Ta przegladarka nie obsluguje podgladu PDF w oknie.
+                    </p>
+                    <a
+                      href={selectedDocument.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 border-2 border-black bg-black text-white font-black uppercase text-xs tracking-widest hover:bg-gray-800"
+                    >
+                      Otworz PDF w nowej karcie
+                    </a>
+                  </div>
+                </object>
+              </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body,
+        )}
     </main>
   );
 };

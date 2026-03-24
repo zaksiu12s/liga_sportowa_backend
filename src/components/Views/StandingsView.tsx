@@ -17,8 +17,11 @@ const StandingsView = () => {
   const [activeGroup, setActiveGroup] = useState<string>("");
 
   const stageGroups = useMemo<PublicStageGroup[]>(
-    () => (activeStage === 1 ? data?.firstStageGroups || [] : data?.secondStageGroups || []),
-    [activeStage, data?.firstStageGroups, data?.secondStageGroups]
+    () =>
+      activeStage === 1
+        ? data?.firstStageGroups || []
+        : data?.secondStageGroups || [],
+    [activeStage, data?.firstStageGroups, data?.secondStageGroups],
   );
 
   const availableGroups = useMemo(() => {
@@ -30,14 +33,19 @@ const StandingsView = () => {
   }, [stageGroups]);
 
   const teamsLookup = useMemo(
-    () => new Map<string, PublicTeam>((data?.teams || []).map((team) => [team.id, team])),
-    [data?.teams]
+    () =>
+      new Map<string, PublicTeam>(
+        (data?.teams || []).map((team) => [team.id, team]),
+      ),
+    [data?.teams],
   );
 
   const teams = useMemo<TeamStats[]>(() => {
     if (!activeGroup) return [];
 
-    const selectedGroup = stageGroups.find((group) => group.group_code === activeGroup);
+    const selectedGroup = stageGroups.find(
+      (group) => group.group_code === activeGroup,
+    );
     const stageTeams = selectedGroup?.teams?.teams || [];
 
     const merged = stageTeams.map((team) => ({
@@ -104,7 +112,9 @@ const StandingsView = () => {
         {/* Group Selection */}
         <div className="flex flex-wrap gap-2 md:gap-4 mb-6 md:mb-8">
           {groupsLoading ? (
-            <div className="text-gray-500 font-black text-sm md:text-base">Ładowanie grup...</div>
+            <div className="text-gray-500 font-black text-sm md:text-base">
+              Ładowanie grup...
+            </div>
           ) : availableGroups.length > 0 ? (
             availableGroups.map((g) => (
               <button
@@ -120,7 +130,9 @@ const StandingsView = () => {
               </button>
             ))
           ) : (
-            <div className="text-gray-500 font-black text-sm md:text-base">Brak dostępnych grup</div>
+            <div className="text-gray-500 font-black text-sm md:text-base">
+              Brak dostępnych grup
+            </div>
           )}
         </div>
 
@@ -180,7 +192,10 @@ const StandingsView = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="py-12 md:py-20 text-center text-gray-400 text-sm md:text-base">
+                    <td
+                      colSpan={4}
+                      className="py-12 md:py-20 text-center text-gray-400 text-sm md:text-base"
+                    >
                       BRAK DANYCH
                     </td>
                   </tr>

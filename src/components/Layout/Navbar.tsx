@@ -41,18 +41,21 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex gap-6 md:gap-8 items-center ml-auto justify-end pl-8">
-          {navItems.filter((item) => !item.isHidden).map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`nav-animated-link px-[2px] py-[3px] font-black uppercase text-sm md:text-base tracking-tighter ${isActivePath(item.path)
-                  ? "nav-animated-link-active text-red-600"
-                  : "text-black hover:text-red-600"
+          {navItems
+            .filter((item) => !item.isHidden)
+            .map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`nav-animated-link px-[2px] py-[3px] font-black uppercase text-sm md:text-base tracking-tighter ${
+                  isActivePath(item.path)
+                    ? "nav-animated-link-active text-red-600"
+                    : "text-black hover:text-red-600"
                 }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+              >
+                {item.label}
+              </Link>
+            ))}
         </nav>
 
         {/* Mobile Menu Button - On the right */}
@@ -70,18 +73,21 @@ const Navbar = () => {
       {mobileMenuOpen && (
         <nav className="md:hidden border-t-2 border-black bg-white">
           <div className="flex flex-col">
-            {navItems.filter((item) => !item.isHidden).map((item) => (
-              <button
-                key={item.path}
-                onClick={() => handleMobileNavClick(item.path)}
-                className={`mobile-nav-item px-4 py-3 text-left font-black uppercase text-sm border-b border-gray-200 ${isActivePath(item.path)
-                    ? "bg-red-600 text-white"
-                    : "text-black hover:bg-gray-100"
+            {navItems
+              .filter((item) => !item.isHidden)
+              .map((item) => (
+                <button
+                  key={item.path}
+                  onClick={() => handleMobileNavClick(item.path)}
+                  className={`mobile-nav-item px-4 py-3 text-left font-black uppercase text-sm border-b border-gray-200 ${
+                    isActivePath(item.path)
+                      ? "bg-red-600 text-white"
+                      : "text-black hover:bg-gray-100"
                   }`}
-              >
-                {item.label}
-              </button>
-            ))}
+                >
+                  {item.label}
+                </button>
+              ))}
           </div>
         </nav>
       )}
