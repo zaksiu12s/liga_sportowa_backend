@@ -33,7 +33,7 @@ const Navbar = () => {
       <div className="flex justify-between items-center w-full px-4 md:px-6 py-3 md:py-4 max-w-none">
         <Link
           to="/"
-          className="text-lg md:text-2xl font-black text-black uppercase tracking-tighter cursor-pointer hover:text-red-600 transition-none flex-shrink-0"
+          className="brand-link text-lg md:text-2xl font-black text-black uppercase tracking-tighter cursor-pointer flex-shrink-0"
         >
           LIGA ELEKTRYKA
         </Link>
@@ -44,8 +44,8 @@ const Navbar = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`font-black uppercase text-sm md:text-base tracking-tighter transition-none ${isActivePath(item.path)
-                  ? "text-red-600 border-b-4 border-red-600 pb-1"
+              className={`nav-animated-link font-black uppercase text-sm md:text-base tracking-tighter ${isActivePath(item.path)
+                  ? "nav-animated-link-active text-red-600"
                   : "text-black hover:text-red-600"
                 }`}
             >
@@ -73,7 +73,7 @@ const Navbar = () => {
               <button
                 key={item.path}
                 onClick={() => handleMobileNavClick(item.path)}
-                className={`px-4 py-3 text-left font-black uppercase text-sm border-b border-gray-200 transition-none ${isActivePath(item.path)
+                className={`mobile-nav-item px-4 py-3 text-left font-black uppercase text-sm border-b border-gray-200 ${isActivePath(item.path)
                     ? "bg-red-600 text-white"
                     : "text-black hover:bg-gray-100"
                   }`}

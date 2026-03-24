@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
 import HomeView from "./components/Views/HomeView";
@@ -20,7 +20,7 @@ import { ToastContainer } from "./components/Admin/Toast";
 import { useAuth } from "./hooks/useAuth";
 import type { View } from "./types/app";
 import type { AdminView } from "./types/admin";
-import { Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 const viewToPath = (view: View) => {
   switch (view) {
@@ -80,6 +80,55 @@ function App() {
   const [adminView, setAdminView] = useState<AdminView>("dashboard");
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [displayLocation, setDisplayLocation] = useState(location);
+  const [transitionStage, setTransitionStage] = useState<"route-fade-in" | "route-fade-out">("route-fade-in");
+  const transitionTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (location.pathname !== displayLocation.pathname) {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (prefersReducedMotion) {
+        setDisplayLocation(location);
+        setTransitionStage("route-fade-in");
+        return;
+      }
+
+      setTransitionStage("route-fade-out");
+
+      if (transitionTimeoutRef.current) {
+        window.clearTimeout(transitionTimeoutRef.current);
+      }
+
+      // Fallback: ensure route changes even if animation events are skipped.
+      transitionTimeoutRef.current = window.setTimeout(() => {
+        setDisplayLocation(location);
+        setTransitionStage("route-fade-in");
+        transitionTimeoutRef.current = null;
+      }, 560);
+    }
+  }, [location, displayLocation]);
+
+  useEffect(() => {
+    return () => {
+      if (transitionTimeoutRef.current) {
+        window.clearTimeout(transitionTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleRouteAnimationEnd = () => {
+    if (transitionStage === "route-fade-out") {
+      if (transitionTimeoutRef.current) {
+        window.clearTimeout(transitionTimeoutRef.current);
+        transitionTimeoutRef.current = null;
+      }
+
+      setDisplayLocation(location);
+      setTransitionStage("route-fade-in");
+    }
+  };
 
   return (
     <>
@@ -94,18 +143,20 @@ function App() {
             <div className="bg-white min-h-screen flex flex-col text-on-surface overflow-x-hidden">
               <Navbar />
               <main className="flex-grow bg-white pt-[72px] md:pt-[84px]">
-                <Routes>
-                  <Route
-                    path="/"
-                    element={<HomeView onNavigate={(view) => navigate(viewToPath(view))} />}
-                  />
-                  <Route path="/standings" element={<StandingsView />} />
-                  <Route path="/schedule" element={<ScheduleView />} />
-                  <Route path="/finals" element={<FinalsView />} />
-                  <Route path="/teams" element={<TeamsView />} />
-                  <Route path="/scorers" element={<TopScorersPageView />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
+                <div className={transitionStage} onAnimationEnd={handleRouteAnimationEnd}>
+                  <Routes location={displayLocation}>
+                    <Route
+                      path="/"
+                      element={<HomeView onNavigate={(view) => navigate(viewToPath(view))} />}
+                    />
+                    <Route path="/standings" element={<StandingsView />} />
+                    <Route path="/schedule" element={<ScheduleView />} />
+                    <Route path="/finals" element={<FinalsView />} />
+                    <Route path="/teams" element={<TeamsView />} />
+                    <Route path="/scorers" element={<TopScorersPageView />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </div>
               </main>
               <Footer />
             </div>
