@@ -20,15 +20,33 @@ import { ToastContainer } from "./components/Admin/Toast";
 import { useAuth } from "./hooks/useAuth";
 import type { View } from "./types/app";
 import type { AdminView } from "./types/admin";
+import { Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 
-function App() {
-  const [currentView, setCurrentView] = useState<View>("home");
-  const [adminView, setAdminView] = useState<AdminView>("dashboard");
-  const { user } = useAuth();
-  const isAdminRoute = /^\/admin\/?$/.test(window.location.pathname);
+const viewToPath = (view: View) => {
+  switch (view) {
+    case "home":
+      return "/";
+    case "teams":
+      return "/teams";
+    case "schedule":
+      return "/schedule";
+    case "standings":
+      return "/standings";
+    case "finals":
+      return "/finals";
+    case "scorers":
+      return "/scorers";
+    default:
+      return "/";
+  }
+};
 
-  // Admin route
-  if (isAdminRoute && user) {
+const AdminRoute = ({ user, adminView, setAdminView }: {
+  user: unknown;
+  adminView: AdminView;
+  setAdminView: React.Dispatch<React.SetStateAction<AdminView>>;
+}) => {
+  if (user) {
     return (
       <ProtectedRoute>
         <AdminLayout currentView={adminView} onViewChange={setAdminView}>
@@ -44,48 +62,56 @@ function App() {
     );
   }
 
-  if (isAdminRoute && !user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <div className="border-b-2 border-black bg-white h-16 flex items-center px-4">
-          <a href={import.meta.env.BASE_URL} className="font-black text-lg tracking-tight cursor-pointer hover:text-red-600">
-            ← BACK TO HOME
-          </a>
-        </div>
-        <div className="flex-grow flex items-center justify-center">
-          <Login />
-        </div>
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="border-b-2 border-black bg-white h-16 flex items-center px-4">
+        <Link to="/" className="font-black text-lg tracking-tight cursor-pointer hover:text-red-600">
+          ← BACK TO HOME
+        </Link>
       </div>
-    );
-  }
+      <div className="flex-grow flex items-center justify-center">
+        <Login />
+      </div>
+    </div>
+  );
+};
 
-  // Public Views
-  const renderView = () => {
-    switch (currentView) {
-      case "home":
-        return <HomeView onNavigate={setCurrentView} />;
-      case "standings":
-        return <StandingsView />;
-      case "schedule":
-        return <ScheduleView />;
-      case "finals":
-        return <FinalsView />;
-      case "teams":
-        return <TeamsView />;
-      case "scorers":
-        return <TopScorersPageView />;
-      default:
-        return <HomeView onNavigate={setCurrentView} />;
-    }
-  };
+function App() {
+  const [adminView, setAdminView] = useState<AdminView>("dashboard");
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <>
-      <div className="bg-white min-h-screen flex flex-col text-on-surface overflow-x-hidden">
-        <Navbar currentView={currentView} onNavigate={setCurrentView} />
-        <main className="flex-grow bg-white pt-[72px] md:pt-[84px]">{renderView()}</main>
-        <Footer />
-      </div>
+      <Routes>
+        <Route
+          path="/admin"
+          element={<AdminRoute user={user} adminView={adminView} setAdminView={setAdminView} />}
+        />
+        <Route
+          path="*"
+          element={(
+            <div className="bg-white min-h-screen flex flex-col text-on-surface overflow-x-hidden">
+              <Navbar />
+              <main className="flex-grow bg-white pt-[72px] md:pt-[84px]">
+                <Routes>
+                  <Route
+                    path="/"
+                    element={<HomeView onNavigate={(view) => navigate(viewToPath(view))} />}
+                  />
+                  <Route path="/standings" element={<StandingsView />} />
+                  <Route path="/schedule" element={<ScheduleView />} />
+                  <Route path="/finals" element={<FinalsView />} />
+                  <Route path="/teams" element={<TeamsView />} />
+                  <Route path="/scorers" element={<TopScorersPageView />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </main>
+              <Footer />
+            </div>
+          )}
+        />
+      </Routes>
       <ToastContainer />
     </>
   );
