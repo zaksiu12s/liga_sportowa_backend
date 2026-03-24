@@ -1,14 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { getTeamsCount, getMatchesCount, getNextMatch } from "../../utils/data";
 import type { View } from "../../types/app";
-
-interface NextMatchData {
-  home_team?: { name: string } | null;
-  away_team?: { name: string } | null;
-  scheduled_at: string | null;
-  status?: string | null;
-}
+import { usePublicData } from "../../hooks/usePublicData";
 
 interface HomeViewProps {
   onNavigate?: (view: View) => void;
@@ -20,11 +13,15 @@ interface DocumentItem {
   href: string;
 }
 
+type NextMatchData = {
+  home_team?: { name: string } | null;
+  away_team?: { name: string } | null;
+  scheduled_at: string | null;
+  status?: string | null;
+};
+
 const HomeView = ({ onNavigate }: HomeViewProps) => {
-  const [teamsCount, setTeamsCount] = useState(0);
-  const [matchesCount, setMatchesCount] = useState(0);
-  const [nextMatch, setNextMatch] = useState<NextMatchData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data } = usePublicData();
   const [selectedDocument, setSelectedDocument] = useState<DocumentItem | null>(null);
   const pdfFrameRef = useRef<HTMLIFrameElement | null>(null);
 
@@ -45,27 +42,6 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
       href: `${import.meta.env.BASE_URL}consent.pdf`,
     },
   ];
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [teams, matches, next] = await Promise.all([
-          getTeamsCount(),
-          getMatchesCount(),
-          getNextMatch(),
-        ]);
-        setTeamsCount(teams);
-        setMatchesCount(matches);
-        setNextMatch(next);
-      } catch (err) {
-        console.error("Error fetching home data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
 
   useEffect(() => {
     if (!selectedDocument) {
@@ -103,7 +79,12 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
     return `${dayName.toUpperCase()} ${dateNum} ${monthName.toUpperCase()} ${year}, ${time}`;
   };
 
-  const hasPlannedMatch = !loading && nextMatch?.status === "scheduled";
+  const teamsCount = data?.teams.length || 0;
+  const matchesCount = data?.matches.length || 0;
+  const loading = !data;
+
+  const nextMatch = (data?.matches || []).find((match) => match.status === "scheduled") as NextMatchData | undefined;
+  const hasPlannedMatch = Boolean(nextMatch?.status === "scheduled");
 
   const handlePrintDocument = () => {
     const frameWindow = pdfFrameRef.current?.contentWindow;

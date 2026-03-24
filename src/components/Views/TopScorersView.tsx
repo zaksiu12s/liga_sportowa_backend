@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import supabase from "../../utils/supabase";
+import { useMemo } from "react";
 import { Skeleton } from "../Layout/Skeleton";
+import { usePublicData } from "../../hooks/usePublicData";
 
 interface Scorer {
   id: string;
@@ -16,39 +16,13 @@ interface ScorerWithRank extends Scorer {
 }
 
 const TopScorersPageView = () => {
-  const [scorers, setScorers] = useState<ScorerWithRank[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data } = usePublicData();
+  const loading = !data;
 
-  useEffect(() => {
-    const fetchTopScorers = async () => {
-      try {
-        setLoading(true);
-
-        // Fetch top scorers from top_scorers table
-        const { data, error } = await (supabase as any)
-          .from("top_scorers")
-          .select("*")
-          .order("goals", { ascending: false })
-          .limit(10);
-
-        if (error && error.code !== "PGRST116") throw error;
-
-        // Add rank
-        const withRank = (data || []).map((scorer: Scorer, idx: number) => ({
-          ...scorer,
-          rank: idx + 1,
-        }));
-
-        setScorers(withRank);
-      } catch (err) {
-        console.error("Error fetching top scorers:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTopScorers();
-  }, []);
+  const scorers = useMemo<ScorerWithRank[]>(
+    () => (data?.topScorers || []).map((scorer: Scorer, idx: number) => ({ ...scorer, rank: idx + 1 })),
+    [data?.topScorers]
+  );
 
   const topScorer = scorers.length > 0 ? scorers[0] : null;
 

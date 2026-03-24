@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import supabase from "../../utils/supabase";
+import { useMemo } from "react";
 import { Skeleton } from "../Layout/Skeleton";
+import { usePublicData } from "../../hooks/usePublicData";
 
 interface Player {
   id: string;
@@ -23,93 +23,61 @@ interface GroupedTeams {
 }
 
 const TeamsView = () => {
-  const [groupedTeams, setGroupedTeams] = useState<GroupedTeams>({});
-  const [loading, setLoading] = useState(true);
+  const { data } = usePublicData();
+  const loading = !data;
 
-  useEffect(() => {
-    const fetchTeamsAndPlayers = async () => {
-      try {
-        setLoading(true);
+  const groupedTeams = useMemo<GroupedTeams>(() => {
+    if (!data) return {};
 
-        // Fetch all teams
-        const { data: teamsData, error: teamsError } = await supabase
-          .from("teams")
-          .select("id, name");
-
-        if (teamsError) throw teamsError;
-
-        // Fetch all players
-        const { data: playersData, error: playersError } = await (supabase as any)
-          .from("players")
-          .select("id, first_name, last_name, class_code, team_id");
-
-        if (playersError) throw playersError;
-
-        // Fetch all first_stage groups
-        const { data: firstStageData } = await (supabase as any)
-          .from("first_stage")
-          .select("group_code, teams");
-
-        // Build team ID to group mapping
-        const teamToGroup: { [key: string]: string } = {};
-        firstStageData?.forEach((stage: any) => {
-          if (stage.teams?.teams) {
-            stage.teams.teams.forEach((team: any) => {
-              teamToGroup[team.id] = stage.group_code;
-            });
-          }
+    const teamToGroup: { [key: string]: string } = {};
+    data.firstStageGroups.forEach((stage) => {
+      if (stage.group_code && stage.teams?.teams) {
+        stage.teams.teams.forEach((team) => {
+          teamToGroup[team.id] = stage.group_code as string;
         });
-
-        // Map players to teams
-        const playersMap = new Map<string, Player[]>();
-        playersData?.forEach((player: any) => {
-          if (!playersMap.has(player.team_id)) {
-            playersMap.set(player.team_id, []);
-          }
-          playersMap.get(player.team_id)?.push({
-            id: player.id,
-            first_name: player.first_name,
-            last_name: player.last_name,
-            class_code: player.class_code,
-          });
-        });
-
-        // Combine teams with their players
-        const teamsWithPlayers: TeamWithPlayers[] = (teamsData || []).map(
-          (team: Team) => ({
-            ...team,
-            players: playersMap.get(team.id) || [],
-          })
-        );
-
-        // Group teams by group code
-        const grouped: GroupedTeams = {};
-        teamsWithPlayers.forEach((team) => {
-          const group = teamToGroup[team.id] || "A";
-          if (!grouped[group]) {
-            grouped[group] = [];
-          }
-          grouped[group].push(team);
-        });
-
-        // Sort groups
-        const sortedGroups: GroupedTeams = {};
-        Object.keys(grouped)
-          .sort()
-          .forEach((group) => {
-            sortedGroups[group] = grouped[group];
-          });
-
-        setGroupedTeams(sortedGroups);
-      } catch (err) {
-        console.error("Error fetching teams:", err);
-      } finally {
-        setLoading(false);
       }
-    };
+    });
 
-    fetchTeamsAndPlayers();
-  }, []);
+    const playersMap = new Map<string, Player[]>();
+    data.players.forEach((player) => {
+      if (!player.team_id) return;
+
+      if (!playersMap.has(player.team_id)) {
+        playersMap.set(player.team_id, []);
+      }
+
+      playersMap.get(player.team_id)?.push({
+        id: player.id,
+        first_name: player.first_name,
+        last_name: player.last_name,
+        class_code: player.class_code,
+      });
+    });
+
+    const teamsWithPlayers: TeamWithPlayers[] = data.teams.map((team: Team) => ({
+      id: team.id,
+      name: team.name,
+      players: playersMap.get(team.id) || [],
+    }));
+
+    const grouped: GroupedTeams = {};
+    teamsWithPlayers.forEach((team) => {
+      const group = teamToGroup[team.id] || "A";
+      if (!grouped[group]) {
+        grouped[group] = [];
+      }
+      grouped[group].push(team);
+    });
+
+    const sortedGroups: GroupedTeams = {};
+    Object.keys(grouped)
+      .sort()
+      .forEach((group) => {
+        sortedGroups[group] = grouped[group];
+      });
+
+    return sortedGroups;
+  }, [data]);
 
   const groups = Object.keys(groupedTeams).sort();
 

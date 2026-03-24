@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import supabase from "../../utils/supabase";
+import { useMemo } from "react";
 import { Skeleton } from "../Layout/Skeleton";
+import { usePublicData } from "../../hooks/usePublicData";
 
 interface FinalMatch {
-  id: number;
+  id: string;
   type: string;
   home_team_id: string;
   away_team_id: string;
@@ -17,44 +17,23 @@ interface MatchData extends FinalMatch {
 }
 
 const FinalsView = () => {
-  const [semifinals, setSemifinals] = useState<MatchData[]>([]);
-  const [finalMatch, setFinalMatch] = useState<MatchData | null>(null);
-  const [thirdPlaceMatch, setThirdPlaceMatch] = useState<MatchData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data } = usePublicData();
+  const loading = !data;
 
-  useEffect(() => {
-    const fetchFinalStageData = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await (supabase as any)
-          .from("final_stage")
-          .select(`
-            *,
-            home_team:teams!final_stage_home_team_id_fkey (name),
-            away_team:teams!final_stage_away_team_id_fkey (name)
-          `)
-          .order("type", { ascending: true });
+  const semifinals = useMemo(
+    () => (data?.finalStageMatches || []).filter((match) => match.type?.includes("semi-final")) as MatchData[],
+    [data?.finalStageMatches]
+  );
 
-        if (error) throw error;
+  const finalMatch = useMemo(
+    () => ((data?.finalStageMatches || []).find((match) => match.type === "final") || null) as MatchData | null,
+    [data?.finalStageMatches]
+  );
 
-        const semifinalMatches = data?.filter(
-          (m: any) => m.type?.includes("semi-final")
-        ) || [];
-        const final = data?.find((m: any) => m.type === "final") || null;
-        const thirdPlace = data?.find((m: any) => m.type === "3rd-place") || null;
-
-        setSemifinals(semifinalMatches as any);
-        setFinalMatch(final as any);
-        setThirdPlaceMatch(thirdPlace as any);
-      } catch (err) {
-        console.error("Error fetching final stage data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFinalStageData();
-  }, []);
+  const thirdPlaceMatch = useMemo(
+    () => ((data?.finalStageMatches || []).find((match) => match.type === "3rd-place") || null) as MatchData | null,
+    [data?.finalStageMatches]
+  );
 
   const renderMatch = (match: MatchData | null, title: string) => {
     if (loading) {

@@ -1,38 +1,20 @@
-import { useCallback, useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { DEFAULT_NAV_ITEMS } from "../../config/navigation";
-import { mergeNavItemsWithSettings, navigationSettingsApi } from "../../utils/navigationSettings";
+import { mergeNavItemsWithSettings } from "../../utils/navigationSettings";
 import type { NavItem } from "../../types/navigation";
+import { usePublicData } from "../../hooks/usePublicData";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [navItems, setNavItems] = useState<NavItem[]>(DEFAULT_NAV_ITEMS);
+  const { data } = usePublicData();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const loadNavItems = useCallback(async () => {
-    try {
-      const settings = await navigationSettingsApi.getAll();
-      setNavItems(mergeNavItemsWithSettings(DEFAULT_NAV_ITEMS, settings));
-    } catch (error) {
-      console.error("Failed to load navigation settings:", error);
-      setNavItems(DEFAULT_NAV_ITEMS);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadNavItems();
-
-    const handleVisibilityUpdated = () => {
-      loadNavItems();
-    };
-
-    window.addEventListener("nav-visibility-updated", handleVisibilityUpdated);
-
-    return () => {
-      window.removeEventListener("nav-visibility-updated", handleVisibilityUpdated);
-    };
-  }, [loadNavItems]);
+  const navItems = useMemo<NavItem[]>(() => {
+    const settings = data?.navigationSettings || [];
+    return mergeNavItemsWithSettings(DEFAULT_NAV_ITEMS, settings);
+  }, [data?.navigationSettings]);
 
   const isActivePath = (path: string) => {
     if (path === "/") {

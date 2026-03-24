@@ -118,6 +118,19 @@ h3,
   will-change: opacity, transform, filter;
 }
 
+.app-hydration-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: #ffffff;
+  animation: hydrationFadeOut 360ms ease forwards;
+  pointer-events: none;
+}
+
+.data-swap-in {
+  animation: dataSwapIn 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 @keyframes routeFadeIn {
   0% {
     opacity: 0;
@@ -152,13 +165,37 @@ h3,
   }
 }
 
+@keyframes hydrationFadeOut {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes dataSwapIn {
+  0% {
+    opacity: 0.72;
+    filter: saturate(0.92);
+  }
+
+  100% {
+    opacity: 1;
+    filter: saturate(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .brand-link,
   .nav-animated-link,
   .nav-animated-link::after,
   .mobile-nav-item,
   .route-fade-in,
-  .route-fade-out {
+  .route-fade-out,
+  .app-hydration-overlay,
+  .data-swap-in {
     animation: none !important;
     transition: none !important;
   }

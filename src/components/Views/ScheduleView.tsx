@@ -1,14 +1,7 @@
-import { useState, useEffect } from "react";
-import { getMatches } from "../../utils/data";
-import supabase from "../../utils/supabase";
+import { useMemo, useState } from "react";
 import { Skeleton } from "../Layout/Skeleton";
-
-interface Player {
-  id: string;
-  first_name: string;
-  last_name: string;
-  class_code: string;
-}
+import { usePublicData } from "../../hooks/usePublicData";
+import type { PublicPlayer } from "../../types/publicData";
 
 interface Goal {
   time: number;
@@ -17,39 +10,16 @@ interface Goal {
 }
 
 const ScheduleView = () => {
-  const [matches, setMatches] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data } = usePublicData();
   const [activeStage, setActiveStage] = useState<"1" | "2" | "finals" | "finished">("1");
-  const [homePlayers, setHomePlayers] = useState<Player[]>([]);
-  const [awayPlayers, setAwayPlayers] = useState<Player[]>([]);
-  const [allPlayers, setAllPlayers] = useState<Map<string, Player>>(new Map());
+  const loading = !data;
+  const matches = data?.matches || [];
+  const players = data?.players || [];
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const data = await getMatches();
-        setMatches(data);
-
-        // Fetch all players for goal scorer lookup
-        const { data: playersData } = await (supabase as any)
-          .from("players")
-          .select("id, first_name, last_name, class_code");
-
-        if (playersData) {
-          const playerMap = new Map<string, Player>(
-            playersData.map((p: Player) => [p.id, p])
-          );
-          setAllPlayers(playerMap);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+  const allPlayers = useMemo(
+    () => new Map<string, PublicPlayer>(players.map((player) => [player.id, player])),
+    [players]
+  );
 
   const filteredMatches = matches.filter((match) => {
     if (activeStage === "finished") return match.status === "finished";
@@ -58,7 +28,7 @@ const ScheduleView = () => {
     return match.stage?.includes("final");
   });
 
-  const sortedMatches = filteredMatches.sort((a, b) => {
+  const sortedMatches = [...filteredMatches].sort((a, b) => {
     const dateA = new Date(a.scheduled_at || 0).getTime();
     const dateB = new Date(b.scheduled_at || 0).getTime();
     return dateA - dateB;
@@ -73,33 +43,8 @@ const ScheduleView = () => {
     (m) => m.id !== nextMatch?.id && m.status !== "finished"
   );
 
-  // Fetch players for the next match
-  useEffect(() => {
-    if (!nextMatch) return;
-
-    const fetchPlayers = async () => {
-      try {
-        // Fetch home team players
-        const { data: homeData } = await (supabase as any)
-          .from("players")
-          .select("id, first_name, last_name, class_code")
-          .eq("team_id", nextMatch.home_team_id);
-
-        // Fetch away team players
-        const { data: awayData } = await (supabase as any)
-          .from("players")
-          .select("id, first_name, last_name, class_code")
-          .eq("team_id", nextMatch.away_team_id);
-
-        setHomePlayers(homeData || []);
-        setAwayPlayers(awayData || []);
-      } catch (err) {
-        console.error("Error fetching players:", err);
-      }
-    };
-
-    fetchPlayers();
-  }, [nextMatch]);
+  const homePlayers = players.filter((player) => player.team_id === nextMatch?.home_team_id);
+  const awayPlayers = players.filter((player) => player.team_id === nextMatch?.away_team_id);
 
   return (
     <main className="max-w-7xl mx-auto px-3 md:px-4 py-6 md:py-12">

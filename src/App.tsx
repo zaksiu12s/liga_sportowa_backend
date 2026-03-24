@@ -19,6 +19,8 @@ import { TopScorersView } from "./components/Admin/Statistics/TopScorersView";
 import { ToastContainer } from "./components/Admin/Toast";
 import { NavigationVisibilityView } from "./components/Admin/NavigationVisibilityView";
 import { useAuth } from "./hooks/useAuth";
+import { usePublicData } from "./hooks/usePublicData";
+import { PublicDataProvider } from "./context/PublicDataContext";
 import type { View } from "./types/app";
 import type { AdminView } from "./types/admin";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
@@ -74,6 +76,83 @@ const AdminRoute = ({ user, adminView, setAdminView }: {
       <div className="flex-grow flex items-center justify-center">
         <Login />
       </div>
+    </div>
+  );
+};
+
+const PublicRouteContent = ({
+  transitionStage,
+  handleRouteAnimationEnd,
+  displayLocation,
+  navigate,
+}: {
+  transitionStage: "route-fade-in" | "route-fade-out";
+  handleRouteAnimationEnd: () => void;
+  displayLocation: ReturnType<typeof useLocation>;
+  navigate: ReturnType<typeof useNavigate>;
+}) => {
+  const {
+    status,
+    errorMessage,
+    syncNow,
+    showHydrationFade,
+    isSwappingData,
+  } = usePublicData();
+
+  if (status === "blocking-load") {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center px-6">
+        <div className="border-4 border-black bg-white p-8 sm:p-10 text-center shadow-[10px_10px_0px_#dc2626] max-w-md w-full">
+          <div className="inline-block w-12 h-12 border-4 border-black border-r-transparent animate-spin mb-5" aria-hidden="true"></div>
+          <h1 className="font-black uppercase text-xl tracking-wide">Ladowanie Danych</h1>
+          <p className="mt-3 text-sm font-bold text-gray-600 uppercase tracking-wider">Pierwsze uruchomienie aplikacji</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center px-6">
+        <div className="border-4 border-black bg-white p-8 sm:p-10 text-center shadow-[10px_10px_0px_#dc2626] max-w-lg w-full">
+          <h1 className="font-black uppercase text-2xl tracking-tight">Brak Danych Startowych</h1>
+          <p className="mt-4 text-sm font-bold text-gray-700">{errorMessage || "Nie mozna uruchomic aplikacji w trybie online."}</p>
+          <button
+            type="button"
+            onClick={() => void syncNow()}
+            className="mt-6 px-6 py-3 border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500"
+          >
+            Sprobuj Ponownie
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white min-h-screen flex flex-col text-on-surface overflow-x-hidden relative">
+      {showHydrationFade && <div className="app-hydration-overlay" aria-hidden="true" />}
+      <Navbar />
+      <main className="flex-grow bg-white pt-[72px] md:pt-[84px]">
+        <div
+          className={`${transitionStage} ${isSwappingData ? "data-swap-in" : ""}`}
+          onAnimationEnd={handleRouteAnimationEnd}
+        >
+          <Routes location={displayLocation}>
+            <Route
+              path="/"
+              element={<HomeView onNavigate={(view) => navigate(viewToPath(view))} />}
+            />
+            <Route path="/standings" element={<StandingsView />} />
+            <Route path="/schedule" element={<ScheduleView />} />
+            <Route path="/finals" element={<FinalsView />} />
+            <Route path="/teams" element={<TeamsView />} />
+            <Route path="/scorers" element={<TopScorersPageView />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 };
@@ -142,26 +221,14 @@ function App() {
         <Route
           path="*"
           element={(
-            <div className="bg-white min-h-screen flex flex-col text-on-surface overflow-x-hidden">
-              <Navbar />
-              <main className="flex-grow bg-white pt-[72px] md:pt-[84px]">
-                <div className={transitionStage} onAnimationEnd={handleRouteAnimationEnd}>
-                  <Routes location={displayLocation}>
-                    <Route
-                      path="/"
-                      element={<HomeView onNavigate={(view) => navigate(viewToPath(view))} />}
-                    />
-                    <Route path="/standings" element={<StandingsView />} />
-                    <Route path="/schedule" element={<ScheduleView />} />
-                    <Route path="/finals" element={<FinalsView />} />
-                    <Route path="/teams" element={<TeamsView />} />
-                    <Route path="/scorers" element={<TopScorersPageView />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </div>
-              </main>
-              <Footer />
-            </div>
+            <PublicDataProvider>
+              <PublicRouteContent
+                transitionStage={transitionStage}
+                handleRouteAnimationEnd={handleRouteAnimationEnd}
+                displayLocation={displayLocation}
+                navigate={navigate}
+              />
+            </PublicDataProvider>
           )}
         />
       </Routes>

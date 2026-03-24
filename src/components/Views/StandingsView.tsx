@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
-import supabase from "../../utils/supabase";
+import { useEffect, useMemo, useState } from "react";
 import { Skeleton } from "../Layout/Skeleton";
+import { usePublicData } from "../../hooks/usePublicData";
+import type { PublicStageGroup, PublicTeam } from "../../types/publicData";
 
 interface TeamStats {
   id: string;
@@ -11,115 +12,60 @@ interface TeamStats {
 }
 
 const StandingsView = () => {
+  const { data } = usePublicData();
   const [activeStage, setActiveStage] = useState<1 | 2>(1);
   const [activeGroup, setActiveGroup] = useState<string>("");
-  const [availableGroups, setAvailableGroups] = useState<string[]>([]);
-  const [teams, setTeams] = useState<TeamStats[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [groupsLoading, setGroupsLoading] = useState(true);
 
-  // Fetch available groups for the selected stage
+  const stageGroups = useMemo<PublicStageGroup[]>(
+    () => (activeStage === 1 ? data?.firstStageGroups || [] : data?.secondStageGroups || []),
+    [activeStage, data?.firstStageGroups, data?.secondStageGroups]
+  );
+
+  const availableGroups = useMemo(() => {
+    const groups = stageGroups
+      .map((row) => row.group_code)
+      .filter((group): group is string => Boolean(group));
+
+    return [...new Set(groups)].sort();
+  }, [stageGroups]);
+
+  const teamsLookup = useMemo(
+    () => new Map<string, PublicTeam>((data?.teams || []).map((team) => [team.id, team])),
+    [data?.teams]
+  );
+
+  const teams = useMemo<TeamStats[]>(() => {
+    if (!activeGroup) return [];
+
+    const selectedGroup = stageGroups.find((group) => group.group_code === activeGroup);
+    const stageTeams = selectedGroup?.teams?.teams || [];
+
+    const merged = stageTeams.map((team) => ({
+      id: team.id,
+      name: teamsLookup.get(team.id)?.name || "NIEZNANA",
+      points: team.points,
+      goals_for: team.goals_for,
+      goals_against: team.goals_against,
+    }));
+
+    return merged.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      return b.goals_for - b.goals_against - (a.goals_for - a.goals_against);
+    });
+  }, [activeGroup, stageGroups, teamsLookup]);
+
+  const groupsLoading = !data;
+  const loading = !data;
+
   useEffect(() => {
-    const fetchAvailableGroups = async () => {
-      try {
-        setGroupsLoading(true);
-        const stageName = activeStage === 1 ? "first_stage" : "second_stage";
+    if (availableGroups.length > 0 && !availableGroups.includes(activeGroup)) {
+      setActiveGroup(availableGroups[0]);
+    }
 
-        const { data, error } = await (supabase as any)
-          .from(stageName)
-          .select("group_code")
-          .order("group_code", { ascending: true });
-
-        if (error && error.code !== "PGRST116") throw error;
-
-        const groups = data?.map((row: any) => row.group_code).filter(Boolean) || [];
-        const uniqueGroups = [...new Set(groups)] as string[];
-
-        setAvailableGroups(uniqueGroups);
-
-        // Auto-select first group
-        if (uniqueGroups.length > 0 && !uniqueGroups.includes(activeGroup)) {
-          setActiveGroup(uniqueGroups[0]);
-        }
-      } catch (err) {
-        console.error("Error fetching available groups:", err);
-        setAvailableGroups([]);
-      } finally {
-        setGroupsLoading(false);
-      }
-    };
-
-    fetchAvailableGroups();
-  }, [activeStage]);
-
-  // Fetch teams for the selected group
-  useEffect(() => {
-    if (!activeGroup) return;
-
-    const fetchStageData = async () => {
-      try {
-        setLoading(true);
-        const stageName = activeStage === 1 ? "first_stage" : "second_stage";
-
-        const { data, error } = await (supabase as any)
-          .from(stageName)
-          .select("*")
-          .eq("group_code", activeGroup)
-          .single();
-
-        if (error && error.code !== "PGRST116") throw error;
-
-        if (data && data.teams) {
-          const teamsArray = data.teams.teams || [];
-
-          // Get team IDs and fetch their names from teams table
-          const teamIds = teamsArray.map((t: any) => t.id);
-
-          if (teamIds.length > 0) {
-            const { data: teamNamesData, error: namesError } = await supabase
-              .from("teams")
-              .select("id, name")
-              .in("id", teamIds);
-
-            if (namesError) throw namesError;
-
-            // Create a map of ID -> name
-            const nameMap = new Map(teamNamesData?.map((t: any) => [t.id, t.name]) || []);
-
-            // Merge names with stats
-            const teamsWithNames: TeamStats[] = teamsArray.map((team: any) => ({
-              id: team.id,
-              name: nameMap.get(team.id) || "NIEZNANA",
-              points: team.points,
-              goals_for: team.goals_for,
-              goals_against: team.goals_against,
-            }));
-
-            const sortedTeams = teamsWithNames.sort(
-              (a: TeamStats, b: TeamStats) => {
-                if (b.points !== a.points) return b.points - a.points;
-                return (b.goals_for - b.goals_against) -
-                       (a.goals_for - a.goals_against);
-              }
-            );
-
-            setTeams(sortedTeams);
-          } else {
-            setTeams([]);
-          }
-        } else {
-          setTeams([]);
-        }
-      } catch (err) {
-        console.error("Error fetching standings:", err);
-        setTeams([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStageData();
-  }, [activeStage, activeGroup]);
+    if (availableGroups.length === 0 && activeGroup) {
+      setActiveGroup("");
+    }
+  }, [availableGroups, activeGroup]);
 
   return (
     <main className="max-w-7xl mx-auto px-3 md:px-6 py-6 md:py-12">
