@@ -24,11 +24,11 @@ import type { AdminView } from "./types/admin";
 function App() {
   const [currentView, setCurrentView] = useState<View>("home");
   const [adminView, setAdminView] = useState<AdminView>("dashboard");
-  const [showLogin, setShowLogin] = useState(false);
   const { user } = useAuth();
+  const isAdminRoute = /^\/admin\/?$/.test(window.location.pathname);
 
-  // Admin Panel View
-  if (user) {
+  // Admin route
+  if (isAdminRoute && user) {
     return (
       <ProtectedRoute>
         <AdminLayout currentView={adminView} onViewChange={setAdminView}>
@@ -44,17 +44,13 @@ function App() {
     );
   }
 
-  // Login View
-  if (showLogin) {
+  if (isAdminRoute && !user) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <div className="border-b-2 border-black bg-white h-16 flex items-center px-4">
-          <button
-            onClick={() => setShowLogin(false)}
-            className="font-black text-lg tracking-tight cursor-pointer hover:text-red-600"
-          >
+          <a href={import.meta.env.BASE_URL} className="font-black text-lg tracking-tight cursor-pointer hover:text-red-600">
             ← BACK TO HOME
-          </button>
+          </a>
         </div>
         <div className="flex-grow flex items-center justify-center">
           <Login />
@@ -86,12 +82,8 @@ function App() {
   return (
     <>
       <div className="bg-white min-h-screen flex flex-col text-on-surface overflow-x-hidden">
-        <Navbar
-          currentView={currentView}
-          onNavigate={setCurrentView}
-          onLoginClick={() => setShowLogin(true)}
-        />
-        <main className="flex-grow overflow-auto bg-white">{renderView()}</main>
+        <Navbar currentView={currentView} onNavigate={setCurrentView} />
+        <main className="flex-grow bg-white pt-[72px] md:pt-[84px]">{renderView()}</main>
         <Footer />
       </div>
       <ToastContainer />
