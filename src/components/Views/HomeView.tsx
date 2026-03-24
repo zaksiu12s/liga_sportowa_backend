@@ -251,7 +251,7 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
 
       {selectedDocument && createPortal(
         <div
-          className="fixed inset-0 z-[70] flex items-start md:items-center justify-center bg-black/80 p-2 sm:p-3 md:p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
           onClick={() => setSelectedDocument(null)}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
@@ -262,39 +262,39 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
           tabIndex={-1}
         >
           <div
-            className="w-full max-w-6xl max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-1.5rem)] md:max-h-[calc(100dvh-2rem)] bg-white border-4 border-black shadow-[10px_10px_0px_#dc2626] flex flex-col overflow-hidden"
+            className="w-full max-w-6xl bg-white border-4 border-black shadow-[10px_10px_0px_#dc2626]"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b-4 border-red-600 bg-white px-3 sm:px-4 py-3 sm:py-4 md:px-6 shrink-0">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-red-600 bg-white px-4 py-4 md:px-6">
               <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-black">
                 {selectedDocument.title}
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 w-full md:w-auto">
+              <div className="flex items-center gap-2 md:gap-3">
                 <a
                   href={selectedDocument.href}
                   download
-                  className="px-[18px] py-[11px] border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200 text-center w-full"
+                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
                 >
                   Pobierz
                 </a>
                 <button
                   type="button"
                   onClick={handlePrintDocument}
-                  className="px-[18px] py-[11px] border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200 w-full"
+                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
                 >
                   Drukuj
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedDocument(null)}
-                  className="px-[18px] py-[11px] border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500 w-full"
+                  className="px-4 py-2 border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500"
                 >
                   Zamknij
                 </button>
               </div>
             </div>
 
-            <div className="flex-1 min-h-[45vh] bg-gray-200 p-2 md:p-3">
+            <div className="h-[75vh] md:h-[80vh] bg-gray-200 p-2 md:p-3">
               <iframe
                 ref={pdfFrameRef}
                 title={`Podglad dokumentu ${selectedDocument.title}`}

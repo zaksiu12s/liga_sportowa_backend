@@ -70,7 +70,7 @@ const AdminRoute = ({ user, adminView, setAdminView }: {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="border-b-2 border-black bg-white h-16 flex items-center px-4">
         <Link to="/" className="font-black text-lg tracking-tight cursor-pointer hover:text-red-600">
-          ← BACK TO HOME
+          Powrot do Strony Głównej
         </Link>
       </div>
       <div className="flex-grow flex items-center justify-center">
