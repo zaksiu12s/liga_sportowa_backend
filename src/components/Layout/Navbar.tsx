@@ -14,11 +14,12 @@ const Navbar = ({ currentView, onNavigate, onLoginClick }: NavbarProps) => {
 
   const navItems = [
     { id: "home" as const, label: "START" },
+    { id: "teams" as const, label: "DRUŻYNY" },
     { id: "schedule" as const, label: "MECZE" },
     { id: "standings" as const, label: "TABELE" },
-    { id: "teams" as const, label: "DRUŻYNY" },
-    { id: "scorers" as const, label: "STRZELCY" },
     { id: "finals" as const, label: "FINAŁY" },
+    { id: "scorers" as const, label: "STRZELCY" },
+
   ];
 
   const handleLogout = async () => {
@@ -46,11 +47,10 @@ const Navbar = ({ currentView, onNavigate, onLoginClick }: NavbarProps) => {
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
-              className={`font-black uppercase text-sm md:text-base tracking-tighter transition-none ${
-                currentView === item.id
+              className={`font-black uppercase text-sm md:text-base tracking-tighter transition-none ${currentView === item.id
                   ? "text-red-600 border-b-4 border-red-600 pb-1"
                   : "text-black hover:text-red-600"
-              }`}
+                }`}
             >
               {item.label}
             </button>
@@ -99,11 +99,10 @@ const Navbar = ({ currentView, onNavigate, onLoginClick }: NavbarProps) => {
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className={`px-4 py-3 text-left font-black uppercase text-sm border-b border-gray-200 transition-none ${
-                  currentView === item.id
+                className={`px-4 py-3 text-left font-black uppercase text-sm border-b border-gray-200 transition-none ${currentView === item.id
                     ? "bg-red-600 text-white"
                     : "text-black hover:bg-gray-100"
-                }`}
+                  }`}
               >
                 {item.label}
               </button>

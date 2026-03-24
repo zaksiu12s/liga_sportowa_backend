@@ -65,8 +65,7 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
             LIGA <span className="text-red-600">ELEKTRYKA</span>
           </h1>
           <p className="text-lg md:text-xl font-bold border-l-8 border-black pl-6 max-w-2xl mb-10">
-            NAJWIĘKSZE ROZGRYWKI SPORTOWE W REGIONIE. ARENA DLA TYCH, KTÓRZY NIE BOJĄ SIĘ WALKI O
-            KAŻDY PUNKT.
+            NAJWIĘKSZE ROZGRYWKI SPORTOWE W HISTORII ELEKTRYKA! W TYM ROKU WE WSPÓŁPRACY Z JCE BUDUJEMY HISTORIĘ SPORTU SZKOLNEGO NA NOWO!
           </p>
           <div className="flex flex-wrap gap-4">
             <button
@@ -129,20 +128,19 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
           </h2>
           <div className="space-y-4 font-body text-lg leading-relaxed">
             <p>
-              Liga Elektryka to nie tylko turniej – to manifestacja sportowego ducha i rywalizacji na
-              najwyższym poziomie technikum i liceum. Od lat łączymy pasję do sportu z profesjonalną
-              organizacją.
+              Liga Elektryka to nie tylko turniej – to manifestacja sportowego ducha i rywalizacji na najwyższym poziomie technikum i liceum. Od lat łączymy pasję do sportu z profesjonalną organizacją.
             </p>
             <p>
-              Naszym celem jest promowanie aktywności fizycznej oraz integracja społeczności
-              uczniowskiej poprzez zdrowe współzawodnictwo. W tym roku wprowadzamy nową formułę
-              rozgrywek i jeszcze wyższe standardy sędziowania.
+              Naszym celem jest promowanie aktywności fizycznej oraz integracja społeczności uczniowskiej poprzez zdrowe współzawodnictwo. W tym roku wprowadzamy nową formułę rozgrywek i jeszcze wyższe standardy sędziowania.
+
             </p>
             <p>
               W tym sezonie czeka nas wiele emocji, a każda drużyna będzie walczyć o każdy punkt. Razem tworzymy historię Ligi Elektryka – dołącz do nas i bądź częścią tej niesamowitej przygody!
             </p>
             <p className="border-t-4 border-red-600 pt-4 mt-4">
-              <span className="font-black text-red-600">WSPÓŁPRACA Z JCE</span> – Jezuickie Centrum Edukacji. Wspólnie tworzymy przestrzeń dla zdolnych sportowców i entuzjastów, gdzie sport łączy się z edukacją na najwyższym poziomie.
+              <span className="font-black text-red-600">WSPÓŁPRACA Z JCE</span> – <a href="https://www.jce.pl" target="_blank" rel="noopener noreferrer" className="no-underline hover:underline">
+                Jezuickie Centrum Edukacji
+              </a>. Wspólnie tworzymy przestrzeń dla zdolnych sportowców i entuzjastów, gdzie sport łączy się z edukacją na najwyższym poziomie.
             </p>
           </div>
         </div>

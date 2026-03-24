@@ -24,7 +24,7 @@ const Footer = () => {
           </a>
         </div>
         <div className="font-black uppercase text-[10px] tracking-widest text-gray-500 text-center md:text-right">
-          © 2026 LIGA ELEKTRYKA. WSZYSTKIE PRAWA ZASTRZEŻONE.
+          © 2026 LIGA ELEKTRYKA.
         </div>
       </div>
     </footer>
