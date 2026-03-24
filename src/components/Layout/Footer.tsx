@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 const creators = [
   {
@@ -18,7 +18,6 @@ const creators = [
 const Footer = () => {
   const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
-  const rulesPdfFrameRef = useRef<HTMLIFrameElement | null>(null);
   const rulesPdfHref = `${import.meta.env.BASE_URL}rules.pdf`;
 
   useEffect(() => {
@@ -49,14 +48,10 @@ const Footer = () => {
   }, [isGithubModalOpen, isRulesModalOpen]);
 
   const handlePrintRules = () => {
-    const frameWindow = rulesPdfFrameRef.current?.contentWindow;
+    window.open(rulesPdfHref, "_blank", "noopener,noreferrer");
+  };
 
-    if (frameWindow) {
-      frameWindow.focus();
-      frameWindow.print();
-      return;
-    }
-
+  const handleOpenRules = () => {
     window.open(rulesPdfHref, "_blank", "noopener,noreferrer");
   };
 
@@ -193,6 +188,13 @@ const Footer = () => {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-red-600 bg-white px-4 py-4 md:px-6">
               <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-black">Regulamin</h3>
               <div className="flex items-center gap-2 md:gap-3">
+                <button
+                  type="button"
+                  onClick={handleOpenRules}
+                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
+                >
+                  Otworz
+                </button>
                 <a
                   href={rulesPdfHref}
                   download
@@ -218,12 +220,26 @@ const Footer = () => {
             </div>
 
             <div className="h-[75vh] md:h-[80vh] bg-gray-200 p-2 md:p-3">
-              <iframe
-                ref={rulesPdfFrameRef}
-                title="Podglad regulaminu"
-                src={`${rulesPdfHref}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+              <object
+                aria-label="Podglad regulaminu"
+                data={`${rulesPdfHref}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                type="application/pdf"
                 className="w-full h-full border-2 border-black bg-white"
-              />
+              >
+                <div className="w-full h-full border-2 border-black bg-white p-6 flex flex-col items-center justify-center gap-3 text-center">
+                  <p className="font-black uppercase text-sm tracking-widest text-black">
+                    Ta przegladarka nie obsluguje podgladu PDF w oknie.
+                  </p>
+                  <a
+                    href={rulesPdfHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 border-2 border-black bg-black text-white font-black uppercase text-xs tracking-widest hover:bg-gray-800"
+                  >
+                    Otworz PDF w nowej karcie
+                  </a>
+                </div>
+              </object>
             </div>
           </div>
         </div>

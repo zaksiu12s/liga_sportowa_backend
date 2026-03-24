@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import type { View } from "../../types/app";
 import { usePublicData } from "../../hooks/usePublicData";
@@ -23,7 +23,6 @@ type NextMatchData = {
 const HomeView = ({ onNavigate }: HomeViewProps) => {
   const { data } = usePublicData();
   const [selectedDocument, setSelectedDocument] = useState<DocumentItem | null>(null);
-  const pdfFrameRef = useRef<HTMLIFrameElement | null>(null);
 
   const documents: DocumentItem[] = [
     {
@@ -87,14 +86,12 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
   const hasPlannedMatch = Boolean(nextMatch?.status === "scheduled");
 
   const handlePrintDocument = () => {
-    const frameWindow = pdfFrameRef.current?.contentWindow;
-
-    if (frameWindow) {
-      frameWindow.focus();
-      frameWindow.print();
-      return;
+    if (selectedDocument) {
+      window.open(selectedDocument.href, "_blank", "noopener,noreferrer");
     }
+  };
 
+  const handleOpenDocument = () => {
     if (selectedDocument) {
       window.open(selectedDocument.href, "_blank", "noopener,noreferrer");
     }
@@ -270,6 +267,13 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
                 {selectedDocument.title}
               </h3>
               <div className="flex items-center gap-2 md:gap-3">
+                <button
+                  type="button"
+                  onClick={handleOpenDocument}
+                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
+                >
+                  Otworz
+                </button>
                 <a
                   href={selectedDocument.href}
                   download
@@ -295,12 +299,26 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
             </div>
 
             <div className="h-[75vh] md:h-[80vh] bg-gray-200 p-2 md:p-3">
-              <iframe
-                ref={pdfFrameRef}
-                title={`Podglad dokumentu ${selectedDocument.title}`}
-                src={getPdfPreviewUrl(selectedDocument.href)}
+              <object
+                aria-label={`Podglad dokumentu ${selectedDocument.title}`}
+                data={getPdfPreviewUrl(selectedDocument.href)}
+                type="application/pdf"
                 className="w-full h-full border-2 border-black bg-white"
-              />
+              >
+                <div className="w-full h-full border-2 border-black bg-white p-6 flex flex-col items-center justify-center gap-3 text-center">
+                  <p className="font-black uppercase text-sm tracking-widest text-black">
+                    Ta przegladarka nie obsluguje podgladu PDF w oknie.
+                  </p>
+                  <a
+                    href={selectedDocument.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 border-2 border-black bg-black text-white font-black uppercase text-xs tracking-widest hover:bg-gray-800"
+                  >
+                    Otworz PDF w nowej karcie
+                  </a>
+                </div>
+              </object>
             </div>
           </div>
         </div>,
