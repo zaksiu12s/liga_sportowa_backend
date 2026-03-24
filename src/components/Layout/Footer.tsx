@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const creators = [
   {
@@ -17,9 +17,12 @@ const creators = [
 
 const Footer = () => {
   const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
+  const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
+  const rulesPdfFrameRef = useRef<HTMLIFrameElement | null>(null);
+  const rulesPdfHref = `${import.meta.env.BASE_URL}rules.pdf`;
 
   useEffect(() => {
-    if (!isGithubModalOpen) {
+    if (!isGithubModalOpen && !isRulesModalOpen) {
       return;
     }
 
@@ -28,6 +31,11 @@ const Footer = () => {
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (isRulesModalOpen) {
+          setIsRulesModalOpen(false);
+          return;
+        }
+
         setIsGithubModalOpen(false);
       }
     };
@@ -38,7 +46,19 @@ const Footer = () => {
       window.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = previousOverflow;
     };
-  }, [isGithubModalOpen]);
+  }, [isGithubModalOpen, isRulesModalOpen]);
+
+  const handlePrintRules = () => {
+    const frameWindow = rulesPdfFrameRef.current?.contentWindow;
+
+    if (frameWindow) {
+      frameWindow.focus();
+      frameWindow.print();
+      return;
+    }
+
+    window.open(rulesPdfHref, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <footer className="bg-black border-t-4 border-red-600 mt-20 relative">
@@ -51,12 +71,13 @@ const Footer = () => {
             LIGA ELEKTRYKA
           </a>
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 max-w-xl mx-auto md:justify-self-center">
-          <a
-            href={`${import.meta.env.BASE_URL}rules.pdf`}
+          <button
+            type="button"
+            onClick={() => setIsRulesModalOpen(true)}
             className="font-black uppercase text-xs tracking-widest text-gray-400 hover:text-red-500 transition-none"
           >
             REGULAMIN
-          </a>
+          </button>
           <a
             href="https://zsem.edu.pl/"
             target="_blank"
@@ -145,6 +166,61 @@ const Footer = () => {
                   Zobacz kod zrodlowy
                 </a>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isRulesModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setIsRulesModalOpen(false)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              setIsRulesModalOpen(false);
+            }
+          }}
+          role="button"
+          tabIndex={-1}
+        >
+          <div
+            className="w-full max-w-6xl bg-white border-4 border-black shadow-[10px_10px_0px_#dc2626]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-red-600 bg-white px-4 py-4 md:px-6">
+              <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-black">Regulamin</h3>
+              <div className="flex items-center gap-2 md:gap-3">
+                <a
+                  href={rulesPdfHref}
+                  download
+                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
+                >
+                  Pobierz
+                </a>
+                <button
+                  type="button"
+                  onClick={handlePrintRules}
+                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
+                >
+                  Drukuj
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsRulesModalOpen(false)}
+                  className="px-4 py-2 border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500"
+                >
+                  Zamknij
+                </button>
+              </div>
+            </div>
+
+            <div className="h-[75vh] md:h-[80vh] bg-gray-200 p-2 md:p-3">
+              <iframe
+                ref={rulesPdfFrameRef}
+                title="Podglad regulaminu"
+                src={`${rulesPdfHref}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                className="w-full h-full border-2 border-black bg-white"
+              />
             </div>
           </div>
         </div>
