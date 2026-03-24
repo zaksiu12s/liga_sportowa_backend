@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getTeamsCount, getMatchesCount, getNextMatch } from "../../utils/data";
 import type { View } from "../../types/app";
 
@@ -13,11 +13,37 @@ interface HomeViewProps {
   onNavigate?: (view: View) => void;
 }
 
+interface DocumentItem {
+  title: string;
+  icon: string;
+  href: string;
+}
+
 const HomeView = ({ onNavigate }: HomeViewProps) => {
   const [teamsCount, setTeamsCount] = useState(0);
   const [matchesCount, setMatchesCount] = useState(0);
   const [nextMatch, setNextMatch] = useState<NextMatchData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedDocument, setSelectedDocument] = useState<DocumentItem | null>(null);
+  const pdfFrameRef = useRef<HTMLIFrameElement | null>(null);
+
+  const documents: DocumentItem[] = [
+    {
+      title: "Regulamin",
+      icon: "description",
+      href: `${import.meta.env.BASE_URL}rules.pdf`,
+    },
+    {
+      title: "Formularz",
+      icon: "edit_document",
+      href: `${import.meta.env.BASE_URL}form.pdf`,
+    },
+    {
+      title: "Zgoda",
+      icon: "assignment_turned_in",
+      href: `${import.meta.env.BASE_URL}consent.pdf`,
+    },
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,6 +66,28 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (!selectedDocument) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedDocument(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [selectedDocument]);
+
   const formatDateTime = (dateString: string | null | undefined) => {
     if (!dateString) return "TBD";
     const date = new Date(dateString);
@@ -55,6 +103,22 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
   };
 
   const hasPlannedMatch = !loading && nextMatch?.status === "scheduled";
+
+  const handlePrintDocument = () => {
+    const frameWindow = pdfFrameRef.current?.contentWindow;
+
+    if (frameWindow) {
+      frameWindow.focus();
+      frameWindow.print();
+      return;
+    }
+
+    if (selectedDocument) {
+      window.open(selectedDocument.href, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const getPdfPreviewUrl = (href: string) => `${href}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
 
   return (
     <main className="container mx-auto px-6 py-12">
@@ -182,56 +246,83 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
           DOKUMENTY I PLIKI
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <a
-            className="group border-2 border-black bg-white p-6 flex items-center justify-between hover:bg-black transition-none"
-            href={`${import.meta.env.BASE_URL}rules.pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <div className="flex items-center gap-4">
-              <span className="material-symbols-outlined text-4xl group-hover:text-white">
-                description
-              </span>
-              <span className="font-black uppercase tracking-tight group-hover:text-white">
-                Regulamin
-              </span>
-            </div>
-            <span className="material-symbols-outlined group-hover:text-white">download</span>
-          </a>
-          <a
-            className="group border-2 border-black bg-white p-6 flex items-center justify-between hover:bg-black transition-none"
-            href={`${import.meta.env.BASE_URL}form.pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <div className="flex items-center gap-4">
-              <span className="material-symbols-outlined text-4xl group-hover:text-white">
-                edit_document
-              </span>
-              <span className="font-black uppercase tracking-tight group-hover:text-white">
-                Formularz
-              </span>
-            </div>
-            <span className="material-symbols-outlined group-hover:text-white">download</span>
-          </a>
-          <a
-            className="group border-2 border-black bg-white p-6 flex items-center justify-between hover:bg-black transition-none"
-            href={`${import.meta.env.BASE_URL}consent.pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <div className="flex items-center gap-4">
-              <span className="material-symbols-outlined text-4xl group-hover:text-white">
-                assignment_turned_in
-              </span>
-              <span className="font-black uppercase tracking-tight group-hover:text-white">
-                Zgoda
-              </span>
-            </div>
-            <span className="material-symbols-outlined group-hover:text-white">download</span>
-          </a>
+          {documents.map((document) => (
+            <button
+              type="button"
+              key={document.title}
+              onClick={() => setSelectedDocument(document)}
+              className="group border-2 border-black bg-white p-6 flex items-center justify-between hover:bg-black transition-none text-left"
+            >
+              <div className="flex items-center gap-4">
+                <span className="material-symbols-outlined text-4xl group-hover:text-white">
+                  {document.icon}
+                </span>
+                <span className="font-black uppercase tracking-tight group-hover:text-white">
+                  {document.title}
+                </span>
+              </div>
+              <span className="material-symbols-outlined group-hover:text-white">open_in_new</span>
+            </button>
+          ))}
         </div>
       </section>
+
+      {selectedDocument && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 md:p-4"
+          onClick={() => setSelectedDocument(null)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              setSelectedDocument(null);
+            }
+          }}
+          role="button"
+          tabIndex={-1}
+        >
+          <div
+            className="w-full max-w-6xl bg-white border-4 border-black shadow-[10px_10px_0px_#dc2626]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-red-600 bg-white px-4 py-4 md:px-6">
+              <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-black">
+                {selectedDocument.title}
+              </h3>
+              <div className="flex items-center gap-2 md:gap-3">
+                <a
+                  href={selectedDocument.href}
+                  download
+                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
+                >
+                  Pobierz
+                </a>
+                <button
+                  type="button"
+                  onClick={handlePrintDocument}
+                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
+                >
+                  Drukuj
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDocument(null)}
+                  className="px-4 py-2 border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500"
+                >
+                  Zamknij
+                </button>
+              </div>
+            </div>
+
+            <div className="h-[75vh] md:h-[80vh] bg-gray-200 p-2 md:p-3">
+              <iframe
+                ref={pdfFrameRef}
+                title={`Podglad dokumentu ${selectedDocument.title}`}
+                src={getPdfPreviewUrl(selectedDocument.href)}
+                className="w-full h-full border-2 border-black bg-white"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
