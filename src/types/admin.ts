@@ -91,7 +91,8 @@ export type AdminView =
   | "matches"
   | "players"
   | "stages"
-  | "top-scorers";
+  | "top-scorers"
+  | "navigation";
 
 export interface AuthState {
   user: AdminUser | null;

@@ -23,6 +23,7 @@ export const AdminLayout = ({
     { label: "PLAYERS", view: "players" },
     { label: "STAGES", view: "stages" },
     { label: "TOP SCORERS", view: "top-scorers" },
+    { label: "NAVIGATION", view: "navigation" },
   ];
 
   const handleLogout = async () => {

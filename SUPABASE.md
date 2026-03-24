@@ -26,6 +26,14 @@ Contains the schedule and results of the matches.
 - `stage`: `text` (Nullable) - Stage description (e.g., "Grupa A", "Półfinał").
 - `created_at`: `timestamptz` (Default: `now()`)
 
+## Table: navigation_settings
+Contains public navbar visibility configuration controlled from the admin panel.
+
+- `path`: `text` (Primary Key) - Route path, e.g. `/teams`.
+- `label`: `text` (Required) - Display name in navbar.
+- `is_hidden`: `boolean` (Default: `false`) - Whether item is hidden for users.
+- `updated_at`: `timestamptz` (Default: `now()`) - Last update timestamp.
+
 ## Relationships
 - `matches.home_team_id` -> `teams.id` (fkey name: `matches_home_team_id_fkey`)
 - `matches.away_team_id` -> `teams.id` (fkey name: `matches_away_team_id_fkey`)

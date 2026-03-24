@@ -1,19 +1,38 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-
-const navItems = [
-  { path: "/", label: "START" },
-  { path: "/teams", label: "DRUŻYNY" },
-  { path: "/schedule", label: "MECZE" },
-  { path: "/standings", label: "TABELE" },
-  { path: "/finals", label: "FINAŁY" },
-  { path: "/scorers", label: "STRZELCY" },
-];
+import { DEFAULT_NAV_ITEMS } from "../../config/navigation";
+import { mergeNavItemsWithSettings, navigationSettingsApi } from "../../utils/navigationSettings";
+import type { NavItem } from "../../types/navigation";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [navItems, setNavItems] = useState<NavItem[]>(DEFAULT_NAV_ITEMS);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const loadNavItems = useCallback(async () => {
+    try {
+      const settings = await navigationSettingsApi.getAll();
+      setNavItems(mergeNavItemsWithSettings(DEFAULT_NAV_ITEMS, settings));
+    } catch (error) {
+      console.error("Failed to load navigation settings:", error);
+      setNavItems(DEFAULT_NAV_ITEMS);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadNavItems();
+
+    const handleVisibilityUpdated = () => {
+      loadNavItems();
+    };
+
+    window.addEventListener("nav-visibility-updated", handleVisibilityUpdated);
+
+    return () => {
+      window.removeEventListener("nav-visibility-updated", handleVisibilityUpdated);
+    };
+  }, [loadNavItems]);
 
   const isActivePath = (path: string) => {
     if (path === "/") {
@@ -40,7 +59,7 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex gap-6 md:gap-8 items-center ml-auto justify-end pl-8">
-          {navItems.map((item) => (
+          {navItems.filter((item) => !item.isHidden).map((item) => (
             <Link
               key={item.path}
               to={item.path}
@@ -69,7 +88,7 @@ const Navbar = () => {
       {mobileMenuOpen && (
         <nav className="md:hidden border-t-2 border-black bg-white">
           <div className="flex flex-col">
-            {navItems.map((item) => (
+            {navItems.filter((item) => !item.isHidden).map((item) => (
               <button
                 key={item.path}
                 onClick={() => handleMobileNavClick(item.path)}

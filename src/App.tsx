@@ -17,6 +17,7 @@ import { PlayersTable } from "./components/Admin/Players/PlayersTable";
 import { StagesView } from "./components/Admin/Stages/StagesView";
 import { TopScorersView } from "./components/Admin/Statistics/TopScorersView";
 import { ToastContainer } from "./components/Admin/Toast";
+import { NavigationVisibilityView } from "./components/Admin/NavigationVisibilityView";
 import { useAuth } from "./hooks/useAuth";
 import type { View } from "./types/app";
 import type { AdminView } from "./types/admin";
@@ -56,6 +57,7 @@ const AdminRoute = ({ user, adminView, setAdminView }: {
           {adminView === "players" && <PlayersTable />}
           {adminView === "stages" && <StagesView />}
           {adminView === "top-scorers" && <TopScorersView />}
+          {adminView === "navigation" && <NavigationVisibilityView />}
         </AdminLayout>
         <ToastContainer />
       </ProtectedRoute>
