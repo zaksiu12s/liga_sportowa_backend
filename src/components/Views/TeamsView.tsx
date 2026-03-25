@@ -128,18 +128,24 @@ const TeamsView = () => {
                     className="border-4 border-black bg-white overflow-hidden"
                   >
                     {/* Team Header */}
-                    <div className="bg-white border-b-4 border-black p-4 md:p-6 flex justify-between items-center">
-                      <h2 className="text-lg md:text-2xl font-black uppercase italic tracking-tighter">
+                    <div className="bg-red-600 border-b-4 border-black p-4 md:p-6 flex justify-between items-center">
+                      <h2 className="text-lg md:text-2xl font-black uppercase italic tracking-tighter text-white">
                         {team.name}
                       </h2>
-                      <span className="material-symbols-outlined text-3xl md:text-4xl font-black">
+                      <span
+                        className="material-symbols-outlined text-3xl md:text-4xl font-black text-white"
+                        style={{
+                          fontVariationSettings:
+                            "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 24",
+                        }}
+                      >
                         bolt
                       </span>
                     </div>
 
                     {/* Skład Drużyny Label */}
                     <div className="bg-white border-b-2 border-black p-3 md:p-4">
-                      <p className="text-xs md:text-sm font-black uppercase tracking-widest text-red-600">
+                      <p className="text-xs md:text-sm font-extrabold uppercase tracking-widest text-black">
                         Skład Drużyny
                       </p>
                     </div>
