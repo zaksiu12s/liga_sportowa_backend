@@ -206,12 +206,12 @@ const StandingsView = () => {
                   teams.map((row, idx) => (
                     <tr
                       key={row.id}
-                      className={`border-b-2 border-black font-bold text-xs md:text-sm hover:bg-gray-50 ${
+                      className={`border-b-2 border-black hover:bg-gray-50 ${
                         idx === 0 || idx === 1
-                          ? "text-red-700"
+                          ? "text-red-700 font-extrabold text-sm md:text-base"
                           : activeStage === 1 && idx === 2 && bestThirdPlaceIds.has(row.id)
-                            ? "text-red-600"
-                            : ""
+                            ? "text-red-600 font-bold text-xs md:text-sm"
+                            : "font-bold text-xs md:text-sm"
                       }`}
                     >
                       <td className="p-2 md:p-4 text-center">
