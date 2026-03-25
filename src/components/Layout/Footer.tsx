@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import PdfModal from "./PdfModal";
 
 const creators = [
   {
@@ -21,7 +22,7 @@ const Footer = () => {
   const rulesPdfHref = `${import.meta.env.BASE_URL}rules.pdf`;
 
   useEffect(() => {
-    if (!isGithubModalOpen && !isRulesModalOpen) {
+    if (!isGithubModalOpen) {
       return;
     }
 
@@ -30,11 +31,6 @@ const Footer = () => {
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        if (isRulesModalOpen) {
-          setIsRulesModalOpen(false);
-          return;
-        }
-
         setIsGithubModalOpen(false);
       }
     };
@@ -45,15 +41,7 @@ const Footer = () => {
       window.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = previousOverflow;
     };
-  }, [isGithubModalOpen, isRulesModalOpen]);
-
-  const handlePrintRules = () => {
-    window.open(rulesPdfHref, "_blank", "noopener,noreferrer");
-  };
-
-  const handleOpenRules = () => {
-    window.open(rulesPdfHref, "_blank", "noopener,noreferrer");
-  };
+  }, [isGithubModalOpen]);
 
   const handleOpenSourceCode = () => {
     window.open("https://github.com/zaksiu12s/liga_sportowa_backend", "_blank", "noopener,noreferrer");
@@ -169,81 +157,12 @@ const Footer = () => {
         </div>
       )}
 
-      {isRulesModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-          onClick={() => setIsRulesModalOpen(false)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              setIsRulesModalOpen(false);
-            }
-          }}
-          role="button"
-          tabIndex={-1}
-        >
-          <div
-            className="w-full max-w-6xl bg-white border-4 border-black shadow-[10px_10px_0px_#dc2626]"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-red-600 bg-white px-4 py-4 md:px-6">
-              <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-black">Regulamin</h3>
-              <div className="flex items-center gap-2 md:gap-3">
-                <button
-                  type="button"
-                  onClick={handleOpenRules}
-                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
-                >
-                  Otworz
-                </button>
-                <a
-                  href={rulesPdfHref}
-                  download
-                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
-                >
-                  Pobierz
-                </a>
-                <button
-                  type="button"
-                  onClick={handlePrintRules}
-                  className="px-4 py-2 border-2 border-black bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200"
-                >
-                  Drukuj
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsRulesModalOpen(false)}
-                  className="px-4 py-2 border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500"
-                >
-                  Zamknij
-                </button>
-              </div>
-            </div>
-
-            <div className="h-[75vh] md:h-[80vh] bg-gray-200 p-2 md:p-3">
-              <object
-                aria-label="Podglad regulaminu"
-                data={`${rulesPdfHref}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-                type="application/pdf"
-                className="w-full h-full border-2 border-black bg-white"
-              >
-                <div className="w-full h-full border-2 border-black bg-white p-6 flex flex-col items-center justify-center gap-3 text-center">
-                  <p className="font-black uppercase text-sm tracking-widest text-black">
-                    Ta przegladarka nie obsluguje podgladu PDF w oknie.
-                  </p>
-                  <a
-                    href={rulesPdfHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 border-2 border-black bg-black text-white font-black uppercase text-xs tracking-widest hover:bg-gray-800"
-                  >
-                    Otworz PDF w nowej karcie
-                  </a>
-                </div>
-              </object>
-            </div>
-          </div>
-        </div>
-      )}
+      <PdfModal
+        isOpen={isRulesModalOpen}
+        title="Regulamin"
+        fileUrl={rulesPdfHref}
+        onClose={() => setIsRulesModalOpen(false)}
+      />
     </footer>
   );
 };

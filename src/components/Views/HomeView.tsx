@@ -1,6 +1,7 @@
-// import { useState } from "react";
+import { useState } from "react";
 import type { View } from "../../types/app";
 import { usePublicData } from "../../hooks/usePublicData";
+import PdfModal from "../Layout/PdfModal";
 
 interface HomeViewProps {
   onNavigate?: (view: View) => void;
@@ -21,6 +22,7 @@ type NextMatchData = {
 
 const HomeView = ({ onNavigate }: HomeViewProps) => {
   const { data } = usePublicData();
+  const [activeDocument, setActiveDocument] = useState<DocumentItem | null>(null);
 
   const documents: DocumentItem[] = [
     {
@@ -221,27 +223,32 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {documents.map((document) => (
-            <a
+            <button
               key={document.title}
-              href={document.href}
-              download
-              className="group border-2 border-black bg-white p-6 flex items-center justify-between hover:bg-black transition-none text-left"
+              type="button"
+              onClick={() => setActiveDocument(document)}
+              className="group border-2 border-black bg-white p-4 flex items-center justify-between gap-3 hover:bg-black transition-none"
             >
-              <div className="flex items-center gap-4">
+              <div className="flex-1 flex items-center gap-4 text-left">
                 <span className="material-symbols-outlined text-4xl group-hover:text-white">
                   {document.icon}
                 </span>
                 <span className="font-black uppercase tracking-tight group-hover:text-white">
                   {document.title}
                 </span>
+                <span className="material-symbols-outlined ml-auto group-hover:text-white">visibility</span>
               </div>
-              <span className="material-symbols-outlined group-hover:text-white">
-                download
-              </span>
-            </a>
+            </button>
           ))}
         </div>
       </section>
+
+      <PdfModal
+        isOpen={Boolean(activeDocument)}
+        title={activeDocument?.title ?? "Podglad dokumentu"}
+        fileUrl={activeDocument?.href ?? ""}
+        onClose={() => setActiveDocument(null)}
+      />
     </main>
   );
 };
