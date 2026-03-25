@@ -225,10 +225,10 @@ const ScheduleView = () => {
                           (() => {
                             const [lineOne, lineTwo] = splitNameForBalancedWrap(nextMatch.home_team?.name);
                             return (
-                              <>
+                              <span className="flex flex-col leading-tight">
                                 <span className="block">{lineOne}</span>
                                 <span className="block">{lineTwo}</span>
-                              </>
+                              </span>
                             );
                           })()
                         ) : (
@@ -262,10 +262,10 @@ const ScheduleView = () => {
                           (() => {
                             const [lineOne, lineTwo] = splitNameForBalancedWrap(nextMatch.away_team?.name);
                             return (
-                              <>
+                              <span className="flex flex-col leading-tight">
                                 <span className="block">{lineOne}</span>
                                 <span className="block">{lineTwo}</span>
-                              </>
+                              </span>
                             );
                           })()
                         ) : (
@@ -549,10 +549,10 @@ const ScheduleView = () => {
                         (() => {
                           const [lineOne, lineTwo] = splitNameForBalancedWrap(match.home_team?.name);
                           return (
-                            <>
+                            <span className="flex flex-col leading-tight">
                               <span className="block">{lineOne}</span>
                               <span className="block">{lineTwo}</span>
-                            </>
+                            </span>
                           );
                         })()
                       ) : (
@@ -565,7 +565,7 @@ const ScheduleView = () => {
                   </div>
 
                   {/* Score */}
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-center gap-4 w-full md:w-auto md:min-w-[180px]">
                     {match.score_home !== null ? (
                       <>
                         <div className="bg-black text-white w-20 h-24 md:w-28 md:h-32 flex items-center justify-center text-5xl md:text-7xl font-black border-2 border-black">
@@ -590,10 +590,10 @@ const ScheduleView = () => {
                         (() => {
                           const [lineOne, lineTwo] = splitNameForBalancedWrap(match.away_team?.name);
                           return (
-                            <>
+                            <span className="flex flex-col leading-tight">
                               <span className="block">{lineOne}</span>
                               <span className="block">{lineTwo}</span>
-                            </>
+                            </span>
                           );
                         })()
                       ) : (
