@@ -110,15 +110,15 @@ const StandingsView = () => {
         <h1 className="font-black text-4xl md:text-6xl lg:text-8xl uppercase tracking-tighter leading-none mb-2 md:mb-4">
           TABELE LIGOWE
         </h1>
-        <div className="h-2 w-24 md:w-32 bg-red-600"></div>
-        <p className="mt-3 md:mt-6 font-black text-lg md:text-xl uppercase tracking-widest text-black">
+        <div className="h-2 w-24 md:w-32 bg-black mb-6"></div>
+        <span className="bg-black text-white px-4 py-2 font-black text-xs md:text-sm tracking-widest inline-block">
           SEZON 2026
-        </p>
+        </span>
       </header>
 
       {/* Stage Selection */}
       <section className="mb-12 md:mb-20">
-        <div className="flex items-center gap-2 md:gap-4 mb-6 md:mb-8 flex-wrap">
+        <div className="flex items-start md:items-center gap-2 md:gap-4 mb-6 md:mb-8 flex-wrap">
           {[1, 2].map((s) => (
             <button
               key={s}
@@ -132,7 +132,7 @@ const StandingsView = () => {
               ETAP {s}
             </button>
           ))}
-          <h2 className="font-extrabold text-2xl md:text-4xl uppercase tracking-tight md:ml-4">
+          <h2 className="w-full md:w-auto font-extrabold text-4xl md:text-4xl uppercase tracking-tight md:ml-4 leading-none mt-1 md:mt-0">
             {activeStage === 1 ? "FAZA GRUPOWA" : "TOP 8"}
           </h2>
         </div>

@@ -201,7 +201,7 @@ const ScheduleView = () => {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-3 md:gap-8 mb-5 md:mb-8">
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-3 md:gap-8 mb-5 md:mb-8 pt-1 md:pt-0">
                     <div className="min-w-0 text-center md:text-right">
                       <div className="text-xl md:text-4xl font-black uppercase tracking-tighter leading-tight break-words min-h-[3rem] md:min-h-[5.5rem] flex items-center justify-center md:justify-end">
                         {nextMatch.home_team?.name || "NIEZNANA"}
@@ -212,7 +212,7 @@ const ScheduleView = () => {
                     </div>
 
                     {nextMatch.score_home !== null && nextMatch.score_away !== null ? (
-                      <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+                      <div className="flex items-center justify-center gap-2 md:gap-4 flex-shrink-0 w-full md:w-auto">
                         <div className="w-12 h-12 md:w-20 md:h-20 bg-black text-white flex items-center justify-center">
                           <span className="text-2xl md:text-4xl font-black">{nextMatch.score_home}</span>
                         </div>
@@ -222,7 +222,7 @@ const ScheduleView = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="w-16 h-16 md:w-24 md:h-24 border-2 border-black flex items-center justify-center bg-black text-white text-2xl md:text-4xl font-black tracking-widest">
+                      <div className="w-16 h-16 md:w-24 md:h-24 mx-auto border-2 border-black flex items-center justify-center bg-black text-white text-2xl md:text-4xl font-black tracking-widest">
                         VS
                       </div>
                     )}
@@ -329,9 +329,9 @@ const ScheduleView = () => {
                         {/* Match Content */}
                         <div className="p-4 md:p-10">
                           {/* Score Line */}
-                          <div className="flex items-center justify-between mb-6 md:mb-8 pb-6 md:pb-8 border-b-2 border-black gap-2">
-                            <div className="flex-1 min-w-0">
-                              <h3 className="text-lg md:text-3xl font-black uppercase leading-tight break-words">
+                          <div className="flex flex-col md:flex-row items-center md:items-stretch justify-between mb-6 md:mb-8 pb-6 md:pb-8 border-b-2 border-black gap-4 md:gap-2">
+                            <div className="w-full md:flex-1 min-w-0 text-center md:text-left">
+                              <h3 className="text-xl md:text-3xl font-black uppercase leading-tight break-words">
                                 {match.home_team?.name || "NIEZNANA"}
                               </h3>
                               <p className="text-xs md:text-sm font-bold uppercase text-gray-600 tracking-wider">
@@ -347,8 +347,8 @@ const ScheduleView = () => {
                                 {match.score_away}
                               </div>
                             </div>
-                            <div className="flex-1 text-right min-w-0">
-                              <h3 className="text-lg md:text-3xl font-black uppercase leading-tight break-words">
+                            <div className="w-full md:flex-1 text-center md:text-right min-w-0">
+                              <h3 className="text-xl md:text-3xl font-black uppercase leading-tight break-words">
                                 {match.away_team?.name || "NIEZNANA"}
                               </h3>
                               <p className="text-xs md:text-sm font-bold uppercase text-gray-600 tracking-wider">

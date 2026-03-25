@@ -120,7 +120,28 @@ const TopScorersPageView = () => {
             ))}
           </div>
         ) : scorers.length > 0 ? (
-          <div className="border-2 border-black bg-white overflow-hidden">
+          <>
+          <div className="md:hidden space-y-3">
+            {scorers.map((scorer) => (
+              <article key={scorer.id} className="border-2 border-black bg-white p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className={`inline-flex items-center justify-center min-w-[44px] px-2 h-9 font-black text-sm border-2 border-black ${scorer.rank === 1 ? "bg-red-600 text-white" : "bg-white text-black"}`}>
+                      {String(scorer.rank).padStart(2, "0")}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-black leading-none">{scorer.goals}</div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-gray-600">GOLE</div>
+                  </div>
+                </div>
+                <h3 className="mt-3 font-black uppercase text-base leading-tight break-words">{scorer.player_name}</h3>
+                <p className="mt-1 text-xs uppercase tracking-wider font-bold text-gray-600 break-words">{scorer.team_name}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden md:block border-2 border-black bg-white overflow-hidden">
             {/* Table Header */}
             <div className="grid grid-cols-12 gap-0 border-b-4 border-black bg-black text-white">
               <div className="col-span-1 p-3 md:p-4 font-black text-center text-xs md:text-sm uppercase tracking-widest border-r-2 border-white">
@@ -160,6 +181,7 @@ const TopScorersPageView = () => {
               </div>
             ))}
           </div>
+          </>
         ) : (
           <div className="border-2 border-black bg-gray-100 p-8 text-center">
             <p className="font-black uppercase text-gray-500">BRAK DANYCH</p>

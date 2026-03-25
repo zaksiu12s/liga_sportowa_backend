@@ -73,7 +73,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-black border-t-4 border-red-600 mt-20 relative">
+    <footer className="bg-black border-t-4 border-red-600 mt-4 relative">
       <div className="w-full px-3 md:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-6 text-center">
           <a

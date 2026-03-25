@@ -40,7 +40,7 @@ const Navbar = () => {
           <img
             src={`${import.meta.env.BASE_URL}le_logo.svg`}
             alt="Liga Elektryka"
-            className="h-8 md:h-11 w-auto"
+            className="h-9 md:h-11 w-auto max-w-[190px] md:max-w-[260px]"
           />
         </Link>
 

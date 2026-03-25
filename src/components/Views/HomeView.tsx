@@ -23,6 +23,7 @@ type NextMatchData = {
 const HomeView = ({ onNavigate }: HomeViewProps) => {
   const { data } = usePublicData();
   const [activeDocument, setActiveDocument] = useState<DocumentItem | null>(null);
+  const [isAboutExpanded, setIsAboutExpanded] = useState(false);
 
   const documents: DocumentItem[] = [
     {
@@ -118,7 +119,7 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
           <span className="absolute left-1/2 -top-5 -translate-x-1/2 bg-black text-white px-6 sm:px-8 py-2 font-black uppercase tracking-widest text-sm sm:text-base text-center whitespace-nowrap">
             NAJBLIŻSZE SPOTKANIE
           </span>
-          <div className="text-black p-4 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8">
+          <div className="text-black p-4 md:p-8 pt-6 md:pt-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8">
             <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full md:w-auto">
               <div className="text-center md:text-right">
                 <span className="block text-xs md:text-sm font-bold uppercase text-red-600">
@@ -162,38 +163,57 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
             </span>
             O LIDZE
           </h2>
-          <div className="space-y-4 font-body text-lg leading-relaxed">
+          <div className="font-body text-lg leading-relaxed">
             <p>
               Liga Elektryka to nie tylko turniej – to manifestacja sportowego
               ducha i rywalizacji na najwyższym poziomie technikum i liceum. Od
               lat łączymy pasję do sportu z profesjonalną organizacją.
             </p>
-            <p>
-              Naszym celem jest promowanie aktywności fizycznej oraz integracja
-              społeczności uczniowskiej poprzez zdrowe współzawodnictwo. W tym
-              roku wprowadzamy nową formułę rozgrywek i jeszcze wyższe standardy
-              sędziowania.
-            </p>
-            <p>
-              W tym sezonie czeka nas wiele emocji, a każda drużyna będzie
-              walczyć o każdy punkt. Razem tworzymy historię Ligi Elektryka –
-              dołącz do nas i bądź częścią tej niesamowitej przygody!
-            </p>
-            <p className="border-t-4 border-red-600 pt-4 mt-4">
-              <span className="font-black text-red-600">WSPÓŁPRACA Z JCE</span>{" "}
-              –{" "}
-              <a
-                href="https://www.jce.pl"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="no-underline hover:underline"
-              >
-                Jezuickie Centrum Edukacji
-              </a>
-              . Wspólnie tworzymy przestrzeń dla zdolnych sportowców i
-              entuzjastów, gdzie sport łączy się z edukacją na najwyższym
-              poziomie.
-            </p>
+
+            <div
+              className={`overflow-hidden transition-all duration-300 md:overflow-visible ${
+                isAboutExpanded
+                  ? "max-h-[760px] opacity-100 mt-4"
+                  : "max-h-0 opacity-0 md:max-h-[760px] md:opacity-100"
+              }`}
+            >
+              <div className="space-y-4">
+                <p>
+                  Naszym celem jest promowanie aktywności fizycznej oraz
+                  integracja społeczności uczniowskiej poprzez zdrowe
+                  współzawodnictwo. W tym roku wprowadzamy nową formułę
+                  rozgrywek i jeszcze wyższe standardy sędziowania.
+                </p>
+                <p>
+                  W tym sezonie czeka nas wiele emocji, a każda drużyna będzie
+                  walczyć o każdy punkt. Razem tworzymy historię Ligi Elektryka
+                  – dołącz do nas i bądź częścią tej niesamowitej przygody!
+                </p>
+                <p className="border-t-4 border-red-600 pt-4 mt-4">
+                  <span className="font-black text-red-600">WSPÓŁPRACA Z JCE</span>{" "}
+                  –{" "}
+                  <a
+                    href="https://www.jce.pl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="no-underline hover:underline"
+                  >
+                    Jezuickie Centrum Edukacji
+                  </a>
+                  . Wspólnie tworzymy przestrzeń dla zdolnych sportowców i
+                  entuzjastów, gdzie sport łączy się z edukacją na najwyższym
+                  poziomie.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsAboutExpanded((prev) => !prev)}
+              className="mt-4 md:hidden border-2 border-black bg-white px-4 py-2 font-black uppercase tracking-widest text-xs"
+            >
+              {isAboutExpanded ? "POKAŻ MNIEJ" : "POKAŻ WIĘCEJ"}
+            </button>
           </div>
         </div>
 
