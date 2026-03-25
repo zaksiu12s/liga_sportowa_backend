@@ -35,6 +35,7 @@ export interface PublicPlayer {
   first_name: string;
   last_name: string;
   class_code: string;
+  school: string;
   team_id: string | null;
 }
 

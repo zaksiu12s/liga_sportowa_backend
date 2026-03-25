@@ -181,6 +181,7 @@ export const fetchPublicData = async (): Promise<FetchPublicDataResult> => {
           first_name: toString(row.first_name),
           last_name: toString(row.last_name),
           class_code: toString(row.class_code ?? row.class ?? ""),
+          school: toString(row.school ?? ""),
           team_id: toNullableString(row.team_id),
         }))
         .filter((row) => Boolean(row.id));

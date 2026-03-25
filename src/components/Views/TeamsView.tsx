@@ -7,6 +7,7 @@ interface Player {
   first_name: string;
   last_name: string;
   class_code: string;
+  school: string;
 }
 
 interface Team {
@@ -51,6 +52,7 @@ const TeamsView = () => {
         first_name: player.first_name,
         last_name: player.last_name,
         class_code: player.class_code,
+        school: player.school,
       });
     });
 
@@ -114,10 +116,10 @@ const TeamsView = () => {
             <section key={group}>
               {/* Group Header with Line */}
               <div className="flex items-center gap-0 mb-6 md:mb-8">
-                <div className="bg-red-600 text-white px-4 py-2 md:px-6 md:py-3 font-black text-sm md:text-base uppercase tracking-widest border-4 border-red-600 flex-shrink-0">
+                <div className="bg-white text-black pr-4 py-2 md:pr-6 md:py-3 font-black text-xl md:text-base uppercase tracking-widest flex-shrink-0">
                   GRUPA {group}
                 </div>
-                <div className="flex-grow h-1 md:h-2 bg-black"></div>
+                <div className="flex-grow h-0.5 md:h-0.5 bg-black"></div>
               </div>
 
               {/* Teams Grid */}
@@ -132,46 +134,42 @@ const TeamsView = () => {
                       <h2 className="text-lg md:text-2xl font-black uppercase italic tracking-tighter text-white">
                         {team.name}
                       </h2>
-                      <span
-                        className="material-symbols-outlined text-3xl md:text-4xl font-black text-white"
-                        style={{
-                          fontVariationSettings:
-                            "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 24",
-                        }}
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        className="w-8 h-8 md:w-10 md:h-10"
                       >
-                        bolt
-                      </span>
+                        <path
+                          fill="#ffffff"
+                          d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"
+                        />
+                      </svg>
                     </div>
 
-                    {/* Skład Drużyny Label */}
-                    <div className="bg-white border-b-2 border-black p-3 md:p-4">
-                      <p className="text-xs md:text-sm font-extrabold uppercase tracking-widest text-black">
-                        Skład Drużyny
-                      </p>
-                    </div>
+                    {/* Sekcja naglowka "Sklad Druzyny" celowo usunieta na prosbe uzytkownika. */}
 
                     {/* Players Grid */}
                     <div className="p-3 md:p-4">
                       {team.players.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-3 md:gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                           {team.players
                             .sort((a, b) =>
                               `${a.first_name} ${a.last_name}`.localeCompare(
                                 `${b.first_name} ${b.last_name}`
                               )
                             )
-                            .map((player, idx) => (
+                            .map((player) => (
                               <div key={player.id} className="border-2 border-black">
                                 {/* Player Row */}
                                 <div className="flex items-center justify-between bg-white p-2 md:p-3">
                                   <div className="flex-grow">
                                     <span className="font-black text-xs md:text-sm uppercase truncate">
-                                      {player.first_name[0]}. {player.last_name}
+                                      {player.first_name} {player.last_name}
                                     </span>
                                   </div>
-                                  <div className="ml-2 bg-red-600 text-white px-2 md:px-3 py-1 font-black text-xs uppercase tracking-widest flex-shrink-0">
-                                    {String(idx + 1).padStart(2, "0")}
-                                  </div>
+                                  <span className="ml-2 text-[10px] md:text-xs font-black uppercase tracking-widest text-red-600 flex-shrink-0">
+                                    {player.class_code || "BRAK KLASY"} | {player.school || "BRAK SZKOŁY"}
+                                  </span>
                                 </div>
                               </div>
                             ))}
