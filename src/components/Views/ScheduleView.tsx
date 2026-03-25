@@ -11,7 +11,8 @@ interface Goal {
 
 const ScheduleView = () => {
   const { data } = usePublicData();
-  const [activeStage, setActiveStage] = useState<"1" | "2" | "finals" | "finished">("1");
+  const [activeStage, setActiveStage] = useState<"1" | "2" | "finals">("1");
+  const [activeMatchFilter, setActiveMatchFilter] = useState<"planned" | "finished">("planned");
   const loading = !data;
   const matches = data?.matches || [];
   const players = data?.players || [];
@@ -21,27 +22,33 @@ const ScheduleView = () => {
     [players]
   );
 
-  const filteredMatches = matches.filter((match) => {
-    if (activeStage === "finished") return match.status === "finished";
+  const stageMatches = matches.filter((match) => {
     if (activeStage === "1") return match.stage === "first_stage";
     if (activeStage === "2") return match.stage === "second_stage";
     return match.stage?.includes("final");
   });
 
-  const sortedMatches = [...filteredMatches].sort((a, b) => {
+  const plannedMatches = stageMatches.filter((match) => match.status !== "finished");
+  const finishedMatches = stageMatches.filter((match) => match.status === "finished");
+
+  const sortedPlannedMatches = [...plannedMatches].sort((a, b) => {
     const dateA = new Date(a.scheduled_at || 0).getTime();
     const dateB = new Date(b.scheduled_at || 0).getTime();
     return dateA - dateB;
   });
 
-  // Find the next (closest) match only if not viewing finished matches
-  const nextMatch =
-    activeStage !== "finished"
-      ? sortedMatches.find((m) => m.status === "scheduled")
-      : null;
-  const otherMatches = sortedMatches.filter(
-    (m) => m.id !== nextMatch?.id && m.status !== "finished"
-  );
+  const sortedFinishedMatches = [...finishedMatches].sort((a, b) => {
+    const dateA = new Date(a.scheduled_at || 0).getTime();
+    const dateB = new Date(b.scheduled_at || 0).getTime();
+    return dateB - dateA;
+  });
+
+  const nextMatch = sortedPlannedMatches.find((m) => m.status === "scheduled") || null;
+  const otherPlannedMatches = sortedPlannedMatches.filter((m) => m.id !== nextMatch?.id);
+  const hasActiveMatches =
+    activeMatchFilter === "planned"
+      ? sortedPlannedMatches.length > 0
+      : sortedFinishedMatches.length > 0;
 
   const homePlayers = players.filter((player) => player.team_id === nextMatch?.home_team_id);
   const awayPlayers = players.filter((player) => player.team_id === nextMatch?.away_team_id);
@@ -90,6 +97,29 @@ const ScheduleView = () => {
             FINAŁY
           </button>
         </div>
+
+        <div className="mt-3 flex flex-wrap gap-0 border-2 border-black bg-white">
+          <button
+            onClick={() => setActiveMatchFilter("planned")}
+            className={`flex-1 min-w-[180px] py-2 md:py-3 px-3 md:px-6 font-black uppercase text-xs md:text-sm text-center border-r-2 border-black transition-none ${
+              activeMatchFilter === "planned"
+                ? "bg-red-600 text-white"
+                : "bg-white text-black hover:bg-gray-100"
+            }`}
+          >
+            MECZE ZAPLANOWANE
+          </button>
+          <button
+            onClick={() => setActiveMatchFilter("finished")}
+            className={`flex-1 min-w-[180px] py-2 md:py-3 px-3 md:px-6 font-black uppercase text-xs md:text-sm text-center transition-none ${
+              activeMatchFilter === "finished"
+                ? "bg-gray-600 text-white"
+                : "bg-gray-200 text-black hover:bg-gray-300"
+            }`}
+          >
+            MECZE ZAKOŃCZONE
+          </button>
+        </div>
       </section>
 
       {/* Match List */}
@@ -103,10 +133,10 @@ const ScheduleView = () => {
               </div>
             </div>
           ))
-        ) : sortedMatches.length > 0 ? (
+        ) : hasActiveMatches ? (
           <>
             {/* Next Match - Special Design */}
-            {nextMatch && (
+            {activeMatchFilter === "planned" && nextMatch && (
               <div className="border-4 border-black bg-white overflow-hidden">
                 {/* Header */}
                 <div
@@ -152,12 +182,12 @@ const ScheduleView = () => {
                 </div>
 
                 {/* Match Display */}
-                <div className="p-4 md:p-8 md:p-12 flex flex-col items-center justify-center">
+                <div className="p-4 md:p-12 flex flex-col items-center justify-center">
                   {/* Teams and Score */}
-                  <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 md:gap-8 w-full mb-6 md:mb-8">
+                  <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-8 w-full mb-6 md:mb-8">
                     {/* Home Team */}
                     <div className="text-center md:text-right flex-1 min-w-0">
-                      <div className="text-lg md:text-xl md:text-3xl font-black uppercase tracking-tighter leading-tight mb-1 md:mb-2 break-words">
+                      <div className="text-lg md:text-3xl font-black uppercase tracking-tighter leading-tight mb-1 md:mb-2 break-words min-h-[2.5rem] md:min-h-[6rem] flex items-center justify-center md:justify-end">
                         {nextMatch.home_team?.name || "NIEZNANA"}
                       </div>
                       <div className="text-xs font-bold uppercase text-gray-600 tracking-widest mb-4 md:mb-4">
@@ -176,28 +206,28 @@ const ScheduleView = () => {
 
                     {/* Score */}
                     {nextMatch.score_home !== null && nextMatch.score_away !== null ? (
-                      <div className="flex items-center gap-1 md:gap-2 md:gap-4 px-1 md:px-2 md:px-4 flex-shrink-0 order-3 md:order-none">
-                        <div className="w-12 h-12 md:w-16 h-16 md:w-24 md:h-24 bg-black text-white flex items-center justify-center">
-                          <span className="text-2xl md:text-4xl md:text-5xl font-black">
+                      <div className="flex items-center gap-1 md:gap-4 px-1 md:px-4 flex-shrink-0 order-3 md:order-none">
+                        <div className="w-12 h-12 md:w-24 md:h-24 bg-black text-white flex items-center justify-center">
+                          <span className="text-2xl md:text-5xl font-black">
                             {nextMatch.score_home}
                           </span>
                         </div>
-                        <div className="text-lg md:text-xl md:text-2xl font-black">:</div>
-                        <div className="w-12 h-12 md:w-16 h-16 md:w-24 md:h-24 bg-black text-white flex items-center justify-center">
-                          <span className="text-2xl md:text-4xl md:text-5xl font-black">
+                        <div className="text-lg md:text-2xl font-black">:</div>
+                        <div className="w-12 h-12 md:w-24 md:h-24 bg-black text-white flex items-center justify-center">
+                          <span className="text-2xl md:text-5xl font-black">
                             {nextMatch.score_away}
                           </span>
                         </div>
                       </div>
                     ) : (
-                      <div className="px-2 md:px-4 md:px-6 flex-shrink-0 order-3 md:order-none my-2 md:my-0">
+                      <div className="px-2 md:px-6 flex-shrink-0 order-3 md:order-none my-2 md:my-0">
                         <div className="text-2xl md:text-3xl font-black">VS</div>
                       </div>
                     )}
 
                     {/* Away Team */}
                     <div className="text-center md:text-left flex-1 min-w-0">
-                      <div className="text-lg md:text-xl md:text-3xl font-black uppercase tracking-tighter leading-tight mb-1 md:mb-2 break-words">
+                      <div className="text-lg md:text-3xl font-black uppercase tracking-tighter leading-tight mb-1 md:mb-2 break-words min-h-[2.5rem] md:min-h-[6rem] flex items-center justify-center md:justify-start">
                         {nextMatch.away_team?.name || "NIEZNANA"}
                       </div>
                       <div className="text-xs font-bold uppercase text-gray-600 tracking-widest mb-4 md:mb-4">
@@ -219,14 +249,9 @@ const ScheduleView = () => {
             )}
 
             {/* Finished Matches Section */}
-            {sortedMatches.filter((m) => m.status === "finished").length > 0 && (
-              <div className="mt-12 md:mt-16 pt-8 md:pt-12 border-t-4 border-black">
-                <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter mb-6 md:mb-8">
-                  MECZE <span className="text-gray-500">ZAKOŃCZONE</span>
-                </h2>
-                {sortedMatches
-                  .filter((m) => m.status === "finished")
-                  .map((match) => {
+            {activeMatchFilter === "finished" && sortedFinishedMatches.length > 0 && (
+              <div>
+                {sortedFinishedMatches.map((match) => {
                     return (
                       <div
                         key={match.id}
@@ -258,7 +283,7 @@ const ScheduleView = () => {
                         </div>
 
                         {/* Match Content */}
-                        <div className="p-4 md:p-6 md:p-10">
+                        <div className="p-4 md:p-10">
                           {/* Score Line */}
                           <div className="flex items-center justify-between mb-6 md:mb-8 pb-6 md:pb-8 border-b-2 border-black gap-2">
                             <div className="flex-1 min-w-0">
@@ -376,7 +401,7 @@ const ScheduleView = () => {
             )}
 
             {/* Other Matches - Simple Design */}
-            {otherMatches.map((match) => (
+            {activeMatchFilter === "planned" && otherPlannedMatches.map((match) => (
               <div
                 key={match.id}
                 className="border-2 border-black bg-white overflow-hidden"
@@ -431,7 +456,7 @@ const ScheduleView = () => {
                 >
                   {/* Home Team */}
                   <div className="flex-1 text-center md:text-right">
-                    <h3 className="text-2xl md:text-4xl font-black uppercase leading-tight mb-2">
+                    <h3 className="text-2xl md:text-4xl font-black uppercase leading-tight mb-2 break-words min-h-[3rem] md:min-h-[6.5rem] flex items-center justify-center md:justify-end">
                       {match.home_team?.name || "NIEZNANA"}
                     </h3>
                     <p className="text-outline font-bold uppercase tracking-wider text-sm">
@@ -460,7 +485,7 @@ const ScheduleView = () => {
 
                   {/* Away Team */}
                   <div className="flex-1 text-center md:text-left">
-                    <h3 className="text-2xl md:text-4xl font-black uppercase leading-tight mb-2">
+                    <h3 className="text-2xl md:text-4xl font-black uppercase leading-tight mb-2 break-words min-h-[3rem] md:min-h-[6.5rem] flex items-center justify-center md:justify-start">
                       {match.away_team?.name || "NIEZNANA"}
                     </h3>
                     <p className="text-outline font-bold uppercase tracking-wider text-sm">
