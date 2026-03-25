@@ -182,65 +182,91 @@ const ScheduleView = () => {
                 </div>
 
                 {/* Match Display */}
-                <div className="p-4 md:p-12 flex flex-col items-center justify-center">
-                  {/* Teams and Score */}
-                  <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-8 w-full mb-6 md:mb-8">
-                    {/* Home Team */}
-                    <div className="text-center md:text-right flex-1 min-w-0">
-                      <div className="text-lg md:text-3xl font-black uppercase tracking-tighter leading-tight mb-1 md:mb-2 break-words min-h-[2.5rem] md:min-h-[6rem] flex items-center justify-center md:justify-end">
+                <div className="p-4 md:p-10">
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-3 md:gap-8 mb-5 md:mb-8">
+                    <div className="min-w-0 text-center md:text-right">
+                      <div className="text-xl md:text-4xl font-black uppercase tracking-tighter leading-tight break-words min-h-[3rem] md:min-h-[5.5rem] flex items-center justify-center md:justify-end">
                         {nextMatch.home_team?.name || "NIEZNANA"}
                       </div>
-                      <div className="text-xs font-bold uppercase text-gray-600 tracking-widest mb-4 md:mb-4">
+                      <div className="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-red-600">
                         GOSPODARZE
-                      </div>
-                      {/* Home Team Players - Only on desktop */}
-                      <div className="text-xs space-y-1 hidden md:block">
-                        {homePlayers.map((player) => (
-                          <div key={player.id} className="text-gray-700">
-                            {player.first_name} {player.last_name}{" "}
-                            <span className="font-bold text-gray-500">({player.class_code})</span>
-                          </div>
-                        ))}
                       </div>
                     </div>
 
-                    {/* Score */}
                     {nextMatch.score_home !== null && nextMatch.score_away !== null ? (
-                      <div className="flex items-center gap-1 md:gap-4 px-1 md:px-4 flex-shrink-0 order-3 md:order-none">
-                        <div className="w-12 h-12 md:w-24 md:h-24 bg-black text-white flex items-center justify-center">
-                          <span className="text-2xl md:text-5xl font-black">
-                            {nextMatch.score_home}
-                          </span>
+                      <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+                        <div className="w-12 h-12 md:w-20 md:h-20 bg-black text-white flex items-center justify-center">
+                          <span className="text-2xl md:text-4xl font-black">{nextMatch.score_home}</span>
                         </div>
-                        <div className="text-lg md:text-2xl font-black">:</div>
-                        <div className="w-12 h-12 md:w-24 md:h-24 bg-black text-white flex items-center justify-center">
-                          <span className="text-2xl md:text-5xl font-black">
-                            {nextMatch.score_away}
-                          </span>
+                        <div className="text-xl md:text-3xl font-black">:</div>
+                        <div className="w-12 h-12 md:w-20 md:h-20 bg-black text-white flex items-center justify-center">
+                          <span className="text-2xl md:text-4xl font-black">{nextMatch.score_away}</span>
                         </div>
                       </div>
                     ) : (
-                      <div className="px-2 md:px-6 flex-shrink-0 order-3 md:order-none my-2 md:my-0">
-                        <div className="text-2xl md:text-3xl font-black">VS</div>
+                      <div className="w-16 h-16 md:w-24 md:h-24 border-2 border-black flex items-center justify-center bg-gray-100 text-2xl md:text-4xl font-black tracking-widest">
+                        VS
                       </div>
                     )}
 
-                    {/* Away Team */}
-                    <div className="text-center md:text-left flex-1 min-w-0">
-                      <div className="text-lg md:text-3xl font-black uppercase tracking-tighter leading-tight mb-1 md:mb-2 break-words min-h-[2.5rem] md:min-h-[6rem] flex items-center justify-center md:justify-start">
+                    <div className="min-w-0 text-center md:text-left">
+                      <div className="text-xl md:text-4xl font-black uppercase tracking-tighter leading-tight break-words min-h-[3rem] md:min-h-[5.5rem] flex items-center justify-center md:justify-start">
                         {nextMatch.away_team?.name || "NIEZNANA"}
                       </div>
-                      <div className="text-xs font-bold uppercase text-gray-600 tracking-widest mb-4 md:mb-4">
+                      <div className="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-red-600">
                         GOŚCIE
                       </div>
-                      {/* Away Team Players - Only on desktop */}
-                      <div className="text-xs space-y-1 hidden md:block">
-                        {awayPlayers.map((player) => (
-                          <div key={player.id} className="text-gray-700">
-                            {player.first_name} {player.last_name}{" "}
-                            <span className="font-bold text-gray-500">({player.class_code})</span>
-                          </div>
-                        ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div className="border-2 border-black bg-white">
+                      <div className="bg-black text-white px-3 py-2 text-xs md:text-sm font-black uppercase tracking-widest">
+                        SKŁAD DRUŻYNY - GOSPODARZE
+                      </div>
+                      <div className="p-3 md:p-4 space-y-2">
+                        {homePlayers.length > 0 ? (
+                          homePlayers.map((player) => (
+                            <div
+                              key={player.id}
+                              className="flex items-center justify-between gap-2 border-b border-gray-200 pb-1"
+                            >
+                              <span className="text-sm md:text-base font-bold text-gray-900 truncate">
+                                {player.first_name} {player.last_name}
+                              </span>
+                              <span className="text-xs md:text-sm font-black text-red-600 flex-shrink-0">
+                                {player.class_code}
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500 italic">Brak zawodników</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="border-2 border-black bg-white">
+                      <div className="bg-black text-white px-3 py-2 text-xs md:text-sm font-black uppercase tracking-widest">
+                        SKŁAD DRUŻYNY - GOŚCIE
+                      </div>
+                      <div className="p-3 md:p-4 space-y-2">
+                        {awayPlayers.length > 0 ? (
+                          awayPlayers.map((player) => (
+                            <div
+                              key={player.id}
+                              className="flex items-center justify-between gap-2 border-b border-gray-200 pb-1"
+                            >
+                              <span className="text-sm md:text-base font-bold text-gray-900 truncate">
+                                {player.first_name} {player.last_name}
+                              </span>
+                              <span className="text-xs md:text-sm font-black text-red-600 flex-shrink-0">
+                                {player.class_code}
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500 italic">Brak zawodników</p>
+                        )}
                       </div>
                     </div>
                   </div>
