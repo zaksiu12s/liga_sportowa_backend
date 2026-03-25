@@ -56,11 +56,13 @@ const TeamsView = () => {
       });
     });
 
-    const teamsWithPlayers: TeamWithPlayers[] = data.teams.map((team: Team) => ({
-      id: team.id,
-      name: team.name,
-      players: playersMap.get(team.id) || [],
-    }));
+    const teamsWithPlayers: TeamWithPlayers[] = data.teams.map(
+      (team: Team) => ({
+        id: team.id,
+        name: team.name,
+        players: playersMap.get(team.id) || [],
+      }),
+    );
 
     const grouped: GroupedTeams = {};
     teamsWithPlayers.forEach((team) => {
@@ -155,20 +157,24 @@ const TeamsView = () => {
                           {team.players
                             .sort((a, b) =>
                               `${a.first_name} ${a.last_name}`.localeCompare(
-                                `${b.first_name} ${b.last_name}`
-                              )
+                                `${b.first_name} ${b.last_name}`,
+                              ),
                             )
                             .map((player) => (
-                              <div key={player.id} className="border-2 border-black">
+                              <div
+                                key={player.id}
+                                className="border-2 border-black"
+                              >
                                 {/* Player Row */}
                                 <div className="flex items-center justify-between bg-white p-2 md:p-3">
                                   <div className="flex-grow">
-                                    <span className="font-black text-xs md:text-sm uppercase truncate">
+                                    <span className="font-black text-xs md:text-sm uppercase break-words leading-tight">
                                       {player.first_name} {player.last_name}
                                     </span>
                                   </div>
-                                  <span className="ml-2 text-[10px] md:text-xs font-black uppercase tracking-widest text-red-600 flex-shrink-0">
-                                    {player.class_code || "BRAK KLASY"} | {player.school || "BRAK SZKOŁY"}
+                                  <span className="ml-2 text-[10px] md:text-xs font-black uppercase tracking-widest text-red-600 flex-shrink-0 break-all text-right">
+                                    {player.class_code || "BRAK KLASY"} |{" "}
+                                    {player.school || "BRAK SZKOŁY"}
                                   </span>
                                 </div>
                               </div>

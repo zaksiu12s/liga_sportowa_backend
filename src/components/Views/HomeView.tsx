@@ -22,7 +22,9 @@ type NextMatchData = {
 
 const HomeView = ({ onNavigate }: HomeViewProps) => {
   const { data } = usePublicData();
-  const [activeDocument, setActiveDocument] = useState<DocumentItem | null>(null);
+  const [activeDocument, setActiveDocument] = useState<DocumentItem | null>(
+    null,
+  );
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
 
   const documents: DocumentItem[] = [
@@ -91,9 +93,9 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
           <h1 className="text-3xl sm:text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-6 sm:mb-8 break-words mr-[-0.2em]">
             LIGA <span className="text-red-600 block sm:inline">ELEKTRYKA</span>
           </h1>
-          <p className="text-base sm:text-lg md:text-xl font-bold border-l-8 border-black pl-4 sm:pl-6 max-w-2xl mb-8 sm:mb-10">
-            NAJWIĘKSZE ROZGRYWKI SPORTOWE W HISTORII ELEKTRYKA! W TYM ROKU WE
-            WSPÓŁPRACY Z JCE BUDUJEMY HISTORIĘ SPORTU SZKOLNEGO NA NOWO!
+          <p className="text-base sm:text-lg md:text-xl font-bold border-l-8 border-black pl-4 sm:pl-6 max-w-2xl mb-8 sm:mb-10 uppercase">
+            Oficjalne rozgrywki Zespołu Szkół Elektryczno-Mechanicznych w Nowym
+            Sącz oraz Jezuickiego Centrum Edukacji w Nowym Sączu
           </p>
           <div className="flex flex-wrap gap-4">
             <button
@@ -190,7 +192,9 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
                   – dołącz do nas i bądź częścią tej niesamowitej przygody!
                 </p>
                 <p className="border-t-4 border-red-600 pt-4 mt-4">
-                  <span className="font-black text-red-600">WSPÓŁPRACA Z JCE</span>{" "}
+                  <span className="font-black text-red-600">
+                    WSPÓŁPRACA Z JCE
+                  </span>{" "}
                   –{" "}
                   <a
                     href="https://www.jce.pl"
@@ -273,7 +277,9 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
                 <span className="font-black uppercase tracking-tight group-hover:text-white">
                   {document.title}
                 </span>
-                <span className="material-symbols-outlined ml-auto group-hover:text-white">visibility</span>
+                <span className="material-symbols-outlined ml-auto group-hover:text-white">
+                  visibility
+                </span>
               </div>
             </button>
           ))}
