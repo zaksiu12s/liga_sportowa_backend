@@ -229,6 +229,10 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [displayLocation.pathname]);
+
   const handleRouteAnimationEnd = () => {
     if (transitionStage === "route-fade-out") {
       if (transitionTimeoutRef.current) {

@@ -11,6 +11,16 @@ interface TeamStats {
   points: number;
 }
 
+const compareTeams = (a: TeamStats, b: TeamStats) => {
+  if (b.points !== a.points) return b.points - a.points;
+
+  const goalDiffA = a.goals_for - a.goals_against;
+  const goalDiffB = b.goals_for - b.goals_against;
+
+  if (goalDiffB !== goalDiffA) return goalDiffB - goalDiffA;
+  return b.goals_for - a.goals_for;
+};
+
 const StandingsView = () => {
   const { data } = usePublicData();
   const [activeStage, setActiveStage] = useState<1 | 2>(1);
@@ -56,11 +66,29 @@ const StandingsView = () => {
       goals_against: team.goals_against,
     }));
 
-    return merged.sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points;
-      return b.goals_for - b.goals_against - (a.goals_for - a.goals_against);
-    });
+    return merged.sort(compareTeams);
   }, [activeGroup, stageGroups, teamsLookup]);
+
+  const bestThirdPlaceIds = useMemo(() => {
+    const thirdPlaceTeams = stageGroups
+      .map((group) => {
+        const merged = (group.teams?.teams || []).map((team) => ({
+          id: team.id,
+          name: teamsLookup.get(team.id)?.name || "NIEZNANA",
+          points: team.points,
+          goals_for: team.goals_for,
+          goals_against: team.goals_against,
+        }));
+
+        const sorted = [...merged].sort(compareTeams);
+        return sorted[2] || null;
+      })
+      .filter((team): team is TeamStats => Boolean(team));
+
+    return new Set(
+      [...thirdPlaceTeams].sort(compareTeams).slice(0, 2).map((team) => team.id),
+    );
+  }, [stageGroups, teamsLookup]);
 
   const groupsLoading = !data;
   const loading = !data;
@@ -178,11 +206,17 @@ const StandingsView = () => {
                   teams.map((row, idx) => (
                     <tr
                       key={row.id}
-                      className={`border-b-2 border-black font-bold text-xs md:text-sm ${
-                        idx === 0 ? "bg-red-600 text-white" : "hover:bg-gray-50"
+                      className={`border-b-2 border-black font-bold text-xs md:text-sm hover:bg-gray-50 ${
+                        idx === 0 || idx === 1
+                          ? "text-red-700"
+                          : activeStage === 1 && idx === 2 && bestThirdPlaceIds.has(row.id)
+                            ? "text-red-600"
+                            : ""
                       }`}
                     >
-                      <td className="p-2 md:p-4 text-center">{idx + 1}</td>
+                      <td className="p-2 md:p-4 text-center">
+                        {idx + 1}
+                      </td>
                       <td className="p-2 md:p-4 truncate">{row.name}</td>
                       <td className="p-2 md:p-4 text-center">{row.points}</td>
                       <td className="p-2 md:p-4 text-center font-mono">

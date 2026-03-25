@@ -234,7 +234,7 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
       </div>
 
       {/* Documents Section */}
-      <section className="mb-16">
+      <section className="mb-2">
         <h2 className="text-4xl font-black uppercase tracking-tighter mb-8 text-center md:text-left">
           DOKUMENTY I PLIKI
         </h2>

@@ -147,7 +147,7 @@ const FinalsView = () => {
           FINAŁY <span className="text-red-600">LIGI</span>
         </h1>
         <p className="font-bold text-lg md:text-2xl mt-2 tracking-tight">
-          FAZA PUCHAROWA SEZONU 2026
+          FAZA PUCHAROWA - SEZON 2026
         </p>
       </header>
 

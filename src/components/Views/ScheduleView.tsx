@@ -9,6 +9,33 @@ interface Goal {
   player_id: string;
 }
 
+const formatMatchDateCompact = (scheduledAt: string | null | undefined) => {
+  if (!scheduledAt) return "TBD";
+
+  return new Date(scheduledAt).toLocaleDateString("pl-PL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+const formatMatchWeekday = (scheduledAt: string | null | undefined) => {
+  if (!scheduledAt) return "TBD";
+
+  return new Date(scheduledAt)
+    .toLocaleDateString("pl-PL", { weekday: "long" })
+    .toUpperCase();
+};
+
+const formatMatchTime = (scheduledAt: string | null | undefined) => {
+  if (!scheduledAt) return "--:--";
+
+  return new Date(scheduledAt).toLocaleTimeString("pl-PL", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 const ScheduleView = () => {
   const { data } = usePublicData();
   const [activeStage, setActiveStage] = useState<"1" | "2" | "finals">("1");
@@ -60,7 +87,10 @@ const ScheduleView = () => {
         <h1 className="text-4xl md:text-6xl lg:text-8xl font-black uppercase tracking-tighter leading-none mb-3 md:mb-4">
           TERMINARZ <span className="text-red-600">MECZÓW</span>
         </h1>
-        <div className="h-2 w-24 md:w-32 bg-black"></div>
+        <div className="h-2 w-24 md:w-32 bg-black mb-6"></div>
+        <span className="bg-black text-white px-4 py-2 font-black text-xs md:text-sm tracking-widest inline-block">
+          SEZON 2026
+        </span>
       </header>
 
       {/* Filter Section */}
@@ -140,7 +170,7 @@ const ScheduleView = () => {
               <div className="border-4 border-black bg-white overflow-hidden">
                 {/* Header */}
                 <div
-                  className={`px-4 py-3 flex justify-between items-center font-black uppercase tracking-widest text-sm ${
+                  className={`px-4 py-3 flex justify-between items-center border-b-2 border-black font-black uppercase tracking-widest text-sm ${
                     nextMatch.status === "live"
                       ? "bg-red-600 text-white"
                       : nextMatch.status === "finished"
@@ -158,31 +188,19 @@ const ScheduleView = () => {
                         ? "ZAKOŃCZONE"
                         : "NASTĘPNE SPOTKANIE"}
                   </span>
-                  <span className="text-sm">
-                    {nextMatch.scheduled_at
-                      ? new Date(nextMatch.scheduled_at).toLocaleDateString(
-                          "pl-PL",
-                          {
-                            weekday: "short",
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          },
-                        ) +
-                        " | " +
-                        new Date(nextMatch.scheduled_at).toLocaleTimeString(
-                          "pl-PL",
-                          {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          },
-                        )
-                      : "TBD"}
-                  </span>
+                  <span className="text-sm">{formatMatchWeekday(nextMatch.scheduled_at)}</span>
                 </div>
 
                 {/* Match Display */}
                 <div className="p-4 md:p-10">
+                  {nextMatch.status === "scheduled" && (
+                    <div className="flex justify-center mb-4 md:mb-6">
+                      <span className="bg-red-600 text-white border-2 border-black px-4 md:px-6 py-2 md:py-2.5 text-sm md:text-lg font-black tracking-widest leading-none whitespace-nowrap text-center">
+                        {`${formatMatchDateCompact(nextMatch.scheduled_at)} | ${formatMatchTime(nextMatch.scheduled_at)}`}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-3 md:gap-8 mb-5 md:mb-8">
                     <div className="min-w-0 text-center md:text-right">
                       <div className="text-xl md:text-4xl font-black uppercase tracking-tighter leading-tight break-words min-h-[3rem] md:min-h-[5.5rem] flex items-center justify-center md:justify-end">
@@ -204,7 +222,7 @@ const ScheduleView = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="w-16 h-16 md:w-24 md:h-24 border-2 border-black flex items-center justify-center bg-gray-100 text-2xl md:text-4xl font-black tracking-widest">
+                      <div className="w-16 h-16 md:w-24 md:h-24 border-2 border-black flex items-center justify-center bg-black text-white text-2xl md:text-4xl font-black tracking-widest">
                         VS
                       </div>
                     )}
@@ -452,29 +470,18 @@ const ScheduleView = () => {
                         ? "ZAKOŃCZONE"
                         : "ZAPLANOWANE"}
                   </span>
-                  <span className="text-xs">
-                    {match.scheduled_at
-                      ? new Date(match.scheduled_at).toLocaleDateString(
-                          "pl-PL",
-                          {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          },
-                        ) +
-                        " | " +
-                        new Date(match.scheduled_at).toLocaleTimeString(
-                          "pl-PL",
-                          {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          },
-                        )
-                      : "TBD"}
-                  </span>
+                  <span className="text-xs">{formatMatchWeekday(match.scheduled_at)}</span>
                 </div>
 
                 {/* Match Content */}
+                {match.status === "scheduled" && (
+                  <div className="px-6 md:px-10 pt-4 md:pt-5 flex justify-center">
+                    <span className="bg-black text-white border-2 border-black px-4 md:px-6 py-2 md:py-2.5 text-sm md:text-lg font-black tracking-widest leading-none whitespace-nowrap text-center">
+                      {`${formatMatchDateCompact(match.scheduled_at)} | ${formatMatchTime(match.scheduled_at)}`}
+                    </span>
+                  </div>
+                )}
+
                 <div
                   className={`p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 ${
                     match.status === "finished" ? "grayscale opacity-75" : ""
@@ -503,7 +510,7 @@ const ScheduleView = () => {
                         </div>
                       </>
                     ) : (
-                      <div className="text-2xl font-black bg-gray-100 px-6 py-2 border-2 border-black uppercase tracking-widest">
+                      <div className="text-2xl font-black bg-black text-white px-6 py-2 border-2 border-black uppercase tracking-widest">
                         VS
                       </div>
                     )}
