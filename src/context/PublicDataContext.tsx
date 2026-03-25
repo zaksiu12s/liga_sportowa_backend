@@ -9,6 +9,7 @@ import {
   savePublicDataToStorage,
 } from "../utils/publicData/cache";
 import { fetchPublicData } from "../utils/publicData/fetchPublicData";
+import supabase from "../utils/supabase";
 
 type PublicDataStatus = "blocking-load" | "ready" | "error";
 type InitialSource = "network" | "cache" | "none";
@@ -185,6 +186,76 @@ export const PublicDataProvider = ({ children }: PublicDataProviderProps) => {
       isMountedRef.current = false;
     };
   }, [applySnapshot, hasEmptyCoreSnapshot, hasInconsistentSnapshot, syncFromNetwork]);
+
+  useEffect(() => {
+    let syncDebounceTimer: number | null = null;
+
+    const queueBackgroundSync = () => {
+      if (!isMountedRef.current) return;
+
+      if (syncDebounceTimer) {
+        window.clearTimeout(syncDebounceTimer);
+      }
+
+      syncDebounceTimer = window.setTimeout(() => {
+        if (isMountedRef.current) {
+          void syncFromNetwork(true);
+        }
+      }, 300);
+    };
+
+    const channel = supabase
+      .channel("public-data-live-sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "matches" },
+        queueBackgroundSync,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "first_stage" },
+        queueBackgroundSync,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "second_stage" },
+        queueBackgroundSync,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "teams" },
+        queueBackgroundSync,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "players" },
+        queueBackgroundSync,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "top_scorers" },
+        queueBackgroundSync,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "final_stage" },
+        queueBackgroundSync,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "navigation_settings" },
+        queueBackgroundSync,
+      )
+      .subscribe();
+
+    return () => {
+      if (syncDebounceTimer) {
+        window.clearTimeout(syncDebounceTimer);
+      }
+
+      void supabase.removeChannel(channel);
+    };
+  }, [syncFromNetwork]);
 
   const value = useMemo<PublicDataContextValue>(
     () => ({

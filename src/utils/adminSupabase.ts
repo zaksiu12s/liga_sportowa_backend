@@ -1,6 +1,6 @@
 import type { Team, Match, Player, StageGroup, TeamStats, FinalStageMatch } from "../types/admin";
 import supabase from "./supabase";
-import { generateRoundRobinMatches, updateTeamStats, MATCH_SCHEDULES } from "./matchGenerator";
+import { generateRoundRobinMatches, MATCH_SCHEDULES } from "./matchGenerator";
 
 // TEAMS OPERATIONS
 export const teamsApi = {
@@ -452,41 +452,77 @@ export const matchesApi = {
 
       if (groupError) throw groupError;
 
-      const teams = group.teams?.teams || [];
+      const teams = Array.isArray(group.teams?.teams) ? group.teams.teams : [];
+      const standingsByTeamId = new Map<string, TeamStats>(
+        teams.map((team: TeamStats) => [
+          team.id,
+          {
+            ...team,
+            points: 0,
+            goals_for: 0,
+            goals_against: 0,
+          },
+        ])
+      );
 
-      // Find and update team stats
-      const updatedTeams = teams.map((team: TeamStats) => {
-        if (team.id === match.home_team_id) {
-          return updateTeamStats(
-            team,
-            scoreHome,
-            scoreAway,
-            true
-          );
-        } else if (team.id === match.away_team_id) {
-          return updateTeamStats(
-            team,
-            scoreAway,
-            scoreHome,
-            false
-          );
+      // Recalculate standings from all finished matches in this stage/group.
+      const { data: finishedMatches, error: finishedMatchesError } = await (supabase as any)
+        .from("matches")
+        .select("home_team_id, away_team_id, score_home, score_away")
+        .eq("stage", match.stage)
+        .eq("group", match.group)
+        .eq("status", "finished");
+
+      if (finishedMatchesError) throw finishedMatchesError;
+
+      for (const finishedMatch of finishedMatches || []) {
+        const homeId = finishedMatch.home_team_id as string | null;
+        const awayId = finishedMatch.away_team_id as string | null;
+        const homeScore = Number(finishedMatch.score_home);
+        const awayScore = Number(finishedMatch.score_away);
+
+        if (!homeId || !awayId || !Number.isFinite(homeScore) || !Number.isFinite(awayScore)) {
+          continue;
         }
-        return team;
-      });
+
+        const homeStats = standingsByTeamId.get(homeId);
+        const awayStats = standingsByTeamId.get(awayId);
+
+        if (!homeStats || !awayStats) {
+          continue;
+        }
+
+        homeStats.goals_for += homeScore;
+        homeStats.goals_against += awayScore;
+        awayStats.goals_for += awayScore;
+        awayStats.goals_against += homeScore;
+
+        if (homeScore > awayScore) {
+          homeStats.points += 3;
+        } else if (homeScore < awayScore) {
+          awayStats.points += 3;
+        } else {
+          homeStats.points += 1;
+          awayStats.points += 1;
+        }
+      }
+
+      const updatedTeams = teams.map((team: TeamStats) => standingsByTeamId.get(team.id) || team);
 
       // Sort by points (desc) then by goal difference
       updatedTeams.sort((a: TeamStats, b: TeamStats) => {
         if (b.points !== a.points) return b.points - a.points;
         const aDiff = a.goals_for - a.goals_against;
         const bDiff = b.goals_for - b.goals_against;
-        return bDiff - aDiff;
+        if (bDiff !== aDiff) return bDiff - aDiff;
+        return b.goals_for - a.goals_for;
       });
 
       // Update group standings
       await (supabase as any)
         .from(match.stage)
         .update({ teams: { teams: updatedTeams } })
-        .eq("id", match.group);
+        .eq("id", group.id);
     }
 
     return updatedMatch as Match;
