@@ -24,6 +24,16 @@ const TopScorersPageView = () => {
     [data?.topScorers]
   );
 
+  const totalTournamentGoals = useMemo(
+    () =>
+      (data?.matches || []).reduce((sum, match) => {
+        const home = typeof match.score_home === "number" ? match.score_home : 0;
+        const away = typeof match.score_away === "number" ? match.score_away : 0;
+        return sum + home + away;
+      }, 0),
+    [data?.matches],
+  );
+
   const topScorer = scorers.length > 0 ? scorers[0] : null;
 
   return (
@@ -60,7 +70,7 @@ const TopScorersPageView = () => {
         <div className="border-4 border-black bg-white overflow-hidden mb-8 md:mb-12">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
             {/* Image */}
-            <div className="bg-black h-[300px] md:h-[400px] flex items-center justify-center">
+            <div className="hidden md:flex bg-black h-[300px] md:h-[400px] items-center justify-center">
               <span
                 className="material-symbols-outlined text-white"
                 style={{ fontSize: "120px" }}
@@ -190,17 +200,17 @@ const TopScorersPageView = () => {
       </section>
 
       {/* Total Goals Summary */}
-      {scorers.length > 0 && (
+      {!loading && data && (
         <div className="mt-8 md:mt-12 bg-white text-black p-6 md:p-8 border-4 border-black">
           <div className="text-center">
             <p className="text-xs md:text-sm font-black uppercase tracking-widest mb-2">
               SUMA GOLI
             </p>
             <p className="text-5xl md:text-6xl font-black">
-              {scorers.reduce((sum, s) => sum + s.goals, 0)}
+              {totalTournamentGoals}
             </p>
             <p className="text-xs md:text-sm font-bold uppercase tracking-widest mt-2">
-              WSZYSTKICH STRZELCÓW W TOP 10
+              WSZYSTKICH W TURNIEJU
             </p>
           </div>
         </div>
