@@ -10,19 +10,7 @@ const creators = [
       "https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/claude-color.png",
     profile: "https://github.com/anthropics",
   },
-  {
-    name: "Gemini CLI",
-    handle: "@google-gemini",
-    avatar: "https://geminicli.com/_astro/icon.Bo4M5sF3.png",
-    profile: "https://github.com/google-gemini/gemini-cli",
-  },
-  {
-    name: "GitHub Copilot",
-    handle: "@github-copilot",
-    avatar:
-      "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
-    profile: "https://github.com/features/copilot",
-  },
+
   {
     name: "Filip Bodziony",
     handle: "@FilipBodziony",
