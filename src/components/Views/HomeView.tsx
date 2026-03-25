@@ -50,10 +50,16 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
     ]);
   }, []);
 
+  const getMatchWeekday = (dateString: string | null | undefined) => {
+    if (!dateString) return "TERMIN TBD";
+    const date = new Date(dateString);
+    const dayName = date.toLocaleDateString("pl-PL", { weekday: "long" });
+    return dayName.toUpperCase();
+  };
+
   const formatDateTime = (dateString: string | null | undefined) => {
     if (!dateString) return "TBD";
     const date = new Date(dateString);
-    const dayName = date.toLocaleDateString("pl-PL", { weekday: "long" });
     const dateNum = date.getDate();
     const monthName = date.toLocaleDateString("pl-PL", { month: "long" });
     const year = date.getFullYear();
@@ -61,7 +67,7 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
       hour: "2-digit",
       minute: "2-digit",
     });
-    return `${dayName.toUpperCase()} ${dateNum} ${monthName.toUpperCase()} ${year}, ${time}`;
+    return `${dateNum} ${monthName.toUpperCase()} ${year} | ${time}`;
   };
 
   const teamsCount = data?.teams.length || 0;
@@ -81,7 +87,7 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
           <span className="bg-red-600 text-white px-4 py-1 self-start font-bold text-sm tracking-widest mb-6">
             SEZON 2026
           </span>
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-6 sm:mb-8 break-words">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-6 sm:mb-8 break-words mr-[-0.2em]">
             LIGA <span className="text-red-600 block sm:inline">ELEKTRYKA</span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl font-bold border-l-8 border-black pl-4 sm:pl-6 max-w-2xl mb-8 sm:mb-10">
@@ -108,11 +114,14 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
 
       {/* Next Match Teaser */}
       {hasPlannedMatch && (
-        <section className="border-4 border-black bg-black text-white overflow-hidden mb-16">
-          <div className="bg-white text-black p-4 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8">
+        <section className="relative border-4 border-black bg-white overflow-visible mb-16">
+          <span className="absolute left-1/2 -top-5 -translate-x-1/2 bg-black text-white px-6 sm:px-8 py-2 font-black uppercase tracking-widest text-sm sm:text-base text-center whitespace-nowrap">
+            NAJBLIŻSZE SPOTKANIE
+          </span>
+          <div className="text-black p-4 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8">
             <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full md:w-auto">
               <div className="text-center md:text-right">
-                <span className="block text-xs md:text-sm font-bold uppercase text-gray-500">
+                <span className="block text-xs md:text-sm font-bold uppercase text-red-600">
                   GOSPODARZE
                 </span>
                 <span className="text-2xl md:text-3xl font-black uppercase">
@@ -123,7 +132,7 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
                 VS
               </div>
               <div className="text-center md:text-left">
-                <span className="block text-xs md:text-sm font-bold uppercase text-gray-500">
+                <span className="block text-xs md:text-sm font-bold uppercase text-red-600">
                   GOŚCIE
                 </span>
                 <span className="text-2xl md:text-3xl font-black uppercase">
@@ -133,7 +142,7 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
             </div>
             <div className="text-center md:text-right w-full md:w-auto">
               <span className="block text-xs md:text-sm font-bold uppercase tracking-widest text-red-600">
-                NAJBLIŻSZE SPOTKANIE
+                {getMatchWeekday(nextMatch?.scheduled_at)}
               </span>
               <span className="text-lg md:text-4xl font-black uppercase">
                 {formatDateTime(nextMatch?.scheduled_at)}
