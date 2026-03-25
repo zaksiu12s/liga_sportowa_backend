@@ -169,15 +169,15 @@ const TopScorersPageView = () => {
 
       {/* Total Goals Summary */}
       {scorers.length > 0 && (
-        <div className="mt-8 md:mt-12 bg-black text-white p-6 md:p-8 border-4 border-black">
+        <div className="mt-8 md:mt-12 bg-white text-black p-6 md:p-8 border-4 border-black">
           <div className="text-center">
-            <p className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-400 mb-2">
+            <p className="text-xs md:text-sm font-black uppercase tracking-widest mb-2">
               SUMA GOLI
             </p>
             <p className="text-5xl md:text-6xl font-black">
               {scorers.reduce((sum, s) => sum + s.goals, 0)}
             </p>
-            <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-gray-400 mt-2">
+            <p className="text-xs md:text-sm font-bold uppercase tracking-widest mt-2">
               WSZYSTKICH STRZELCÓW W TOP 10
             </p>
           </div>

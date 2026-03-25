@@ -212,7 +212,7 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
                   DRUŻYN
                 </span>
               </div>
-              <div className="border-t-2 border-white/30 pt-4">
+              <div className="border-t-2 border-white/30 pt-5">
                 <span className="text-6xl font-black block leading-none">
                   {loading ? "..." : matchesCount}
                 </span>
@@ -220,7 +220,7 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
                   MECZÓW
                 </span>
               </div>
-              <div className="border-t-2 border-white/30 pt-4">
+              <div className="border-t-2 border-white/30 pt-5">
                 <span className="text-6xl font-black block leading-none">
                   1
                 </span>
