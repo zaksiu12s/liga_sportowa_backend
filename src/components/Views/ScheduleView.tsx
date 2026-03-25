@@ -9,6 +9,21 @@ interface Goal {
   player_id: string;
 }
 
+const hasTwoPartName = (name: string | null | undefined) => {
+  if (!name) return false;
+  return name.trim().split(/\s+/).length >= 2;
+};
+
+const splitNameForBalancedWrap = (name: string | null | undefined) => {
+  if (!name) return ["NIEZNANA", ""];
+
+  const parts = name.trim().split(/\s+/);
+  if (parts.length < 2) return [name, ""];
+
+  const splitIndex = Math.ceil(parts.length / 2);
+  return [parts.slice(0, splitIndex).join(" "), parts.slice(splitIndex).join(" ")];
+};
+
 const formatMatchDateCompact = (scheduledAt: string | null | undefined) => {
   if (!scheduledAt) return "TBD";
 
@@ -40,6 +55,7 @@ const ScheduleView = () => {
   const { data } = usePublicData();
   const [activeStage, setActiveStage] = useState<"1" | "2" | "finals">("1");
   const [activeMatchFilter, setActiveMatchFilter] = useState<"planned" | "finished">("planned");
+  const [showNextMatchLineups, setShowNextMatchLineups] = useState(false);
   const loading = !data;
   const matches = data?.matches || [];
   const players = data?.players || [];
@@ -79,6 +95,7 @@ const ScheduleView = () => {
 
   const homePlayers = players.filter((player) => player.team_id === nextMatch?.home_team_id);
   const awayPlayers = players.filter((player) => player.team_id === nextMatch?.away_team_id);
+  const forceNextMatchTwoLineNames = hasTwoPartName(nextMatch?.home_team?.name) && hasTwoPartName(nextMatch?.away_team?.name);
 
   return (
     <main className="max-w-7xl mx-auto px-3 md:px-4 py-6 md:py-12">
@@ -204,7 +221,19 @@ const ScheduleView = () => {
                   <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-3 md:gap-8 mb-5 md:mb-8 pt-1 md:pt-0">
                     <div className="min-w-0 text-center md:text-right">
                       <div className="text-xl md:text-4xl font-black uppercase tracking-tighter leading-tight break-words min-h-[3rem] md:min-h-[5.5rem] flex items-center justify-center md:justify-end">
-                        {nextMatch.home_team?.name || "NIEZNANA"}
+                        {forceNextMatchTwoLineNames ? (
+                          (() => {
+                            const [lineOne, lineTwo] = splitNameForBalancedWrap(nextMatch.home_team?.name);
+                            return (
+                              <>
+                                <span className="block">{lineOne}</span>
+                                <span className="block">{lineTwo}</span>
+                              </>
+                            );
+                          })()
+                        ) : (
+                          nextMatch.home_team?.name || "NIEZNANA"
+                        )}
                       </div>
                       <div className="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-red-600">
                         GOSPODARZE
@@ -229,7 +258,19 @@ const ScheduleView = () => {
 
                     <div className="min-w-0 text-center md:text-left">
                       <div className="text-xl md:text-4xl font-black uppercase tracking-tighter leading-tight break-words min-h-[3rem] md:min-h-[5.5rem] flex items-center justify-center md:justify-start">
-                        {nextMatch.away_team?.name || "NIEZNANA"}
+                        {forceNextMatchTwoLineNames ? (
+                          (() => {
+                            const [lineOne, lineTwo] = splitNameForBalancedWrap(nextMatch.away_team?.name);
+                            return (
+                              <>
+                                <span className="block">{lineOne}</span>
+                                <span className="block">{lineTwo}</span>
+                              </>
+                            );
+                          })()
+                        ) : (
+                          nextMatch.away_team?.name || "NIEZNANA"
+                        )}
                       </div>
                       <div className="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-red-600">
                         GOŚCIE
@@ -237,7 +278,21 @@ const ScheduleView = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                  <div className="flex justify-center mb-4 md:mb-6">
+                    <button
+                      type="button"
+                      onClick={() => setShowNextMatchLineups((prev) => !prev)}
+                      className="border-2 border-black bg-white hover:bg-black hover:text-white px-4 md:px-6 py-2 font-black uppercase text-xs md:text-sm tracking-widest"
+                    >
+                      {showNextMatchLineups ? "UKRYJ SKŁADY" : "ZOBACZ SKŁADY"}
+                    </button>
+                  </div>
+
+                  <div
+                    className={`grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 overflow-hidden transition-all duration-300 ${
+                      showNextMatchLineups ? "max-h-[900px] opacity-100" : "max-h-0 opacity-0"
+                    }`}
+                  >
                     <div className="border-2 border-black bg-white">
                       <div className="bg-black text-white px-3 py-2 text-xs md:text-sm font-black uppercase tracking-widest">
                         SKŁAD DRUŻYNY - GOSPODARZE
@@ -490,7 +545,19 @@ const ScheduleView = () => {
                   {/* Home Team */}
                   <div className="flex-1 text-center md:text-right">
                     <h3 className="text-2xl md:text-4xl font-black uppercase leading-tight mb-2 break-words min-h-[3rem] md:min-h-[6.5rem] flex items-center justify-center md:justify-end">
-                      {match.home_team?.name || "NIEZNANA"}
+                      {hasTwoPartName(match.home_team?.name) && hasTwoPartName(match.away_team?.name) ? (
+                        (() => {
+                          const [lineOne, lineTwo] = splitNameForBalancedWrap(match.home_team?.name);
+                          return (
+                            <>
+                              <span className="block">{lineOne}</span>
+                              <span className="block">{lineTwo}</span>
+                            </>
+                          );
+                        })()
+                      ) : (
+                        match.home_team?.name || "NIEZNANA"
+                      )}
                     </h3>
                     <p className="text-outline font-bold uppercase tracking-wider text-sm">
                       GOSPODARZE
@@ -510,7 +577,7 @@ const ScheduleView = () => {
                         </div>
                       </>
                     ) : (
-                      <div className="text-2xl font-black bg-black text-white px-6 py-2 border-2 border-black uppercase tracking-widest">
+                      <div className="w-16 h-16 md:w-24 md:h-24 mx-auto border-2 border-black flex items-center justify-center bg-black text-white text-2xl md:text-4xl font-black tracking-widest">
                         VS
                       </div>
                     )}
@@ -519,7 +586,19 @@ const ScheduleView = () => {
                   {/* Away Team */}
                   <div className="flex-1 text-center md:text-left">
                     <h3 className="text-2xl md:text-4xl font-black uppercase leading-tight mb-2 break-words min-h-[3rem] md:min-h-[6.5rem] flex items-center justify-center md:justify-start">
-                      {match.away_team?.name || "NIEZNANA"}
+                      {hasTwoPartName(match.home_team?.name) && hasTwoPartName(match.away_team?.name) ? (
+                        (() => {
+                          const [lineOne, lineTwo] = splitNameForBalancedWrap(match.away_team?.name);
+                          return (
+                            <>
+                              <span className="block">{lineOne}</span>
+                              <span className="block">{lineTwo}</span>
+                            </>
+                          );
+                        })()
+                      ) : (
+                        match.away_team?.name || "NIEZNANA"
+                      )}
                     </h3>
                     <p className="text-outline font-bold uppercase tracking-wider text-sm">
                       GOŚCIE
