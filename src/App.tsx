@@ -99,7 +99,7 @@ const AdminRoute = ({
           to="/"
           className="font-black text-lg tracking-tight cursor-pointer hover:text-red-600"
         >
-          Powrot do Strony Głównej
+          Powrót do Strony Głównej
         </Link>
       </div>
       <div className="flex-grow flex items-center justify-center">
