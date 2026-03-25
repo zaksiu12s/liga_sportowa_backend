@@ -24,6 +24,17 @@ const splitNameForBalancedWrap = (name: string | null | undefined) => {
   return [parts.slice(0, splitIndex).join(" "), parts.slice(splitIndex).join(" ")];
 };
 
+const formatBalancedTeamName = (
+  name: string | null | undefined,
+  forceTwoLines: boolean,
+) => {
+  if (!name) return "NIEZNANA";
+  if (!forceTwoLines) return name;
+
+  const [lineOne, lineTwo] = splitNameForBalancedWrap(name);
+  return `${lineOne}\n${lineTwo}`;
+};
+
 const formatMatchDateCompact = (scheduledAt: string | null | undefined) => {
   if (!scheduledAt) return "TBD";
 
@@ -115,31 +126,28 @@ const ScheduleView = () => {
         <div className="flex flex-wrap gap-0 border-2 border-black bg-white">
           <button
             onClick={() => setActiveStage("1")}
-            className={`flex-1 min-w-[60px] py-3 md:py-4 px-3 md:px-6 font-black uppercase text-xs md:text-sm text-center border-r-2 border-black transition-none ${
-              activeStage === "1"
-                ? "bg-black text-white"
-                : "bg-white text-black hover:bg-gray-100"
-            }`}
+            className={`flex-1 min-w-[60px] py-3 md:py-4 px-3 md:px-6 font-black uppercase text-xs md:text-sm text-center border-r-2 border-black transition-none ${activeStage === "1"
+              ? "bg-black text-white"
+              : "bg-white text-black hover:bg-gray-100"
+              }`}
           >
             ETAP 1
           </button>
           <button
             onClick={() => setActiveStage("2")}
-            className={`flex-1 min-w-[60px] py-3 md:py-4 px-3 md:px-6 font-black uppercase text-xs md:text-sm text-center border-r-2 border-black transition-none ${
-              activeStage === "2"
-                ? "bg-black text-white"
-                : "bg-white text-black hover:bg-gray-100"
-            }`}
+            className={`flex-1 min-w-[60px] py-3 md:py-4 px-3 md:px-6 font-black uppercase text-xs md:text-sm text-center border-r-2 border-black transition-none ${activeStage === "2"
+              ? "bg-black text-white"
+              : "bg-white text-black hover:bg-gray-100"
+              }`}
           >
             ETAP 2
           </button>
           <button
             onClick={() => setActiveStage("finals")}
-            className={`flex-1 min-w-[60px] py-3 md:py-4 px-3 md:px-6 font-black uppercase text-xs md:text-sm text-center transition-none ${
-              activeStage === "finals"
-                ? "bg-black text-white"
-                : "bg-white text-black hover:bg-gray-100"
-            }`}
+            className={`flex-1 min-w-[60px] py-3 md:py-4 px-3 md:px-6 font-black uppercase text-xs md:text-sm text-center transition-none ${activeStage === "finals"
+              ? "bg-black text-white"
+              : "bg-white text-black hover:bg-gray-100"
+              }`}
           >
             FINAŁY
           </button>
@@ -148,21 +156,19 @@ const ScheduleView = () => {
         <div className="mt-3 flex flex-wrap gap-0 border-2 border-black bg-white">
           <button
             onClick={() => setActiveMatchFilter("planned")}
-            className={`flex-1 min-w-[180px] py-2 md:py-3 px-3 md:px-6 font-black uppercase text-xs md:text-sm text-center border-r-2 border-black transition-none ${
-              activeMatchFilter === "planned"
-                ? "bg-red-600 text-white"
-                : "bg-white text-black hover:bg-gray-100"
-            }`}
+            className={`flex-1 min-w-[180px] py-2 md:py-3 px-3 md:px-6 font-black uppercase text-xs md:text-sm text-center border-r-2 border-black transition-none ${activeMatchFilter === "planned"
+              ? "bg-red-600 text-white"
+              : "bg-white text-black hover:bg-gray-100"
+              }`}
           >
             MECZE ZAPLANOWANE
           </button>
           <button
             onClick={() => setActiveMatchFilter("finished")}
-            className={`flex-1 min-w-[180px] py-2 md:py-3 px-3 md:px-6 font-black uppercase text-xs md:text-sm text-center transition-none ${
-              activeMatchFilter === "finished"
-                ? "bg-gray-600 text-white"
-                : "bg-gray-200 text-black hover:bg-gray-300"
-            }`}
+            className={`flex-1 min-w-[180px] py-2 md:py-3 px-3 md:px-6 font-black uppercase text-xs md:text-sm text-center transition-none ${activeMatchFilter === "finished"
+              ? "bg-gray-600 text-white"
+              : "bg-gray-200 text-black hover:bg-gray-300"
+              }`}
           >
             MECZE ZAKOŃCZONE
           </button>
@@ -187,13 +193,12 @@ const ScheduleView = () => {
               <div className="border-4 border-black bg-white overflow-hidden">
                 {/* Header */}
                 <div
-                  className={`px-4 py-3 flex justify-between items-center border-b-2 border-black font-black uppercase tracking-widest text-sm ${
-                    nextMatch.status === "live"
-                      ? "bg-red-600 text-white"
-                      : nextMatch.status === "finished"
-                        ? "bg-gray-600 text-white"
-                        : "bg-red-600 text-white"
-                  }`}
+                  className={`px-4 py-3 flex justify-between items-center border-b-2 border-black font-black uppercase tracking-widest text-sm ${nextMatch.status === "live"
+                    ? "bg-red-600 text-white"
+                    : nextMatch.status === "finished"
+                      ? "bg-gray-600 text-white"
+                      : "bg-red-600 text-white"
+                    }`}
                 >
                   <span className="flex items-center gap-2">
                     {nextMatch.status === "live" && (
@@ -221,19 +226,11 @@ const ScheduleView = () => {
                   <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-3 md:gap-8 mb-5 md:mb-8 pt-1 md:pt-0">
                     <div className="min-w-0 text-center md:text-right">
                       <div className="text-xl md:text-4xl font-black uppercase tracking-tighter leading-tight break-words min-h-[3rem] md:min-h-[5.5rem] flex items-center justify-center md:justify-end">
-                        {forceNextMatchTwoLineNames ? (
-                          (() => {
-                            const [lineOne, lineTwo] = splitNameForBalancedWrap(nextMatch.home_team?.name);
-                            return (
-                              <span className="flex flex-col leading-tight">
-                                <span className="block">{lineOne}</span>
-                                <span className="block">{lineTwo}</span>
-                              </span>
-                            );
-                          })()
-                        ) : (
-                          nextMatch.home_team?.name || "NIEZNANA"
-                        )}
+                        <h3 className="text-2xl md:text-4xl font-black uppercase leading-tight mb-2 break-words min-h-[3rem] md:min-h-[6.5rem] flex items-center justify-center md:justify-end">
+                          <span className="whitespace-pre-line">
+                            {formatBalancedTeamName(nextMatch.home_team?.name, forceNextMatchTwoLineNames)}
+                          </span>
+                        </h3>
                       </div>
                       <div className="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-red-600">
                         GOSPODARZE
@@ -258,19 +255,9 @@ const ScheduleView = () => {
 
                     <div className="min-w-0 text-center md:text-left">
                       <div className="text-xl md:text-4xl font-black uppercase tracking-tighter leading-tight break-words min-h-[3rem] md:min-h-[5.5rem] flex items-center justify-center md:justify-start">
-                        {forceNextMatchTwoLineNames ? (
-                          (() => {
-                            const [lineOne, lineTwo] = splitNameForBalancedWrap(nextMatch.away_team?.name);
-                            return (
-                              <span className="flex flex-col leading-tight">
-                                <span className="block">{lineOne}</span>
-                                <span className="block">{lineTwo}</span>
-                              </span>
-                            );
-                          })()
-                        ) : (
-                          nextMatch.away_team?.name || "NIEZNANA"
-                        )}
+                        <h3 className="text-2xl md:text-4xl font-black uppercase leading-tight mb-2 break-words min-h-[3rem] md:min-h-[6.5rem] flex items-center justify-center md:justify-end"><span className="whitespace-pre-line">
+                          {formatBalancedTeamName(nextMatch.away_team?.name, forceNextMatchTwoLineNames)}
+                        </span></h3>
                       </div>
                       <div className="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-red-600">
                         GOŚCIE
@@ -282,19 +269,18 @@ const ScheduleView = () => {
                     <button
                       type="button"
                       onClick={() => setShowNextMatchLineups((prev) => !prev)}
-                      className="border-2 border-black bg-white hover:bg-black hover:text-white px-4 md:px-6 py-2 font-black uppercase text-xs md:text-sm tracking-widest"
+                      className="border-2 border-black bg-white hover:bg-red-600 hover:text-white px-4 md:px-6 py-2 font-black uppercase text-xs md:text-sm tracking-widest"
                     >
                       {showNextMatchLineups ? "UKRYJ SKŁADY" : "ZOBACZ SKŁADY"}
                     </button>
                   </div>
 
                   <div
-                    className={`grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 overflow-hidden transition-all duration-300 ${
-                      showNextMatchLineups ? "max-h-[900px] opacity-100" : "max-h-0 opacity-0"
-                    }`}
+                    className={`grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 overflow-hidden transition-all duration-300 ${showNextMatchLineups ? "max-h-[900px] opacity-100" : "max-h-0 opacity-0"
+                      }`}
                   >
                     <div className="border-2 border-black bg-white">
-                      <div className="bg-black text-white px-3 py-2 text-xs md:text-sm font-black uppercase tracking-widest">
+                      <div className="bg-red-600 text-white px-3 py-2 text-xs md:text-sm font-black uppercase tracking-widest">
                         SKŁAD DRUŻYNY - GOSPODARZE
                       </div>
                       <div className="p-3 md:p-4 space-y-2">
@@ -319,7 +305,7 @@ const ScheduleView = () => {
                     </div>
 
                     <div className="border-2 border-black bg-white">
-                      <div className="bg-black text-white px-3 py-2 text-xs md:text-sm font-black uppercase tracking-widest">
+                      <div className="bg-red-600 text-white px-3 py-2 text-xs md:text-sm font-black uppercase tracking-widest">
                         SKŁAD DRUŻYNY - GOŚCIE
                       </div>
                       <div className="p-3 md:p-4 space-y-2">
@@ -351,151 +337,151 @@ const ScheduleView = () => {
             {activeMatchFilter === "finished" && sortedFinishedMatches.length > 0 && (
               <div>
                 {sortedFinishedMatches.map((match) => {
-                    return (
-                      <div
-                        key={match.id}
-                        className="border-2 border-black bg-white overflow-hidden mb-4 md:mb-6"
-                      >
-                        {/* Header */}
-                        <div className="px-3 md:px-4 py-2 flex justify-between items-center border-b-2 border-black font-black uppercase tracking-widest text-xs md:text-sm bg-gray-600 text-white gap-2">
-                          <span className="flex-shrink-0">ZAKOŃCZONE</span>
-                          <span className="text-xs md:text-sm text-right">
-                            {match.scheduled_at
-                              ? new Date(match.scheduled_at).toLocaleDateString(
-                                  "pl-PL",
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                  },
-                                ) +
-                                " | " +
-                                new Date(match.scheduled_at).toLocaleTimeString(
-                                  "pl-PL",
-                                  {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  },
-                                )
-                              : "TBD"}
-                          </span>
-                        </div>
+                  return (
+                    <div
+                      key={match.id}
+                      className="border-2 border-black bg-white overflow-hidden mb-4 md:mb-6"
+                    >
+                      {/* Header */}
+                      <div className="px-3 md:px-4 py-2 flex justify-between items-center border-b-2 border-black font-black uppercase tracking-widest text-xs md:text-sm bg-gray-600 text-white gap-2">
+                        <span className="flex-shrink-0">ZAKOŃCZONE</span>
+                        <span className="text-xs md:text-sm text-right">
+                          {match.scheduled_at
+                            ? new Date(match.scheduled_at).toLocaleDateString(
+                              "pl-PL",
+                              {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              },
+                            ) +
+                            " | " +
+                            new Date(match.scheduled_at).toLocaleTimeString(
+                              "pl-PL",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )
+                            : "TBD"}
+                        </span>
+                      </div>
 
-                        {/* Match Content */}
-                        <div className="p-4 md:p-10">
-                          {/* Score Line */}
-                          <div className="flex flex-col md:flex-row items-center md:items-stretch justify-between mb-6 md:mb-8 pb-6 md:pb-8 border-b-2 border-black gap-4 md:gap-2">
-                            <div className="w-full md:flex-1 min-w-0 text-center md:text-left">
-                              <h3 className="text-xl md:text-3xl font-black uppercase leading-tight break-words">
-                                {match.home_team?.name || "NIEZNANA"}
-                              </h3>
-                              <p className="text-xs md:text-sm font-bold uppercase text-gray-600 tracking-wider">
-                                GOSPODARZE
-                              </p>
+                      {/* Match Content */}
+                      <div className="p-4 md:p-10">
+                        {/* Score Line */}
+                        <div className="flex flex-col md:flex-row items-center md:items-stretch justify-between mb-6 md:mb-8 pb-6 md:pb-8 border-b-2 border-black gap-4 md:gap-2">
+                          <div className="w-full md:flex-1 min-w-0 text-center md:text-left">
+                            <h3 className="text-xl md:text-3xl font-black uppercase leading-tight break-words">
+                              {match.home_team?.name || "NIEZNANA"}
+                            </h3>
+                            <p className="text-xs md:text-sm font-bold uppercase text-gray-600 tracking-wider">
+                              GOSPODARZE
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+                            <div className="bg-black text-white w-16 h-16 md:w-24 md:h-28 flex items-center justify-center text-3xl md:text-6xl font-black">
+                              {match.score_home}
                             </div>
-                            <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-                              <div className="bg-black text-white w-16 h-16 md:w-24 md:h-28 flex items-center justify-center text-3xl md:text-6xl font-black">
-                                {match.score_home}
-                              </div>
-                              <div className="text-2xl md:text-3xl font-black">:</div>
-                              <div className="bg-black text-white w-16 h-16 md:w-24 md:h-28 flex items-center justify-center text-3xl md:text-6xl font-black">
-                                {match.score_away}
-                              </div>
-                            </div>
-                            <div className="w-full md:flex-1 text-center md:text-right min-w-0">
-                              <h3 className="text-xl md:text-3xl font-black uppercase leading-tight break-words">
-                                {match.away_team?.name || "NIEZNANA"}
-                              </h3>
-                              <p className="text-xs md:text-sm font-bold uppercase text-gray-600 tracking-wider">
-                                GOŚCIE
-                              </p>
+                            <div className="text-2xl md:text-3xl font-black">:</div>
+                            <div className="bg-black text-white w-16 h-16 md:w-24 md:h-28 flex items-center justify-center text-3xl md:text-6xl font-black">
+                              {match.score_away}
                             </div>
                           </div>
+                          <div className="w-full md:flex-1 text-center md:text-right min-w-0">
+                            <h3 className="text-xl md:text-3xl font-black uppercase leading-tight break-words">
+                              {match.away_team?.name || "NIEZNANA"}
+                            </h3>
+                            <p className="text-xs md:text-sm font-bold uppercase text-gray-600 tracking-wider">
+                              GOŚCIE
+                            </p>
+                          </div>
+                        </div>
 
                         {/* Goal Scorers */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
-                            {/* Home Team Scorers */}
-                            <div>
-                              <h4 className="text-xs md:text-sm font-black uppercase tracking-widest mb-2 md:mb-3 border-b-2 border-black pb-1 md:pb-2">
-                                Strzelcy {match.home_team?.name}
-                              </h4>
-                              {match.goal_scorers?.goals &&
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+                          {/* Home Team Scorers */}
+                          <div>
+                            <h4 className="text-xs md:text-sm font-black uppercase tracking-widest mb-2 md:mb-3 border-b-2 border-black pb-1 md:pb-2">
+                              Strzelcy {match.home_team?.name}
+                            </h4>
+                            {match.goal_scorers?.goals &&
                               match.goal_scorers.goals.filter(
                                 (g: Goal) => g.team_id === match.home_team_id
                               ).length > 0 ? (
-                                <ul className="space-y-1 md:space-y-2 text-xs md:text-sm">
-                                  {match.goal_scorers.goals
-                                    .filter((g: Goal) => g.team_id === match.home_team_id)
-                                    .sort((a: Goal, b: Goal) => a.time - b.time)
-                                    .map((goal: Goal, idx: number) => {
-                                      const player = allPlayers.get(goal.player_id);
-                                      return (
-                                        <li
-                                          key={idx}
-                                          className="flex justify-between items-center gap-2"
-                                        >
-                                          <span className="font-bold truncate">
-                                            {player
-                                              ? `${player.first_name} ${player.last_name}`
-                                              : "Nieznany"}
-                                          </span>
-                                          <span className="text-gray-600 font-bold flex-shrink-0">
-                                            {goal.time}'
-                                          </span>
-                                        </li>
-                                      );
-                                    })}
-                                </ul>
-                              ) : (
-                                <p className="text-gray-400 text-xs md:text-sm italic">
-                                  Brak strzelców
-                                </p>
-                              )}
-                            </div>
+                              <ul className="space-y-1 md:space-y-2 text-xs md:text-sm">
+                                {match.goal_scorers.goals
+                                  .filter((g: Goal) => g.team_id === match.home_team_id)
+                                  .sort((a: Goal, b: Goal) => a.time - b.time)
+                                  .map((goal: Goal, idx: number) => {
+                                    const player = allPlayers.get(goal.player_id);
+                                    return (
+                                      <li
+                                        key={idx}
+                                        className="flex justify-between items-center gap-2"
+                                      >
+                                        <span className="font-bold truncate">
+                                          {player
+                                            ? `${player.first_name} ${player.last_name}`
+                                            : "Nieznany"}
+                                        </span>
+                                        <span className="text-gray-600 font-bold flex-shrink-0">
+                                          {goal.time}'
+                                        </span>
+                                      </li>
+                                    );
+                                  })}
+                              </ul>
+                            ) : (
+                              <p className="text-gray-400 text-xs md:text-sm italic">
+                                Brak strzelców
+                              </p>
+                            )}
+                          </div>
 
-                            {/* Away Team Scorers */}
-                            <div>
-                              <h4 className="text-xs md:text-sm font-black uppercase tracking-widest mb-2 md:mb-3 border-b-2 border-black pb-1 md:pb-2">
-                                Strzelcy {match.away_team?.name}
-                              </h4>
-                              {match.goal_scorers?.goals &&
+                          {/* Away Team Scorers */}
+                          <div>
+                            <h4 className="text-xs md:text-sm font-black uppercase tracking-widest mb-2 md:mb-3 border-b-2 border-black pb-1 md:pb-2">
+                              Strzelcy {match.away_team?.name}
+                            </h4>
+                            {match.goal_scorers?.goals &&
                               match.goal_scorers.goals.filter(
                                 (g: Goal) => g.team_id === match.away_team_id
                               ).length > 0 ? (
-                                <ul className="space-y-1 md:space-y-2 text-xs md:text-sm">
-                                  {match.goal_scorers.goals
-                                    .filter((g: Goal) => g.team_id === match.away_team_id)
-                                    .sort((a: Goal, b: Goal) => a.time - b.time)
-                                    .map((goal: Goal, idx: number) => {
-                                      const player = allPlayers.get(goal.player_id);
-                                      return (
-                                        <li
-                                          key={idx}
-                                          className="flex justify-between items-center gap-2"
-                                        >
-                                          <span className="font-bold truncate">
-                                            {player
-                                              ? `${player.first_name} ${player.last_name}`
-                                              : "Nieznany"}
-                                          </span>
-                                          <span className="text-gray-600 font-bold flex-shrink-0">
-                                            {goal.time}'
-                                          </span>
-                                        </li>
-                                      );
-                                    })}
-                                </ul>
-                              ) : (
-                                <p className="text-gray-400 text-xs md:text-sm italic">
-                                  Brak strzelców
-                                </p>
-                              )}
-                            </div>
+                              <ul className="space-y-1 md:space-y-2 text-xs md:text-sm">
+                                {match.goal_scorers.goals
+                                  .filter((g: Goal) => g.team_id === match.away_team_id)
+                                  .sort((a: Goal, b: Goal) => a.time - b.time)
+                                  .map((goal: Goal, idx: number) => {
+                                    const player = allPlayers.get(goal.player_id);
+                                    return (
+                                      <li
+                                        key={idx}
+                                        className="flex justify-between items-center gap-2"
+                                      >
+                                        <span className="font-bold truncate">
+                                          {player
+                                            ? `${player.first_name} ${player.last_name}`
+                                            : "Nieznany"}
+                                        </span>
+                                        <span className="text-gray-600 font-bold flex-shrink-0">
+                                          {goal.time}'
+                                        </span>
+                                      </li>
+                                    );
+                                  })}
+                              </ul>
+                            ) : (
+                              <p className="text-gray-400 text-xs md:text-sm italic">
+                                Brak strzelców
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -506,13 +492,11 @@ const ScheduleView = () => {
                 className="border-2 border-black bg-white overflow-hidden"
               >
                 {/* Header */}
-                <div
-                  className={`px-4 py-2 flex justify-between items-center border-b-2 border-black font-black uppercase tracking-widest text-xs md:text-sm ${
-                    match.status === "live"
-                      ? "bg-red-600 text-white"
-                      : match.status === "finished"
-                        ? "bg-gray-600 text-white"
-                        : "bg-black text-white"
+                <div className={`px-4 py-2 flex justify-between items-center border-b-2 border-black font-black uppercase tracking-widest text-xs md:text-sm ${match.status === "live"
+                  ? "bg-red-600 text-white"
+                  : match.status === "finished"
+                    ? "bg-gray-600 text-white"
+                    : "bg-black text-white"
                   }`}
                 >
                   <span className="flex items-center gap-2">
@@ -538,26 +522,18 @@ const ScheduleView = () => {
                 )}
 
                 <div
-                  className={`p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 ${
-                    match.status === "finished" ? "grayscale opacity-75" : ""
-                  }`}
+                  className={`p-6 md:p-10 grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-8 ${match.status === "finished" ? "grayscale opacity-75" : ""
+                    }`}
                 >
                   {/* Home Team */}
                   <div className="flex-1 text-center md:text-right">
                     <h3 className="text-2xl md:text-4xl font-black uppercase leading-tight mb-2 break-words min-h-[3rem] md:min-h-[6.5rem] flex items-center justify-center md:justify-end">
-                      {hasTwoPartName(match.home_team?.name) && hasTwoPartName(match.away_team?.name) ? (
-                        (() => {
-                          const [lineOne, lineTwo] = splitNameForBalancedWrap(match.home_team?.name);
-                          return (
-                            <span className="flex flex-col leading-tight">
-                              <span className="block">{lineOne}</span>
-                              <span className="block">{lineTwo}</span>
-                            </span>
-                          );
-                        })()
-                      ) : (
-                        match.home_team?.name || "NIEZNANA"
-                      )}
+                      <span className="whitespace-pre-line">
+                        {formatBalancedTeamName(
+                          match.home_team?.name,
+                          hasTwoPartName(match.home_team?.name) && hasTwoPartName(match.away_team?.name),
+                        )}
+                      </span>
                     </h3>
                     <p className="text-outline font-bold uppercase tracking-wider text-sm">
                       GOSPODARZE
@@ -565,7 +541,7 @@ const ScheduleView = () => {
                   </div>
 
                   {/* Score */}
-                  <div className="flex items-center justify-center gap-4 w-full md:w-auto md:min-w-[180px]">
+                  <div className="flex items-center justify-center gap-4 w-full md:w-auto md:min-w-[180px] mx-auto">
                     {match.score_home !== null ? (
                       <>
                         <div className="bg-black text-white w-20 h-24 md:w-28 md:h-32 flex items-center justify-center text-5xl md:text-7xl font-black border-2 border-black">
@@ -586,19 +562,12 @@ const ScheduleView = () => {
                   {/* Away Team */}
                   <div className="flex-1 text-center md:text-left">
                     <h3 className="text-2xl md:text-4xl font-black uppercase leading-tight mb-2 break-words min-h-[3rem] md:min-h-[6.5rem] flex items-center justify-center md:justify-start">
-                      {hasTwoPartName(match.home_team?.name) && hasTwoPartName(match.away_team?.name) ? (
-                        (() => {
-                          const [lineOne, lineTwo] = splitNameForBalancedWrap(match.away_team?.name);
-                          return (
-                            <span className="flex flex-col leading-tight">
-                              <span className="block">{lineOne}</span>
-                              <span className="block">{lineTwo}</span>
-                            </span>
-                          );
-                        })()
-                      ) : (
-                        match.away_team?.name || "NIEZNANA"
-                      )}
+                      <span className="whitespace-pre-line">
+                        {formatBalancedTeamName(
+                          match.away_team?.name,
+                          hasTwoPartName(match.home_team?.name) && hasTwoPartName(match.away_team?.name),
+                        )}
+                      </span>
                     </h3>
                     <p className="text-outline font-bold uppercase tracking-wider text-sm">
                       GOŚCIE
