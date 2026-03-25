@@ -32,6 +32,19 @@ import { PublicDataProvider } from "./context/PublicDataContext";
 import type { View } from "./types/app";
 import type { AdminView } from "./types/admin";
 
+const KONAMI_SEQUENCE = [
+  "ArrowUp",
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowLeft",
+  "ArrowRight",
+  "b",
+  "a",
+];
+
 const viewToPath = (view: View) => {
   switch (view) {
     case "home":
@@ -185,6 +198,7 @@ const PublicRouteContent = ({
 
 function App() {
   const [adminView, setAdminView] = useState<AdminView>("dashboard");
+  const [isKonamiModalOpen, setIsKonamiModalOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -193,6 +207,7 @@ function App() {
     "route-fade-in" | "route-fade-out"
   >("route-fade-in");
   const transitionTimeoutRef = useRef<number | null>(null);
+  const konamiIndexRef = useRef(0);
 
   useEffect(() => {
     if (location.pathname !== displayLocation.pathname) {
@@ -233,6 +248,32 @@ function App() {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [displayLocation.pathname]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const pressedKey = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      const expectedKey = KONAMI_SEQUENCE[konamiIndexRef.current];
+
+      if (pressedKey === expectedKey) {
+        konamiIndexRef.current += 1;
+
+        if (konamiIndexRef.current === KONAMI_SEQUENCE.length) {
+          setIsKonamiModalOpen(true);
+          konamiIndexRef.current = 0;
+        }
+
+        return;
+      }
+
+      konamiIndexRef.current = pressedKey === KONAMI_SEQUENCE[0] ? 1 : 0;
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   const handleRouteAnimationEnd = () => {
     if (transitionStage === "route-fade-out") {
       if (transitionTimeoutRef.current) {
@@ -272,6 +313,45 @@ function App() {
           }
         />
       </Routes>
+      {isKonamiModalOpen && (
+        <div className="fixed inset-0 z-[110] bg-black/70 flex items-center justify-center px-4">
+          <div className="w-full max-w-3xl bg-white border-4 border-black shadow-[10px_10px_0px_#dc2626]">
+            <div className="flex items-center justify-between border-b-4 border-black px-4 py-3">
+              <h2 className="font-black uppercase tracking-widest text-sm md:text-base">
+                UKRYTY TRYB ODBLOKOWANY
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsKonamiModalOpen(false)}
+                className="border-2 border-black px-3 py-1 font-black text-xs uppercase"
+              >
+                Zamknij
+              </button>
+            </div>
+
+            <div className="p-4 md:p-6 space-y-4">
+              <div className="relative w-full overflow-hidden border-2 border-black" style={{ paddingTop: "56.25%" }}>
+                <iframe
+                  title="Konami secret"
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+                  allow="autoplay; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full"
+                />
+              </div>
+
+              <a
+                href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block border-2 border-black bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest"
+              >
+                GOTCH YA! ;P
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
       <ToastContainer />
     </>
   );
