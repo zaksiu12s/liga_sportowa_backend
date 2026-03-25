@@ -193,7 +193,7 @@ const Footer = () => {
                   onClick={handleOpenSourceCode}
                   className="px-4 py-2 border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500"
                 >
-                  Zobacz kod zrodlowy strony
+                  Zobacz kod źródłowy strony
                 </button>
               </div>
             </div>
