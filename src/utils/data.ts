@@ -22,54 +22,21 @@ export type StageRow = Omit<Tables<"first_stage">, "teams"> & {
 
 // ─── Helper: wzbogać teams[] o nazwy z bazy ──────────────────────────────────
 
-async function enrichTeamsWithNames(
-  rawTeams: StageTeamJsonb[],
-): Promise<StageTeamRow[]> {
-  const ids = rawTeams.map((t) => t.id);
+// async function enrichTeamsWithNames(
+//   rawTeams: StageTeamJsonb[],
+// ): Promise<StageTeamRow[]> {
+//   const ids = rawTeams.map((t) => t.id);
 
-  const { data, error } = await supabase
-    .from("teams")
-    .select("id, name")
-    .in("id", ids);
+//   const { data, error } = await supabase
+//     .from("teams")
+//     .select("*")
+//     .in("id", ids);
 
-  if (error) throw error;
+//   if (error) throw error;
+//   return data;
+// }
 
-  const nameMap = Object.fromEntries((data ?? []).map((t) => [t.id, t.name]));
-
-  return rawTeams.map((t) => ({
-    ...t,
-    name: nameMap[t.id] ?? "Nieznana drużyna",
-  }));
-}
-
-// ─── Helper: pobierz stage i wzbogać ─────────────────────────────────────────
-
-async function fetchStage(
-  table: "first_stage" | "second_stage",
-): Promise<StageRow[]> {
-  const { data, error } = await supabase.from(table).select("*");
-  if (error) throw error;
-
-  const rows = data ?? [];
-
-  return Promise.all(
-    rows.map(async (row) => {
-      const rawTeams =
-        (row.teams as { teams: StageTeamJsonb[] } | null)?.teams ?? [];
-      const enriched = await enrichTeamsWithNames(rawTeams);
-      return { ...row, teams: enriched };
-    }),
-  );
-}
-
-// ─── Teams ───────────────────────────────────────────────────────────────────
-
-export async function getTeams() {
-  const { data, error } = await supabase.from("teams").select("*");
-
-  if (error) throw error;
-  return data;
-}
+// export { enrichTeamsWithNames };
 
 // ─── Matches ─────────────────────────────────────────────────────────────────
 
@@ -89,9 +56,42 @@ export async function getMatches() {
   return data;
 }
 
-// ─── Stages ──────────────────────────────────────────────────────────────────
+// Get total teams count
+export async function getTeamsCount() {
+  const { error, count } = await supabase
+    .from("teams")
+    .select("id", { count: "exact" });
 
-export const getFirstStage = (): Promise<StageRow[]> =>
-  fetchStage("first_stage");
-export const getSecondStage = (): Promise<StageRow[]> =>
-  fetchStage("second_stage");
+  if (error) throw error;
+  return count || 0;
+}
+
+// Get total matches count
+export async function getMatchesCount() {
+  const { error, count } = await supabase
+    .from("matches")
+    .select("id", { count: "exact" });
+
+  if (error) throw error;
+  return count || 0;
+}
+
+// Get next scheduled match
+export async function getNextMatch() {
+  const { data, error } = await supabase
+    .from("matches")
+    .select(
+      `
+      *,
+      home_team:teams!matches_home_team_id_fkey (name),
+      away_team:teams!matches_away_team_id_fkey (name)
+    `,
+    )
+    .eq("status", "scheduled")
+    .order("scheduled_at", { ascending: true })
+    .limit(1)
+    .single();
+
+  if (error && error.code !== "PGRST116") throw error;
+  return data || null;
+}

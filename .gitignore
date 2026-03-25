@@ -26,3 +26,4 @@ dist-ssr
 # Other
 .env
 assets_private
+supabase

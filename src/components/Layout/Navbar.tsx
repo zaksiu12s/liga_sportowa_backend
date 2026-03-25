@@ -1,41 +1,102 @@
-import { NavLink, Link } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { DEFAULT_NAV_ITEMS } from "../../config/navigation";
+import { mergeNavItemsWithSettings } from "../../utils/navigationSettings";
+import type { NavItem } from "../../types/navigation";
+import { usePublicData } from "../../hooks/usePublicData";
 
 const Navbar = () => {
-  const navItems = [
-    { id: "/", label: "START" },
-    { id: "/tabele", label: "TABELE" },
-    { id: "/mecze", label: "MECZE" },
-    { id: "/finaly", label: "FINAŁY" },
-  ] as const;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { data } = usePublicData();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const navItems = useMemo<NavItem[]>(() => {
+    const settings = data?.navigationSettings || [];
+    return mergeNavItemsWithSettings(DEFAULT_NAV_ITEMS, settings);
+  }, [data?.navigationSettings]);
+
+  const isActivePath = (path: string) => {
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+
+    return location.pathname === path;
+  };
+
+  const handleMobileNavClick = (path: string) => {
+    navigate(path);
+    setMobileMenuOpen(false);
+  };
 
   return (
-    <nav className="border-b border-gray-200 dark:border-neutral-800 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-neutral-950 dark:to-neutral-900 sticky top-0 z-50 transition-colors duration-300">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 cursor-pointer">
-          <div className="font-black text-lg tracking-tight dark:text-white">
-            LIGA <span className="text-red-600">ZSEM</span>
-          </div>
+    <header className="bg-white border-b-2 border-black fixed top-0 left-0 right-0 z-50">
+      <div className="flex justify-between items-center w-full px-4 md:px-6 py-3 md:py-4 max-w-none">
+        <Link
+          to="/"
+          aria-label="Liga Elektryka"
+          className="brand-link cursor-pointer flex-shrink-0"
+        >
+          <img
+            src={`${import.meta.env.BASE_URL}le_logo.svg`}
+            alt="Liga Elektryka"
+            className="h-9 md:h-11 w-auto max-w-[190px] md:max-w-[260px]"
+          />
         </Link>
 
-        <div className="flex space-x-4 md:space-x-8">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.id}
-              to={item.id}
-              className={({ isActive }) =>
-                `text-xs font-bold tracking-widest transition-colors ${
-                  isActive
-                    ? "text-red-600"
-                    : "text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                }`
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
-        </div>
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex gap-6 md:gap-8 items-center ml-auto justify-end pl-8">
+          {navItems
+            .filter((item) => !item.isHidden)
+            .map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`nav-animated-link px-[2px] py-[3px] font-black uppercase text-sm md:text-base tracking-tighter ${
+                  isActivePath(item.path)
+                    ? "nav-animated-link-active text-red-600"
+                    : "text-black hover:text-red-600"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+        </nav>
+
+        {/* Mobile Menu Button - On the right */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="md:hidden p-2 ml-auto"
+        >
+          <span className="material-symbols-outlined">
+            {mobileMenuOpen ? "close" : "menu"}
+          </span>
+        </button>
       </div>
-    </nav>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <nav className="md:hidden border-t-2 border-black bg-white">
+          <div className="flex flex-col">
+            {navItems
+              .filter((item) => !item.isHidden)
+              .map((item) => (
+                <button
+                  key={item.path}
+                  onClick={() => handleMobileNavClick(item.path)}
+                  className={`mobile-nav-item px-4 py-3 text-left font-black uppercase text-sm border-b border-gray-200 ${
+                    isActivePath(item.path)
+                      ? "bg-red-600 text-white"
+                      : "text-black hover:bg-gray-100"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+          </div>
+        </nav>
+      )}
+    </header>
   );
 };
 

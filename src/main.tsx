@@ -4,21 +4,18 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.tsx";
 import { Analytics } from "@vercel/analytics/react";
-
-// Theme logic: Default to light, only use localStorage
-const savedTheme = localStorage.getItem("theme");
-document.documentElement.classList.remove("dark");
-if (savedTheme === "dark") {
-  document.documentElement.classList.add("dark");
-} else {
-  document.documentElement.classList.remove("dark");
-}
+import { AuthProvider } from "./context/AuthContext";
+import { ToastProvider } from "./components/Admin/Toast";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <App />
-      <Analytics />
+      <AuthProvider>
+        <ToastProvider>
+          <App />
+          <Analytics />
+        </ToastProvider>
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
 );
