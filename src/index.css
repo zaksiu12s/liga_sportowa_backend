@@ -14,6 +14,10 @@ body {
   background-color: #f9f9f9;
 }
 
+html {
+  overflow-y: scroll;
+}
+
 img {
   -webkit-user-drag: none;
   user-select: none;

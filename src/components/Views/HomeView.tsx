@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { View } from "../../types/app";
 import { usePublicData } from "../../hooks/usePublicData";
-import PdfModal from "../Layout/PdfModal";
+import PdfModal, { preloadPdfFiles } from "../Layout/PdfModal";
 
 interface HomeViewProps {
   onNavigate?: (view: View) => void;
@@ -41,6 +41,14 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
       href: `${import.meta.env.BASE_URL}consent.pdf`,
     },
   ];
+
+  useEffect(() => {
+    preloadPdfFiles([
+      `${import.meta.env.BASE_URL}rules.pdf`,
+      `${import.meta.env.BASE_URL}form.pdf`,
+      `${import.meta.env.BASE_URL}consent.pdf`,
+    ]);
+  }, []);
 
   const formatDateTime = (dateString: string | null | undefined) => {
     if (!dateString) return "TBD";

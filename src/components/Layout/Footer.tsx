@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import PdfModal from "./PdfModal";
+import PdfModal, { preloadPdfFiles } from "./PdfModal";
+import { lockBodyScrollKeepScrollbar } from "../../utils/modalScrollLock";
 
 const creators = [
   {
@@ -17,17 +18,41 @@ const creators = [
 ];
 
 const Footer = () => {
+  const modalAnimationMs = 220;
   const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
+  const [isGithubModalMounted, setIsGithubModalMounted] = useState(false);
+  const [isGithubModalVisible, setIsGithubModalVisible] = useState(false);
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
   const rulesPdfHref = `${import.meta.env.BASE_URL}rules.pdf`;
 
   useEffect(() => {
-    if (!isGithubModalOpen) {
+    preloadPdfFiles([rulesPdfHref]);
+  }, [rulesPdfHref]);
+
+  useEffect(() => {
+    if (isGithubModalOpen) {
+      setIsGithubModalMounted(true);
+      const frame = window.requestAnimationFrame(() => setIsGithubModalVisible(true));
+
+      return () => {
+        window.cancelAnimationFrame(frame);
+      };
+    }
+
+    setIsGithubModalVisible(false);
+    const timeoutId = window.setTimeout(() => setIsGithubModalMounted(false), modalAnimationMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isGithubModalOpen]);
+
+  useEffect(() => {
+    if (!isGithubModalMounted) {
       return;
     }
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const releaseScrollLock = lockBodyScrollKeepScrollbar();
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -39,9 +64,9 @@ const Footer = () => {
 
     return () => {
       window.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = previousOverflow;
+      releaseScrollLock();
     };
-  }, [isGithubModalOpen]);
+  }, [isGithubModalMounted]);
 
   const handleOpenSourceCode = () => {
     window.open("https://github.com/zaksiu12s/liga_sportowa_backend", "_blank", "noopener,noreferrer");
@@ -95,9 +120,9 @@ const Footer = () => {
         </div>
       </div>
 
-      {isGithubModalOpen && (
+      {isGithubModalMounted && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
+          className={`fixed inset-0 z-50 flex items-center justify-center px-4 transition-opacity duration-200 ${isGithubModalVisible ? "bg-black/70 opacity-100" : "bg-black/70 opacity-0"}`}
           onClick={() => setIsGithubModalOpen(false)}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
@@ -108,7 +133,9 @@ const Footer = () => {
           tabIndex={-1}
         >
           <div
-            className="w-full max-w-2xl bg-white border-4 border-black shadow-[8px_8px_0px_#dc2626]"
+            className={`w-full max-w-2xl bg-white border-4 border-black shadow-[8px_8px_0px_#dc2626] transition-all duration-200 ease-out ${
+              isGithubModalVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-3 scale-[0.98]"
+            }`}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b-4 border-black px-6 py-4">
