@@ -4,14 +4,6 @@ import { lockBodyScrollKeepScrollbar } from "../../utils/modalScrollLock";
 
 const creators = [
   {
-    name: "Claude",
-    handle: "@anthropics",
-    avatar:
-      "https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/claude-color.png",
-    profile: "https://github.com/anthropics",
-  },
-
-  {
     name: "Filip Bodziony",
     handle: "@FilipBodziony",
     avatar: "https://avatars.githubusercontent.com/u/121246008",
@@ -100,14 +92,13 @@ const Footer = () => {
             LIGA ELEKTRYKA
           </a>
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 max-w-xl mx-auto md:justify-self-center">
-            <a
-              href={rulesPdfHref}
-              target="_blank"
-              rel="noreferrer"
+            <button
+              type="button"
+              onClick={() => setIsRulesModalOpen(true)}
               className="font-black uppercase text-xs tracking-widest text-gray-400 hover:text-red-500 transition-none"
             >
               REGULAMIN
-            </a>
+            </button>
             <a
               href="https://zsem.edu.pl/"
               target="_blank"

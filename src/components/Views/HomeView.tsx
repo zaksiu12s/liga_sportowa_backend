@@ -264,11 +264,10 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {documents.map((document) => (
-            <a
+            <button
               key={document.title}
-              href={document.href}
-              target="_blank"
-              rel="noreferrer"
+              type="button"
+              onClick={() => setActiveDocument(document)}
               className="group border-2 border-black bg-white p-4 flex items-center justify-between gap-3 hover:bg-black transition-none"
             >
               <div className="flex-1 flex items-center gap-4 text-left">
@@ -279,10 +278,10 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
                   {document.title}
                 </span>
                 <span className="material-symbols-outlined ml-auto group-hover:text-white">
-                  open_in_new
+                  visibility
                 </span>
               </div>
-            </a>
+            </button>
           ))}
         </div>
       </section>
