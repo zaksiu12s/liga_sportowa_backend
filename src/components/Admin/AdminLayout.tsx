@@ -31,12 +31,12 @@ export const AdminLayout = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
       <div
         className={`${
           sidebarOpen ? "w-64" : "w-20"
-        } bg-black text-white border-r-2 border-black transition-all duration-300 flex flex-col`}
+        } fixed top-0 left-0 h-screen bg-black text-white border-r-2 border-black transition-all duration-300 flex flex-col overflow-hidden z-30`}
       >
         {/* Brand */}
         <div className="p-4 border-b-2 border-gray-700">
@@ -87,7 +87,9 @@ export const AdminLayout = ({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div
+        className={`${sidebarOpen ? "ml-64" : "ml-20"} min-h-screen flex flex-col transition-all duration-300`}
+      >
         {/* Header */}
         <div className="bg-white border-b-2 border-black px-8 py-4 flex justify-between items-center">
           <h2 className="text-2xl font-black uppercase tracking-widest text-black">
