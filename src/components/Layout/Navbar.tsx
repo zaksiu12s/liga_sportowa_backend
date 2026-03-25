@@ -34,9 +34,14 @@ const Navbar = () => {
       <div className="flex justify-between items-center w-full px-4 md:px-6 py-3 md:py-4 max-w-none">
         <Link
           to="/"
-          className="brand-link text-lg md:text-2xl font-black text-black uppercase tracking-tighter cursor-pointer flex-shrink-0"
+          aria-label="Liga Elektryka"
+          className="brand-link cursor-pointer flex-shrink-0"
         >
-          LIGA ELEKTRYKA
+          <img
+            src={`${import.meta.env.BASE_URL}le_logo.svg`}
+            alt="Liga Elektryka"
+            className="h-8 md:h-11 w-auto"
+          />
         </Link>
 
         {/* Desktop Navigation */}
