@@ -1,0 +1,15 @@
+meta {
+  name: Send queued mails
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/functions/v1/mailer/process
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
