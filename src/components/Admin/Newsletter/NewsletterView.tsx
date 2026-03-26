@@ -224,6 +224,18 @@ const AiDropdown = ({
 
 export const NewsletterView = () => {
   const { showToast } = useToast();
+  const logoSourceOptions = [
+    {
+      id: "jpg",
+      label: "football_league_logo.jpg",
+      url: "https://www.ligaelektryka.pl/football_league_logo.jpg",
+    },
+    {
+      id: "svg",
+      label: "le_logo.svg",
+      url: "https://www.ligaelektryka.pl/le_logo.svg",
+    },
+  ] as const;
 
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [queueItems, setQueueItems] = useState<MailQueueItem[]>([]);
@@ -257,11 +269,29 @@ export const NewsletterView = () => {
     fallbackUsed: boolean;
     generatedAt: string | null;
   } | null>(null);
+  const [selectedLogoSrc, setSelectedLogoSrc] = useState<string>(
+    logoSourceOptions[0].url,
+  );
 
   const pendingCount = useMemo(
     () => queueItems.filter((item) => item.status === "pending").length,
     [queueItems],
   );
+
+  const handleInsertSiteLogo = () => {
+    const logoBlock = [
+      `<div style="text-align:center;margin:0 0 20px 0;">`,
+      `<img src="${selectedLogoSrc}" alt="Liga Elektryka" style="max-width:180px;width:100%;height:auto;display:inline-block;" />`,
+      `</div>`,
+    ].join("");
+
+    setHtml((prev) => {
+      const trimmed = prev.trim();
+      return trimmed ? `${logoBlock}\n${trimmed}` : logoBlock;
+    });
+
+    showToast("Dodano wybrane logo do treści newslettera", "success");
+  };
 
   const handleGenerateBySelection = async (requestedType?: AiRequestType) => {
     const provider = selectedProvider;
@@ -600,6 +630,44 @@ export const NewsletterView = () => {
                 Warning: Gemini limit in this project is 20 requests per day.
               </div>
             )}
+
+            <div className="mb-3 border-2 border-black bg-gray-50 px-3 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <img
+                  src={selectedLogoSrc}
+                  alt="Logo strony"
+                  className="w-12 h-12 object-contain border border-black bg-white p-1"
+                />
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest">
+                    Logo strony
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    Jednym kliknieciem dodaj logo na poczatek newslettera.
+                  </p>
+                  <select
+                    value={selectedLogoSrc}
+                    onChange={(e) => setSelectedLogoSrc(e.target.value)}
+                    className="mt-2 w-full border-2 border-black bg-white px-2 py-1 text-xs font-bold"
+                    disabled={isSubmitting || Boolean(generatingProvider)}
+                  >
+                    {logoSourceOptions.map((option) => (
+                      <option key={option.id} value={option.url}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleInsertSiteLogo}
+                disabled={isSubmitting || Boolean(generatingProvider)}
+                className="px-3 py-2 bg-white text-black border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-black hover:text-white transition-colors disabled:opacity-60"
+              >
+                Wstaw logo do HTML
+              </button>
+            </div>
 
             {aiFeedback && (
               <div className="mb-3 border-2 border-black bg-gray-50 px-3 py-2 text-xs text-gray-800 space-y-1">
