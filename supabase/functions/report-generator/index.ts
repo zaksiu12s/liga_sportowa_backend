@@ -1,8 +1,8 @@
 // @ts-nocheck
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { GoogleGenAI } from "npm:@google/genai";
 
 const modelName = "gemini-3-flash-preview";
+type RequestType = "report" | "promo" | "recap" | "announcement";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -65,7 +65,45 @@ const fetchAllData = async (supabase: ReturnType<typeof createAdminClient>) => {
   };
 };
 
-const buildPrompt = (data: Awaited<ReturnType<typeof fetchAllData>>): string => {
+const getRequestInstructions = (requestType: RequestType): string => {
+  if (requestType === "promo") {
+    return [
+      "Typ requestu: PROMO / CTA",
+      "Stwórz newsletter promocyjny, który zachęca do śledzenia rozgrywek i zapisów do newslettera.",
+      "Sekcje: mocny nagłówek, 3 korzyści dla odbiorcy, CTA (przycisk/link placeholder), krótkie podsumowanie wyników.",
+      "Ton: energiczny, pozytywny, konkretny.",
+    ].join("\n");
+  }
+
+  if (requestType === "recap") {
+    return [
+      "Typ requestu: PODSUMOWANIE TYGODNIA",
+      "Stwórz krótkie podsumowanie ostatnich wydarzeń ligi.",
+      "Sekcje: najważniejsze wyniki, top strzelcy tygodnia, co dalej w kalendarzu.",
+      "Ton: rzeczowy i dynamiczny.",
+    ].join("\n");
+  }
+
+  if (requestType === "announcement") {
+    return [
+      "Typ requestu: OGŁOSZENIE",
+      "Stwórz formalno-informacyjne ogłoszenie dla uczestników ligi.",
+      "Sekcje: nagłówek ogłoszenia, najważniejsze informacje organizacyjne, terminy i przypomnienia.",
+      "Ton: jasny, oficjalny, zwięzły.",
+    ].join("\n");
+  }
+
+  return [
+    "Typ requestu: SPRAWOZDANIE LIGI",
+    "Stwórz pełne sprawozdanie sezonowe oparte o dane.",
+    "Sekcje: podsumowanie sezonu, tabela wyników meczów, top strzelcy, nadchodzące mecze, prognoza.",
+  ].join("\n");
+};
+
+const buildPrompt = (
+  data: Awaited<ReturnType<typeof fetchAllData>>,
+  requestType: RequestType,
+): string => {
   const completedMatches = data.matches.filter((m) => m.status === "completed");
   const scheduledMatches = data.matches.filter((m) => m.status === "scheduled");
 
@@ -87,17 +125,19 @@ const buildPrompt = (data: Awaited<ReturnType<typeof fetchAllData>>): string => 
     return `- ${t.name} (${teamPlayers.length} graczy)`;
   }).join("\n");
 
-  return `Jesteś sprawozdawcą sportowym dla ligi piłkarskiej "Liga Elektryka" - szkolnej ligi piłki nożnej.
-Na podstawie poniższych danych wygeneruj szczegółowe sprawozdanie w języku polskim.
+  return `Jesteś copywriterem sportowym dla ligi piłkarskiej "Liga Elektryka" - szkolnej ligi piłki nożnej.
+Na podstawie poniższych danych wygeneruj treść newslettera w języku polskim.
 
 WAŻNE: Odpowiedz WYŁĄCZNIE kodem HTML gotowym do wklejenia w treść e-maila newslettera.
 - Nie dodawaj żadnego tekstu przed ani po kodzie HTML.
 - Nie owijaj w bloki markdown (bez \`\`\`html).
 - Użyj tylko inline CSS (żadnych klas, żadnych <style> bloków) — e-maile tego wymagają.
 - Zacznij od <div style="..."> i zakończ odpowiadającym </div>.
-- Struktura: nagłówek ligi, podsumowanie sezonu, tabela wyników meczów, top strzelcy (lista), nadchodzące mecze, prognoza.
 - Użyj kolorów: tło białe, akcenty czarne (#000), tabele z obramowaniem 1px solid #000, nagłówki bold.
 - Czcionka: Arial, sans-serif; rozmiar 14px dla tekstu, 20-24px dla nagłówków sekcji.
+
+=== WYTYCZNE DLA TYPU REQUESTU ===
+${getRequestInstructions(requestType)}
 
 === DANE LIGI ===
 
@@ -179,27 +219,6 @@ const callGroq = async (prompt: string): Promise<string> => {
   const text = groqData.choices?.[0]?.message?.content;
   if (!text) throw new Error("Groq returned empty response");
   return text;
-};
-
-const callImagen = async (prompt: string): Promise<string> => {
-  const apiKey = getEnv("GEMINI_API_KEY");
-  const ai = new GoogleGenAI({ apiKey });
-  
-  const response = await ai.models.generateImages({
-    model: 'imagen-4.0-generate-001',
-    prompt: 'Robot holding a red skateboard',
-    config: {
-      numberOfImages: 1,
-    },
-  });
-
-
-  const imagePart = response.generatedImages?.[0]?.image;
-  if (!imagePart || !imagePart.imageBytes) {
-    throw new Error("Imagen returned empty response");
-  }
-  
-  return imagePart.imageBytes;
 };
 
 const stripMarkdownFences = (html: string): string =>
@@ -289,11 +308,20 @@ const generateReport = async (req: Request): Promise<Response> => {
   const authError = await requireAuthUser(req);
   if (authError) return authError;
 
-  // Parse optional body: { provider?: "groq" | "gemini" }
+  // Parse optional body: { provider?: "groq" | "gemini", request_type?: RequestType }
   let provider: "groq" | "gemini" = "groq";
+  let requestType: RequestType = "report";
   try {
     const body = await req.json().catch(() => ({}));
     if (body?.provider === "gemini") provider = "gemini";
+    if (
+      body?.request_type === "report" ||
+      body?.request_type === "promo" ||
+      body?.request_type === "recap" ||
+      body?.request_type === "announcement"
+    ) {
+      requestType = body.request_type;
+    }
   } catch {
     // no body or invalid JSON — use default
   }
@@ -307,7 +335,7 @@ const generateReport = async (req: Request): Promise<Response> => {
     return json(500, { error: "Failed to fetch data", details: String(err) });
   }
 
-  const prompt = buildPrompt(data);
+  const prompt = buildPrompt(data, requestType);
 
   let llmResult: Awaited<ReturnType<typeof callLLM>>;
   try {
@@ -323,6 +351,7 @@ const generateReport = async (req: Request): Promise<Response> => {
 
   return json(200, {
     html,
+    request_type: requestType,
     generated_at: generatedAt,
     provider_used: llmResult.provider_used,
     fallback_used: llmResult.fallback_used,
@@ -338,31 +367,6 @@ const generateReport = async (req: Request): Promise<Response> => {
   });
 };
 
-const generateImage = async (req: Request): Promise<Response> => {
-  const authError = await requireAuthUser(req);
-  if (authError) return authError;
-
-  let prompt = "A professional sports logo for 'Liga Elektryka', a school football league, modern and energetic style, black and white theme with lightning elements.";
-  try {
-    const body = await req.json().catch(() => ({}));
-    if (body?.prompt) prompt = body.prompt;
-  } catch {
-    // use default
-  }
-
-  try {
-    const base64Image = await callImagen(prompt);
-    return json(200, {
-      image: `data:image/jpeg;base64,${base64Image}`,
-      prompt,
-      generated_at: new Date().toISOString(),
-    });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown Imagen error";
-    return json(500, { error: "Imagen API error", details: message });
-  }
-};
-
 Deno.serve(async (req: Request) => {
   const url = new URL(req.url);
   const path = url.pathname;
@@ -372,13 +376,6 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    if (path === "/report-generator/image") {
-      if (req.method !== "POST") {
-        return json(405, { error: "Method not allowed" });
-      }
-      return await generateImage(req);
-    }
-
     if (req.method === "GET") {
       return json(200, { ok: true, function: "report-generator" });
     }

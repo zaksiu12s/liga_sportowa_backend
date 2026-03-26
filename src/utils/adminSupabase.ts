@@ -936,6 +936,51 @@ export const newsletterApi = {
     return (data || []) as MailQueueItem[];
   },
 
+  async generateNewsletterContent(input: {
+    provider: "groq" | "gemini";
+    requestType: "report" | "promo" | "recap" | "announcement";
+  }): Promise<{
+    html: string;
+    providerUsed: string;
+    fallbackUsed: boolean;
+    requestTypeUsed: "report" | "promo" | "recap" | "announcement";
+    generatedAt: string | null;
+  }> {
+    const provider = input.provider;
+    const requestType = input.requestType;
+
+    const { data, error } = await supabase.functions.invoke("report-generator", {
+      body: {
+        provider,
+        request_type: requestType,
+      },
+    });
+
+    if (error) {
+      throw new Error(error.message || "Failed to generate report");
+    }
+
+    const payload = (data || {}) as {
+      html?: string;
+      provider_used?: string;
+      fallback_used?: boolean;
+      request_type?: "report" | "promo" | "recap" | "announcement";
+      generated_at?: string;
+    };
+
+    if (!payload.html || typeof payload.html !== "string") {
+      throw new Error("Report generator returned empty HTML");
+    }
+
+    return {
+      html: payload.html,
+      providerUsed: payload.provider_used || provider,
+      fallbackUsed: Boolean(payload.fallback_used),
+      requestTypeUsed: payload.request_type || requestType,
+      generatedAt: payload.generated_at || null,
+    };
+  },
+
   async enqueueToAllSubscribers(input: {
     subject: string;
     html: string;
@@ -1037,5 +1082,122 @@ export const newsletterApi = {
 
     if (error) throw error;
     return queueRows.length;
+  },
+
+  async updateScheduledQueueItem(input: {
+    id: string;
+    subject: string;
+    html: string;
+    scheduledAt: string;
+  }): Promise<void> {
+    const id = input.id.trim();
+    const subject = input.subject.trim();
+    const html = input.html.trim();
+
+    if (!id) throw new Error("Queue item id is required");
+    if (!subject) throw new Error("Subject is required");
+    if (!html) throw new Error("HTML content is required");
+
+    const scheduledAt = new Date(input.scheduledAt);
+    if (Number.isNaN(scheduledAt.getTime())) {
+      throw new Error("Invalid scheduled date");
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const accessToken = session?.access_token;
+    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+    const authToken = accessToken || anonKey;
+
+    const updateEndpoint = `${newsletterApi.getMailerBaseUrl()}/update`;
+    const updateResponse = await fetch(updateEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(anonKey ? { apikey: anonKey } : {}),
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+      body: JSON.stringify({
+        id,
+        subject,
+        html,
+        scheduled_at: scheduledAt.toISOString(),
+      }),
+    });
+
+    if (updateResponse.ok) {
+      return;
+    }
+
+    const { data: queueItem, error: fetchError } = await (supabase as any)
+      .from("mail_queue")
+      .select("id, status, sent_at")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+    if (!queueItem) throw new Error("Queue item not found");
+    if (queueItem.status === "sent" || queueItem.sent_at) {
+      throw new Error("Sent emails cannot be edited");
+    }
+
+    const { error: updateError } = await (supabase as any)
+      .from("mail_queue")
+      .update({
+        subject,
+        html,
+        scheduled_at: scheduledAt.toISOString(),
+        status: "pending",
+      })
+      .eq("id", id);
+
+    if (updateError) throw updateError;
+  },
+
+  async deleteScheduledQueueItem(id: string): Promise<void> {
+    const queueId = id.trim();
+    if (!queueId) throw new Error("Queue item id is required");
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const accessToken = session?.access_token;
+    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+    const authToken = accessToken || anonKey;
+
+    const deleteEndpoint = `${newsletterApi.getMailerBaseUrl()}/delete`;
+    const deleteResponse = await fetch(deleteEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(anonKey ? { apikey: anonKey } : {}),
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+      body: JSON.stringify({ id: queueId }),
+    });
+
+    if (deleteResponse.ok) {
+      return;
+    }
+
+    const { data: queueItem, error: fetchError } = await (supabase as any)
+      .from("mail_queue")
+      .select("id, status, sent_at")
+      .eq("id", queueId)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+    if (!queueItem) throw new Error("Queue item not found");
+    if (queueItem.status === "sent" || queueItem.sent_at) {
+      throw new Error("Sent emails cannot be deleted");
+    }
+
+    const { error: deleteError } = await (supabase as any)
+      .from("mail_queue")
+      .delete()
+      .eq("id", queueId);
+
+    if (deleteError) throw deleteError;
   },
 };
