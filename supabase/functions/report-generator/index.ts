@@ -100,9 +100,17 @@ const getRequestInstructions = (requestType: RequestType): string => {
   ].join("\n");
 };
 
+const getSubjectHint = (requestType: RequestType): string => {
+  if (requestType === "promo") return "Temat promocyjny z mocnym CTA";
+  if (requestType === "recap") return "Temat podsumowujący tydzień rozgrywek";
+  if (requestType === "announcement") return "Temat ogłoszenia organizacyjnego";
+  return "Temat sprawozdania ligowego";
+};
+
 const buildPrompt = (
   data: Awaited<ReturnType<typeof fetchAllData>>,
   requestType: RequestType,
+  options?: { logoAwareness?: boolean; logoUrl?: string },
 ): string => {
   const completedMatches = data.matches.filter((m) => m.status === "completed");
   const scheduledMatches = data.matches.filter((m) => m.status === "scheduled");
@@ -125,6 +133,15 @@ const buildPrompt = (
     return `- ${t.name} (${teamPlayers.length} graczy)`;
   }).join("\n");
 
+  const logoAwarenessText = options?.logoAwareness
+    ? `
+=== AWARENESS LOGO ===
+- Uwzględnij branding ligi spójnie z logo.
+- Wstaw logo na początku treści (sekcja hero) jako <img>.
+- Użyj źródła logo: ${options?.logoUrl || "https://www.ligaelektryka.pl/le_logo.svg"}.
+`
+    : "";
+
   return `Jesteś copywriterem sportowym dla ligi piłkarskiej "Liga Elektryka" - szkolnej ligi piłki nożnej.
 Na podstawie poniższych danych wygeneruj treść newslettera w języku polskim.
 
@@ -133,11 +150,14 @@ WAŻNE: Odpowiedz WYŁĄCZNIE kodem HTML gotowym do wklejenia w treść e-maila 
 - Nie owijaj w bloki markdown (bez \`\`\`html).
 - Użyj tylko inline CSS (żadnych klas, żadnych <style> bloków) — e-maile tego wymagają.
 - Zacznij od <div style="..."> i zakończ odpowiadającym </div>.
-- Użyj kolorów: tło białe, akcenty czarne (#000), tabele z obramowaniem 1px solid #000, nagłówki bold.
+- Styl wizualny ma przypominać stronę Ligi Elektryka (HomeView): mocny kontrast, brutalistyczne obramowania, czerwony akcent #dc2626 i czerń #000.
+- Użyj kolorów: tło białe, akcenty czerwone i czarne, nagłówki uppercase i bardzo wyraźne.
+- Tabele mają wyglądać jak w aplikacji: grube obramowania, czytelne nagłówki, mocne oddzielenie sekcji.
 - Czcionka: Arial, sans-serif; rozmiar 14px dla tekstu, 20-24px dla nagłówków sekcji.
 
 === WYTYCZNE DLA TYPU REQUESTU ===
 ${getRequestInstructions(requestType)}
+${logoAwarenessText}
 
 === DANE LIGI ===
 
@@ -161,6 +181,34 @@ STATYSTYKI OGÓLNE:
 - Subskrybenci newslettera: ${data.subscribersCount}
 - Grupy fazy pierwszej: ${data.firstStage.length}
 - Grupy fazy drugiej: ${data.secondStage.length}`;
+};
+
+const buildSubjectPrompt = (requestType: RequestType): string => {
+  const today = new Date().toLocaleDateString("pl-PL");
+  return `Wygeneruj JEDEN temat e-maila po polsku dla newslettera Liga Elektryka.
+Wymagania:
+- maksymalnie 72 znaki,
+- bez cudzysłowów,
+- bez emoji,
+- konkretny i klikalny,
+- zgodny z typem: ${requestType} (${getSubjectHint(requestType)}).
+Data: ${today}.
+Zwróć wyłącznie sam temat.`;
+};
+
+const sanitizeSubject = (value: string): string =>
+  value
+    .replace(/^"+|"+$/g, "")
+    .replace(/\r?\n/g, " ")
+    .trim()
+    .slice(0, 120);
+
+const fallbackSubject = (requestType: RequestType): string => {
+  const date = new Date().toLocaleDateString("pl-PL");
+  if (requestType === "promo") return `Liga Elektryka: Najnowsze info i zapowiedzi (${date})`;
+  if (requestType === "recap") return `Liga Elektryka: Podsumowanie tygodnia (${date})`;
+  if (requestType === "announcement") return `Liga Elektryka: Ważne ogłoszenie (${date})`;
+  return `Liga Elektryka: Sprawozdanie i wyniki (${date})`;
 };
 
 // --- Provider call functions ---
@@ -255,41 +303,42 @@ const callLLM = async (
 
 // --- Email template ---
 
-const wrapInEmailTemplate = (innerHtml: string, generatedAt: string): string => `<!DOCTYPE html>
+const wrapInEmailTemplate = (innerHtml: string, generatedAt: string, subject: string): string => `<!DOCTYPE html>
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sprawozdanie Ligi Elektryka</title>
+  <title>${subject}</title>
 </head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 0;">
+<body style="margin:0;padding:0;background:#ffffff;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:24px 0;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #000000;">
+        <table width="640" cellpadding="0" cellspacing="0" style="background:#ffffff;border:4px solid #000000;box-shadow:10px 10px 0 #dc2626;">
 
           <!-- Header -->
           <tr>
-            <td style="background:#000000;padding:28px 32px;">
-              <p style="margin:0;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#ffffff;font-family:Arial,sans-serif;">Newsletter</p>
-              <h1 style="margin:6px 0 0;font-size:28px;font-weight:900;color:#ffffff;font-family:Arial,sans-serif;letter-spacing:1px;">⚡ Liga Elektryka</h1>
+            <td style="background:#000000;padding:20px 24px;border-bottom:4px solid #dc2626;">
+              <span style="display:inline-block;border:2px solid #ffffff;background:#dc2626;color:#ffffff;padding:4px 8px;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;">NEWSLETTER</span>
+              <h1 style="margin:10px 0 0;font-size:30px;font-weight:900;color:#ffffff;letter-spacing:1px;text-transform:uppercase;">LIGA ELEKTRYKA</h1>
+              <p style="margin:6px 0 0;font-size:12px;color:#f0f0f0;font-weight:700;">${subject}</p>
             </td>
           </tr>
 
           <!-- Body -->
           <tr>
-            <td style="padding:32px;">
+            <td style="padding:24px;border-top:2px solid #000000;">
               ${innerHtml}
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="padding:20px 32px;border-top:2px solid #000000;background:#f9f9f9;">
-              <p style="margin:0;font-size:11px;color:#666666;font-family:Arial,sans-serif;">
+            <td style="padding:16px 24px;border-top:4px solid #000000;background:#fafafa;">
+              <p style="margin:0;font-size:11px;color:#444444;font-weight:700;">
                 Wygenerowano automatycznie · ${new Date(generatedAt).toLocaleString("pl-PL")}
               </p>
-              <p style="margin:6px 0 0;font-size:11px;color:#666666;font-family:Arial,sans-serif;">
+              <p style="margin:8px 0 0;font-size:11px;color:#444444;">
                 Aby wypisać się z newslettera, odpowiedz na tego e-maila z tytułem "Wypisz mnie".
               </p>
             </td>
@@ -311,6 +360,8 @@ const generateReport = async (req: Request): Promise<Response> => {
   // Parse optional body: { provider?: "groq" | "gemini", request_type?: RequestType }
   let provider: "groq" | "gemini" = "groq";
   let requestType: RequestType = "report";
+  let logoAwareness = false;
+  let logoUrl: string | undefined;
   try {
     const body = await req.json().catch(() => ({}));
     if (body?.provider === "gemini") provider = "gemini";
@@ -321,6 +372,12 @@ const generateReport = async (req: Request): Promise<Response> => {
       body?.request_type === "announcement"
     ) {
       requestType = body.request_type;
+    }
+    if (body?.logo_awareness === true) {
+      logoAwareness = true;
+    }
+    if (typeof body?.logo_url === "string" && body.logo_url.trim().length > 0) {
+      logoUrl = body.logo_url.trim();
     }
   } catch {
     // no body or invalid JSON — use default
@@ -335,22 +392,31 @@ const generateReport = async (req: Request): Promise<Response> => {
     return json(500, { error: "Failed to fetch data", details: String(err) });
   }
 
-  const prompt = buildPrompt(data, requestType);
+  const prompt = buildPrompt(data, requestType, {
+    logoAwareness,
+    logoUrl,
+  });
+  const subjectPrompt = buildSubjectPrompt(requestType);
 
   let llmResult: Awaited<ReturnType<typeof callLLM>>;
+  let subjectResult: Awaited<ReturnType<typeof callLLM>> | null = null;
   try {
     llmResult = await callLLM(prompt, provider);
+    subjectResult = await callLLM(subjectPrompt, provider);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown LLM error";
     return json(500, { error: "LLM API error", details: message });
   }
 
   const cleanedHtml = stripMarkdownFences(llmResult.rawHtml);
+  const rawSubject = subjectResult ? stripMarkdownFences(subjectResult.rawHtml) : "";
+  const subject = sanitizeSubject(rawSubject) || fallbackSubject(requestType);
   const generatedAt = new Date().toISOString();
-  const html = wrapInEmailTemplate(cleanedHtml, generatedAt);
+  const html = wrapInEmailTemplate(cleanedHtml, generatedAt, subject);
 
   return json(200, {
     html,
+    subject,
     request_type: requestType,
     generated_at: generatedAt,
     provider_used: llmResult.provider_used,

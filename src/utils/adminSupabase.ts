@@ -939,8 +939,11 @@ export const newsletterApi = {
   async generateNewsletterContent(input: {
     provider: "groq" | "gemini";
     requestType: "report" | "promo" | "recap" | "announcement";
+    logoAwareness?: boolean;
+    logoUrl?: string;
   }): Promise<{
     html: string;
+    subject: string;
     providerUsed: string;
     fallbackUsed: boolean;
     requestTypeUsed: "report" | "promo" | "recap" | "announcement";
@@ -953,6 +956,8 @@ export const newsletterApi = {
       body: {
         provider,
         request_type: requestType,
+        logo_awareness: Boolean(input.logoAwareness),
+        logo_url: input.logoUrl,
       },
     });
 
@@ -962,6 +967,7 @@ export const newsletterApi = {
 
     const payload = (data || {}) as {
       html?: string;
+      subject?: string;
       provider_used?: string;
       fallback_used?: boolean;
       request_type?: "report" | "promo" | "recap" | "announcement";
@@ -972,8 +978,13 @@ export const newsletterApi = {
       throw new Error("Report generator returned empty HTML");
     }
 
+    if (!payload.subject || typeof payload.subject !== "string") {
+      throw new Error("Report generator returned empty subject");
+    }
+
     return {
       html: payload.html,
+      subject: payload.subject,
       providerUsed: payload.provider_used || provider,
       fallbackUsed: Boolean(payload.fallback_used),
       requestTypeUsed: payload.request_type || requestType,

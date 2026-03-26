@@ -23,6 +23,7 @@ const isEditableQueueItem = (item: MailQueueItem): boolean =>
 
 type AiProvider = "groq" | "gemini";
 type AiRequestType = "report" | "promo" | "recap" | "announcement";
+type LogoChoice = "logo1" | "logo2" | "custom";
 
 interface AiGenerator {
   id: AiRequestType;
@@ -154,6 +155,70 @@ interface AiDropdownProps {
   disabled?: boolean;
 }
 
+interface LogoDropdownProps {
+  selected: LogoChoice;
+  onSelect: (choice: LogoChoice) => void;
+  disabled?: boolean;
+}
+
+const logoChoiceLabel = (choice: LogoChoice): string => {
+  if (choice === "logo1") return "LOGO 1";
+  if (choice === "logo2") return "LOGO 2";
+  return "TWOJE LOGO";
+};
+
+const LogoDropdown = ({ selected, onSelect, disabled }: LogoDropdownProps) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const options: LogoChoice[] = ["logo1", "logo2", "custom"];
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={disabled}
+        className="flex items-center gap-2 px-3 py-2 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors disabled:opacity-60"
+      >
+        ✦ {logoChoiceLabel(selected)} ▾
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-50 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] min-w-[220px]">
+          {options.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onSelect(option);
+              }}
+              className={`w-full text-left px-4 py-3 border-b-2 border-black last:border-b-0 hover:bg-black hover:text-white transition-colors ${
+                selected === option ? "bg-gray-100" : "bg-white"
+              }`}
+            >
+              <p className="text-xs font-black uppercase tracking-widest">
+                {logoChoiceLabel(option)}
+              </p>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const AiDropdown = ({
   generators,
   onGenerate,
@@ -224,18 +289,8 @@ const AiDropdown = ({
 
 export const NewsletterView = () => {
   const { showToast } = useToast();
-  const logoSourceOptions = [
-    {
-      id: "jpg",
-      label: "football_league_logo.jpg",
-      url: "https://www.ligaelektryka.pl/football_league_logo.jpg",
-    },
-    {
-      id: "svg",
-      label: "le_logo.svg",
-      url: "https://www.ligaelektryka.pl/le_logo.svg",
-    },
-  ] as const;
+  const logo1Url = "https://www.ligaelektryka.pl/football_league_logo.jpg";
+  const logo2Url = "https://www.ligaelektryka.pl/le_logo.svg";
 
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [queueItems, setQueueItems] = useState<MailQueueItem[]>([]);
@@ -269,19 +324,37 @@ export const NewsletterView = () => {
     fallbackUsed: boolean;
     generatedAt: string | null;
   } | null>(null);
-  const [selectedLogoSrc, setSelectedLogoSrc] = useState<string>(
-    logoSourceOptions[0].url,
-  );
+  const [selectedLogoChoice, setSelectedLogoChoice] =
+    useState<LogoChoice>("logo1");
+  const [customLogoUrl, setCustomLogoUrl] = useState("");
+  const [isAiLogoAwarenessEnabled, setIsAiLogoAwarenessEnabled] =
+    useState(false);
 
   const pendingCount = useMemo(
     () => queueItems.filter((item) => item.status === "pending").length,
     [queueItems],
   );
 
+  const getSelectedLogoSrc = (): string | null => {
+    if (selectedLogoChoice === "logo1") return logo1Url;
+    if (selectedLogoChoice === "logo2") return logo2Url;
+
+    const custom = customLogoUrl.trim();
+    if (!custom) return null;
+    if (!/^https?:\/\//i.test(custom)) return null;
+    return custom;
+  };
+
   const handleInsertSiteLogo = () => {
+    const activeLogoSrc = getSelectedLogoSrc();
+    if (!activeLogoSrc) {
+      showToast("Dla opcji TWOJE LOGO podaj poprawny URL", "error");
+      return;
+    }
+
     const logoBlock = [
       `<div style="text-align:center;margin:0 0 20px 0;">`,
-      `<img src="${selectedLogoSrc}" alt="Liga Elektryka" style="max-width:180px;width:100%;height:auto;display:inline-block;" />`,
+      `<img src="${activeLogoSrc}" alt="Liga Elektryka" style="max-width:180px;width:100%;height:auto;display:inline-block;" />`,
       `</div>`,
     ].join("");
 
@@ -311,8 +384,13 @@ export const NewsletterView = () => {
       const result = await newsletterApi.generateNewsletterContent({
         provider,
         requestType,
+        logoAwareness: isAiLogoAwarenessEnabled,
+        logoUrl: isAiLogoAwarenessEnabled
+          ? getSelectedLogoSrc() || undefined
+          : undefined,
       });
 
+      setSubject(result.subject);
       setHtml(result.html);
       setAiFeedback({
         providerRequested: provider,
@@ -631,41 +709,44 @@ export const NewsletterView = () => {
               </div>
             )}
 
-            <div className="mb-3 border-2 border-black bg-gray-50 px-3 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <img
-                  src={selectedLogoSrc}
-                  alt="Logo strony"
-                  className="w-12 h-12 object-contain border border-black bg-white p-1"
+            <div className="mb-3 flex flex-col md:flex-row gap-2 md:items-center">
+              <LogoDropdown
+                selected={selectedLogoChoice}
+                onSelect={setSelectedLogoChoice}
+                disabled={isSubmitting || Boolean(generatingProvider)}
+              />
+
+              {selectedLogoChoice === "custom" && (
+                <input
+                  type="url"
+                  value={customLogoUrl}
+                  onChange={(e) => setCustomLogoUrl(e.target.value)}
+                  placeholder="https://twojastrona.pl/logo.png"
+                  className="flex-1 border-2 border-black px-3 py-2 text-sm font-semibold"
+                  disabled={isSubmitting || Boolean(generatingProvider)}
                 />
-                <div>
-                  <p className="text-xs font-black uppercase tracking-widest">
-                    Logo strony
-                  </p>
-                  <p className="text-xs text-gray-600">
-                    Jednym kliknieciem dodaj logo na poczatek newslettera.
-                  </p>
-                  <select
-                    value={selectedLogoSrc}
-                    onChange={(e) => setSelectedLogoSrc(e.target.value)}
-                    className="mt-2 w-full border-2 border-black bg-white px-2 py-1 text-xs font-bold"
-                    disabled={isSubmitting || Boolean(generatingProvider)}
-                  >
-                    {logoSourceOptions.map((option) => (
-                      <option key={option.id} value={option.url}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setIsAiLogoAwarenessEnabled((prev) => !prev)}
+                disabled={isSubmitting || Boolean(generatingProvider)}
+                className={`px-3 py-2 border-2 border-black font-black text-xs uppercase tracking-widest transition-colors disabled:opacity-60 ${
+                  isAiLogoAwarenessEnabled
+                    ? "bg-black text-white"
+                    : "bg-white text-black hover:bg-black hover:text-white"
+                }`}
+              >
+                Awareness AI z logo
+              </button>
+
               <button
                 type="button"
                 onClick={handleInsertSiteLogo}
                 disabled={isSubmitting || Boolean(generatingProvider)}
-                className="px-3 py-2 bg-white text-black border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-black hover:text-white transition-colors disabled:opacity-60"
+                className="px-3 py-2 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors disabled:opacity-60"
               >
-                Wstaw logo do HTML
+                Wstaw
               </button>
             </div>
 
