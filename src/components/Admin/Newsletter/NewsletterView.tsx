@@ -23,8 +23,7 @@ const isEditableQueueItem = (item: MailQueueItem): boolean =>
 
 type AiProvider = "groq" | "gemini";
 type AiRequestType = "report" | "promo" | "recap" | "announcement";
-// Rewrite AI disabled:
-// type RewriteStyle = "normalnie" | "smiesznie" | "formalnie" | "krotko";
+type RewriteStyle = "normalnie" | "smiesznie" | "formalnie" | "krotko";
 type LogoChoice = "logo1" | "logo2" | "custom";
 
 interface AiGenerator {
@@ -33,12 +32,11 @@ interface AiGenerator {
   description: string;
 }
 
-// Rewrite AI disabled:
-// interface RewriteOption {
-//   id: RewriteStyle;
-//   label: string;
-//   description: string;
-// }
+interface RewriteOption {
+  id: RewriteStyle;
+  label: string;
+  description: string;
+}
 
 const buildGenerators = (): AiGenerator[] => [
   {
@@ -64,29 +62,28 @@ const buildGenerators = (): AiGenerator[] => [
   },
 ];
 
-// Rewrite AI disabled:
-// const rewriteOptions: RewriteOption[] = [
-//   {
-//     id: "normalnie",
-//     label: "Rewrite: Normalnie",
-//     description: "Przepisuje newsletter w neutralnym, czytelnym stylu",
-//   },
-//   {
-//     id: "smiesznie",
-//     label: "Rewrite: Smiesznie",
-//     description: "Nadaje tresci lekki i bardziej rozrywkowy ton",
-//   },
-//   {
-//     id: "formalnie",
-//     label: "Rewrite: Formalnie",
-//     description: "Przerabia tekst na oficjalny i profesjonalny jezyk",
-//   },
-//   {
-//     id: "krotko",
-//     label: "Rewrite: Krotko",
-//     description: "Skraca i porzadkuje tresc do najwazniejszych punktow",
-//   },
-// ];
+const rewriteOptions: RewriteOption[] = [
+  {
+    id: "normalnie",
+    label: "Rewrite: Normalnie",
+    description: "Przepisuje newsletter w neutralnym, czytelnym stylu",
+  },
+  {
+    id: "smiesznie",
+    label: "Rewrite: Smiesznie",
+    description: "Nadaje tresci lekki i bardziej rozrywkowy ton",
+  },
+  {
+    id: "formalnie",
+    label: "Rewrite: Formalnie",
+    description: "Przerabia tekst na oficjalny i profesjonalny jezyk",
+  },
+  {
+    id: "krotko",
+    label: "Rewrite: Krotko",
+    description: "Skraca i porzadkuje tresc do najwazniejszych punktow",
+  },
+];
 
 // ─── HTML Editor with Preview ─────────────────────────────────────────────────
 
@@ -189,14 +186,13 @@ interface AiDropdownProps {
   disabled?: boolean;
 }
 
-// Rewrite AI disabled:
-// interface RewriteDropdownProps {
-//   options: RewriteOption[];
-//   onRewrite: (option: RewriteOption) => void;
-//   isGenerating: boolean;
-//   currentStyle: RewriteStyle;
-//   disabled?: boolean;
-// }
+interface RewriteDropdownProps {
+  options: RewriteOption[];
+  onRewrite: (option: RewriteOption) => void;
+  isGenerating: boolean;
+  currentStyle: RewriteStyle;
+  disabled?: boolean;
+}
 
 interface LogoDropdownProps {
   selected: LogoChoice;
@@ -328,65 +324,71 @@ const AiDropdown = ({
   );
 };
 
-// Rewrite AI disabled:
-// const RewriteDropdown = ({
-//   options,
-//   onRewrite,
-//   isGenerating,
-//   currentStyle,
-//   disabled,
-// }: RewriteDropdownProps) => {
-//   const [open, setOpen] = useState(false);
-//   const ref = useRef<HTMLDivElement>(null);
-//
-//   useEffect(() => {
-//     const handler = (e: MouseEvent) => {
-//       if (ref.current && !ref.current.contains(e.target as Node)) {
-//         setOpen(false);
-//       }
-//     };
-//     document.addEventListener("mousedown", handler);
-//     return () => document.removeEventListener("mousedown", handler);
-//   }, []);
-//
-//   return (
-//     <div ref={ref} className="relative">
-//       <button
-//         type="button"
-//         onClick={() => setOpen((v) => !v)}
-//         disabled={isGenerating || disabled}
-//         className="flex items-center gap-2 px-3 py-2 bg-white text-black border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-black hover:text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-//       >
-//         ↻ Rewrite AI ▾
-//       </button>
-//
-//       {open && !isGenerating && (
-//         <div className="absolute right-0 top-full mt-1 z-50 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] min-w-[300px]">
-//           {options.map((option) => (
-//             <button
-//               key={option.id}
-//               type="button"
-//               onClick={() => {
-//                 setOpen(false);
-//                 onRewrite(option);
-//               }}
-//               className={`w-full text-left px-4 py-3 border-b-2 border-black last:border-b-0 hover:bg-black hover:text-white transition-colors ${
-//                 currentStyle === option.id ? "bg-gray-100" : "bg-white"
-//               }`}
-//             >
-//               <p className="text-xs font-black uppercase tracking-widest">
-//                 {option.label}
-//               </p>
-//               <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-//                 {option.description}
-//               </p>
-//             </button>
-//           ))}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
+const RewriteDropdown = ({
+  options,
+  onRewrite,
+  isGenerating,
+  currentStyle,
+  disabled,
+}: RewriteDropdownProps) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={isGenerating || disabled}
+        className="flex items-center gap-2 px-3 py-2 bg-white text-black border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-black hover:text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {isGenerating ? (
+          <>
+            <span className="inline-block w-3 h-3 border border-black border-r-transparent animate-spin" />
+            Rewrite...
+          </>
+        ) : (
+          <>↻ Rewrite AI ▾</>
+        )}
+      </button>
+
+      {open && !isGenerating && (
+        <div className="absolute right-0 top-full mt-1 z-50 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] min-w-[300px]">
+          {options.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onRewrite(option);
+              }}
+              className={`w-full text-left px-4 py-3 border-b-2 border-black last:border-b-0 hover:bg-black hover:text-white transition-colors ${
+                currentStyle === option.id ? "bg-gray-100" : "bg-white"
+              }`}
+            >
+              <p className="text-xs font-black uppercase tracking-widest">
+                {option.label}
+              </p>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                {option.description}
+              </p>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -401,6 +403,9 @@ export const NewsletterView = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatingProvider, setGeneratingProvider] =
     useState<AiProvider | null>(null);
+  const [generatingMode, setGeneratingMode] = useState<
+    "generate" | "rewrite" | null
+  >(null);
   const [selectedProvider, setSelectedProvider] = useState<AiProvider>("groq");
   const [selectedRequestType, setSelectedRequestType] =
     useState<AiRequestType>("report");
@@ -430,11 +435,11 @@ export const NewsletterView = () => {
   const [selectedLogoChoice, setSelectedLogoChoice] =
     useState<LogoChoice>("logo1");
   const [customLogoUrl, setCustomLogoUrl] = useState("");
-  // Rewrite AI disabled:
-  // const [selectedRewriteStyle, setSelectedRewriteStyle] =
-  //   useState<RewriteStyle>("normalnie");
+  const [selectedRewriteStyle, setSelectedRewriteStyle] =
+    useState<RewriteStyle>("normalnie");
   const [isAiLogoAwarenessEnabled, setIsAiLogoAwarenessEnabled] =
     useState(false);
+  const isGeneratingAny = Boolean(generatingProvider);
 
   const pendingCount = useMemo(
     () => queueItems.filter((item) => item.status === "pending").length,
@@ -485,6 +490,7 @@ export const NewsletterView = () => {
     }
 
     setGeneratingProvider(provider);
+    setGeneratingMode("generate");
     setSelectedRequestType(requestType);
     try {
       const result = await newsletterApi.generateNewsletterContent({
@@ -525,71 +531,73 @@ export const NewsletterView = () => {
       );
     } finally {
       setGeneratingProvider(null);
+      setGeneratingMode(null);
     }
   };
 
-  // Rewrite AI disabled:
-  // const handleRewriteByStyle = async (style?: RewriteStyle) => {
-  //   const provider = selectedProvider;
-  //   const rewriteStyle = style ?? selectedRewriteStyle;
-  //   const rewriteOption = rewriteOptions.find(
-  //     (option) => option.id === rewriteStyle,
-  //   );
-  //
-  //   if (!rewriteOption) {
-  //     showToast("Nieznany styl przepisywania", "error");
-  //     return;
-  //   }
-  //
-  //   if (!html.trim()) {
-  //     showToast("Dodaj HTML zanim uzyjesz Rewrite", "error");
-  //     return;
-  //   }
-  //
-  //   setGeneratingProvider(provider);
-  //   setSelectedRewriteStyle(rewriteStyle);
-  //   try {
-  //     const result = await newsletterApi.generateNewsletterContent({
-  //       provider,
-  //       requestType: selectedRequestType,
-  //       mode: "rewrite",
-  //       rewriteStyle,
-  //       sourceHtml: html,
-  //       sourceSubject: subject,
-  //       logoAwareness: isAiLogoAwarenessEnabled,
-  //       logoUrl: isAiLogoAwarenessEnabled
-  //         ? getSelectedLogoSrc() || undefined
-  //         : undefined,
-  //     });
-  //
-  //     setSubject(result.subject);
-  //     setHtml(result.html);
-  //     setAiFeedback({
-  //       providerRequested: provider,
-  //       providerUsed: result.providerUsed,
-  //       requestTypeRequested: selectedRequestType,
-  //       requestTypeUsed: result.requestTypeUsed,
-  //       fallbackUsed: result.fallbackUsed,
-  //       generatedAt: result.generatedAt,
-  //     });
-  //
-  //     if (result.fallbackUsed) {
-  //       showToast(
-  //         `Przepisano tresc (${rewriteOption.label}). Uzyto ${result.providerUsed.toUpperCase()} po fallbacku.`,
-  //         "info",
-  //       );
-  //     } else {
-  //       showToast(`Przepisano tresc: ${rewriteOption.label}.`, "success");
-  //     }
-  //   } catch (err) {
-  //     showToast(
-  //       err instanceof Error ? err.message : "Blad przepisywania",
-  //       "error",
-  //     );
-  //   } finally {
-  //     setGeneratingProvider(null);
-  //   }
-  // };
+  const handleRewriteByStyle = async (style?: RewriteStyle) => {
+    const provider = selectedProvider;
+    const rewriteStyle = style ?? selectedRewriteStyle;
+    const rewriteOption = rewriteOptions.find(
+      (option) => option.id === rewriteStyle,
+    );
+
+    if (!rewriteOption) {
+      showToast("Nieznany styl przepisywania", "error");
+      return;
+    }
+
+    if (!html.trim()) {
+      showToast("Dodaj HTML zanim uzyjesz Rewrite", "error");
+      return;
+    }
+
+    setGeneratingProvider(provider);
+    setGeneratingMode("rewrite");
+    setSelectedRewriteStyle(rewriteStyle);
+    try {
+      const result = await newsletterApi.generateNewsletterContent({
+        provider,
+        requestType: selectedRequestType,
+        mode: "rewrite",
+        rewriteStyle,
+        sourceHtml: html,
+        sourceSubject: subject,
+        logoAwareness: isAiLogoAwarenessEnabled,
+        logoUrl: isAiLogoAwarenessEnabled
+          ? getSelectedLogoSrc() || undefined
+          : undefined,
+      });
+
+      setSubject(result.subject);
+      setHtml(result.html);
+      setAiFeedback({
+        providerRequested: provider,
+        providerUsed: result.providerUsed,
+        requestTypeRequested: selectedRequestType,
+        requestTypeUsed: result.requestTypeUsed,
+        fallbackUsed: result.fallbackUsed,
+        generatedAt: result.generatedAt,
+      });
+
+      if (result.fallbackUsed) {
+        showToast(
+          `Przepisano tresc (${rewriteOption.label}). Uzyto ${result.providerUsed.toUpperCase()} po fallbacku.`,
+          "info",
+        );
+      } else {
+        showToast(`Przepisano tresc: ${rewriteOption.label}.`, "success");
+      }
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : "Blad przepisywania",
+        "error",
+      );
+    } finally {
+      setGeneratingProvider(null);
+      setGeneratingMode(null);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -825,7 +833,7 @@ export const NewsletterView = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedProvider("groq")}
-                  disabled={Boolean(generatingProvider) || isSubmitting}
+                  disabled={isGeneratingAny || isSubmitting}
                   className={`px-3 py-2 text-xs font-black uppercase tracking-widest transition-colors disabled:opacity-60 ${
                     selectedProvider === "groq"
                       ? "bg-black text-white"
@@ -837,7 +845,7 @@ export const NewsletterView = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedProvider("gemini")}
-                  disabled={Boolean(generatingProvider) || isSubmitting}
+                  disabled={isGeneratingAny || isSubmitting}
                   className={`px-3 py-2 text-xs font-black uppercase tracking-widest border-l-2 border-black transition-colors disabled:opacity-60 ${
                     selectedProvider === "gemini"
                       ? "bg-black text-white"
@@ -851,21 +859,18 @@ export const NewsletterView = () => {
               <AiDropdown
                 generators={generators}
                 onGenerate={(gen) => void handleGenerateBySelection(gen.id)}
-                isGenerating={Boolean(generatingProvider)}
+                isGenerating={generatingMode === "generate"}
                 currentId={selectedRequestType}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isGeneratingAny}
               />
 
-              {/* Rewrite AI disabled */}
-              {/*
               <RewriteDropdown
                 options={rewriteOptions}
                 onRewrite={(option) => void handleRewriteByStyle(option.id)}
-                isGenerating={Boolean(generatingProvider)}
+                isGenerating={generatingMode === "rewrite"}
                 currentStyle={selectedRewriteStyle}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isGeneratingAny}
               />
-              */}
             </div>
 
             {selectedProvider === "gemini" && (
@@ -878,7 +883,7 @@ export const NewsletterView = () => {
               <LogoDropdown
                 selected={selectedLogoChoice}
                 onSelect={setSelectedLogoChoice}
-                disabled={isSubmitting || Boolean(generatingProvider)}
+                disabled={isSubmitting || isGeneratingAny}
               />
 
               {selectedLogoChoice === "custom" && (
@@ -888,14 +893,14 @@ export const NewsletterView = () => {
                   onChange={(e) => setCustomLogoUrl(e.target.value)}
                   placeholder="https://twojastrona.pl/logo.png"
                   className="flex-1 border-2 border-black px-3 py-2 text-sm font-semibold"
-                  disabled={isSubmitting || Boolean(generatingProvider)}
+                  disabled={isSubmitting || isGeneratingAny}
                 />
               )}
 
               <button
                 type="button"
                 onClick={() => setIsAiLogoAwarenessEnabled((prev) => !prev)}
-                disabled={isSubmitting || Boolean(generatingProvider)}
+                disabled={isSubmitting || isGeneratingAny}
                 className={`px-3 py-2 border-2 border-black font-black text-xs uppercase tracking-widest transition-colors disabled:opacity-60 ${
                   isAiLogoAwarenessEnabled
                     ? "bg-black text-white"
@@ -908,7 +913,7 @@ export const NewsletterView = () => {
               <button
                 type="button"
                 onClick={handleInsertSiteLogo}
-                disabled={isSubmitting || Boolean(generatingProvider)}
+                disabled={isSubmitting || isGeneratingAny}
                 className="px-3 py-2 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors disabled:opacity-60"
               >
                 Wstaw logo
@@ -964,7 +969,7 @@ export const NewsletterView = () => {
             <HtmlEditor
               value={html}
               onChange={setHtml}
-              disabled={isSubmitting || Boolean(generatingProvider)}
+              disabled={isSubmitting || isGeneratingAny}
             />
           </div>
 

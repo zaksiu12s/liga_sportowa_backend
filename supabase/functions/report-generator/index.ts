@@ -223,7 +223,9 @@ Zwróć wyłącznie sam temat.`;
 };
 
 const getRewriteToneInstructions = (style: RewriteStyle): string => {
-  if (style === "smiesznie") return "Styl: lekko humorystyczny, z wyczuciem, bez cringu.";
+  if (style === "smiesznie") {
+    return "Styl: wyraznie humorystyczny, ale kulturalny; dodaj kilka lekkich, pilkarskich wstawek z humorem i wyraznie odroznij ton od wersji neutralnej.";
+  }
   if (style === "formalnie") return "Styl: formalny, profesjonalny, oficjalny.";
   if (style === "krotko") return "Styl: maksymalnie zwięzły i konkretny.";
   return "Styl: neutralny, naturalny, czytelny.";
@@ -251,6 +253,7 @@ const buildRewritePrompt = (input: {
     - zwróć WYŁĄCZNIE HTML (bez markdown),
     - zachowaj styl mailowy (inline CSS),
     - utrzymaj strukturę sekcji i czytelność tabel,
+    - zachowaj wszystkie znaczniki <img> z logo obecne w źródłowym HTML (nie usuwaj istniejących logo),
     - styl wizualny ma pasować do strony Liga Elektryka (mocny kontrast, czarne obramowania, czerwony akcent #dc2626),
     - ${noCommercialPolicy}
     ${logoBlockInstruction}
@@ -296,17 +299,40 @@ const prependLogoToHtml = (html: string, logoUrl: string): string => {
   return `${logoBlock}\n${trimmed}`;
 };
 
+const extractImageSrcs = (html: string): string[] => {
+  const matches = [...html.matchAll(/<img[^>]*src=["']([^"']+)["'][^>]*>/gi)];
+  const urls = matches
+    .map((match) => match[1]?.trim())
+    .filter((src): src is string => Boolean(src));
+  return Array.from(new Set(urls));
+};
+
 const ensureLogoInHtml = (input: {
   html: string;
   logoAwareness: boolean;
   logoUrl?: string;
+  sourceHtml?: string;
 }): string => {
-  if (!input.logoAwareness) return input.html;
-  const logoUrl = input.logoUrl || "https://www.ligaelektryka.pl/le_logo.svg";
-  if (input.html.includes(logoUrl)) {
-    return input.html;
+  const requiredLogos = new Set<string>();
+
+  if (input.sourceHtml) {
+    for (const src of extractImageSrcs(input.sourceHtml)) {
+      requiredLogos.add(src);
+    }
   }
-  return prependLogoToHtml(input.html, logoUrl);
+
+  if (input.logoAwareness) {
+    requiredLogos.add(input.logoUrl || "https://www.ligaelektryka.pl/le_logo.svg");
+  }
+
+  let output = input.html;
+  for (const logoUrl of requiredLogos) {
+    if (!output.includes(logoUrl)) {
+      output = prependLogoToHtml(output, logoUrl);
+    }
+  }
+
+  return output;
 };
 
 const sanitizeSubject = (value: string): string =>
@@ -394,6 +420,33 @@ const stripMarkdownFences = (html: string): string =>
     .replace(/^```\s*/i, "")
     .replace(/\s*```$/i, "")
     .trim();
+
+const normalizeNewsletterInnerHtml = (html: string): string => {
+  let normalized = stripMarkdownFences(html);
+
+  const bodyMatch = normalized.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  if (bodyMatch?.[1]) {
+    normalized = bodyMatch[1].trim();
+  }
+
+  const contentCellMatch = normalized.match(
+    /<td[^>]*border-top:\s*2px\s+solid\s+#000000[^>]*>([\s\S]*?)<\/td>/i,
+  );
+  if (contentCellMatch?.[1]) {
+    normalized = contentCellMatch[1].trim();
+  }
+
+  normalized = normalized
+    .replace(/<!doctype[^>]*>/gi, "")
+    .replace(/<\/?html[^>]*>/gi, "")
+    .replace(/<\/?head[^>]*>/gi, "")
+    .replace(/<\/?body[^>]*>/gi, "")
+    .replace(/<meta[^>]*>/gi, "")
+    .replace(/<title[^>]*>[\s\S]*?<\/title>/gi, "")
+    .trim();
+
+  return normalized;
+};
 
 const escapeHtml = (value: string): string =>
   value
@@ -559,14 +612,15 @@ const generateReport = async (req: Request): Promise<Response> => {
   let subjectPrompt = "";
 
   if (mode === "rewrite") {
-    if (!sourceHtml.trim()) {
+    const sourceHtmlForRewrite = normalizeNewsletterInnerHtml(sourceHtml);
+    if (!sourceHtmlForRewrite.trim()) {
       return json(400, { error: "source_html is required in rewrite mode" });
     }
 
     prompt = buildRewritePrompt({
       requestType,
       rewriteStyle,
-      sourceHtml,
+      sourceHtml: sourceHtmlForRewrite,
       logoAwareness,
       logoUrl,
     });
@@ -600,10 +654,14 @@ const generateReport = async (req: Request): Promise<Response> => {
   }
 
   const cleanedHtml = stripMarkdownFences(llmResult.rawHtml);
+  const normalizedInnerHtml = mode === "rewrite"
+    ? normalizeNewsletterInnerHtml(cleanedHtml)
+    : cleanedHtml;
   const htmlWithLogo = ensureLogoInHtml({
-    html: cleanedHtml,
+    html: normalizedInnerHtml,
     logoAwareness,
     logoUrl,
+    sourceHtml: mode === "rewrite" ? sourceHtml : undefined,
   });
   const rawSubject = subjectResult ? stripMarkdownFences(subjectResult.rawHtml) : "";
   const subject = stripCommercialLanguage(sanitizeSubject(rawSubject)) || fallbackSubject(requestType);
