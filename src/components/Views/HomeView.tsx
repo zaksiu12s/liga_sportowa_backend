@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { View } from "../../types/app";
 import { usePublicData } from "../../hooks/usePublicData";
 import PdfModal, { preloadPdfFiles } from "../Layout/PdfModal";
+import { lockBodyScrollKeepScrollbar } from "../../utils/modalScrollLock";
+import {
+  getNewsletterPromptTimerStartedAt,
+  hasNewsletterPromptBeenSeen,
+  markNewsletterPromptSeen,
+  setNewsletterPromptTimerStartedAt,
+  subscribeToNewsletter,
+} from "../../utils/newsletter";
 
 interface HomeViewProps {
   onNavigate?: (view: View) => void;
@@ -20,12 +29,32 @@ type NextMatchData = {
   status?: string | null;
 };
 
+const NEWSLETTER_PROMPT_DELAY_MS = 2 * 60 * 1000;
+
+type SubmitSource = "footer" | "modal";
+
+type NewsletterFeedback = {
+  type: "success" | "error" | "info";
+  message: string;
+};
+
 const HomeView = ({ onNavigate }: HomeViewProps) => {
   const { data } = usePublicData();
   const [activeDocument, setActiveDocument] = useState<DocumentItem | null>(
     null,
   );
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
+  const [footerEmail, setFooterEmail] = useState("");
+  const [modalEmail, setModalEmail] = useState("");
+  const [isFooterSubmitting, setIsFooterSubmitting] = useState(false);
+  const [isModalSubmitting, setIsModalSubmitting] = useState(false);
+  const [footerFeedback, setFooterFeedback] = useState<NewsletterFeedback | null>(
+    null,
+  );
+  const [modalFeedback, setModalFeedback] = useState<NewsletterFeedback | null>(
+    null,
+  );
+  const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false);
 
   const documents: DocumentItem[] = [
     {
@@ -52,6 +81,58 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
       `${import.meta.env.BASE_URL}consent.pdf`,
     ]);
   }, []);
+
+  useEffect(() => {
+    if (hasNewsletterPromptBeenSeen()) {
+      return;
+    }
+
+    const openPromptModal = () => {
+      markNewsletterPromptSeen();
+      setIsNewsletterModalOpen(true);
+    };
+
+    const startedAt = getNewsletterPromptTimerStartedAt();
+    let remainingDelay = NEWSLETTER_PROMPT_DELAY_MS;
+
+    if (startedAt) {
+      const elapsed = Date.now() - startedAt;
+      remainingDelay = Math.max(0, NEWSLETTER_PROMPT_DELAY_MS - elapsed);
+    } else {
+      setNewsletterPromptTimerStartedAt(Date.now());
+    }
+
+    if (remainingDelay === 0) {
+      openPromptModal();
+      return;
+    }
+
+    const timeoutId = window.setTimeout(openPromptModal, remainingDelay);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isNewsletterModalOpen) {
+      return;
+    }
+
+    const releaseScrollLock = lockBodyScrollKeepScrollbar();
+
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsNewsletterModalOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", onEscape);
+
+    return () => {
+      window.removeEventListener("keydown", onEscape);
+      releaseScrollLock();
+    };
+  }, [isNewsletterModalOpen]);
 
   const getMatchWeekday = (dateString: string | null | undefined) => {
     if (!dateString) return "TERMIN TBD";
@@ -81,6 +162,61 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
     (match) => match.status === "scheduled",
   ) as NextMatchData | undefined;
   const hasPlannedMatch = Boolean(nextMatch?.status === "scheduled");
+
+  const handleNewsletterSubmit = async (
+    event: React.FormEvent,
+    source: SubmitSource,
+  ) => {
+    event.preventDefault();
+
+    const email = source === "footer" ? footerEmail : modalEmail;
+    const setSubmitting = source === "footer" ? setIsFooterSubmitting : setIsModalSubmitting;
+    const setFeedback = source === "footer" ? setFooterFeedback : setModalFeedback;
+
+    if (!email.trim()) {
+      setFeedback({ type: "error", message: "Podaj adres e-mail." });
+      return;
+    }
+
+    setSubmitting(true);
+    setFeedback(null);
+
+    try {
+      const result = await subscribeToNewsletter(email);
+      markNewsletterPromptSeen();
+
+      if (result === "already-subscribed") {
+        setFeedback({
+          type: "info",
+          message: "Ten adres e-mail jest juz zapisany do newslettera.",
+        });
+      } else {
+        setFeedback({
+          type: "success",
+          message: "Dzieki! Zapis do newslettera zakonczony sukcesem.",
+        });
+      }
+
+      if (source === "footer") {
+        setFooterEmail("");
+      } else {
+        setModalEmail("");
+        setIsNewsletterModalOpen(false);
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Nie udalo sie zapisac do newslettera. Sprobuj ponownie.";
+
+      setFeedback({
+        type: "error",
+        message,
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
@@ -278,11 +414,69 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
                   {document.title}
                 </span>
                 <span className="material-symbols-outlined ml-auto group-hover:text-white">
-                  visibility
+                  open_in_new
                 </span>
               </div>
             </button>
           ))}
+        </div>
+      </section>
+
+      <section className="mt-16 mb-4">
+        <div className="bg-white border-4 border-black shadow-[10px_10px_0px_#dc2626] p-6 sm:p-8">
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <span className="inline-flex items-center gap-2 border-2 border-black bg-black text-white px-3 py-1 font-black uppercase tracking-widest text-xs">
+                <span className="material-symbols-outlined text-base">mail</span>
+                NEWSLETTER
+              </span>
+              <h2 className="mt-4 text-3xl sm:text-4xl font-black uppercase tracking-tighter leading-[0.95]">
+                Nie Przegap Kolejnych
+                <span className="text-red-600 block">Informacji O Lidze</span>
+              </h2>
+              <p className="mt-3 text-sm sm:text-base font-semibold text-gray-700">
+                Mecze, wyniki, ciekawostki i najwazniejsze ogloszenia prosto na
+                Twoja skrzynke. Zero spamu, tylko konkret.
+              </p>
+            </div>
+
+            <form
+              onSubmit={(event) => void handleNewsletterSubmit(event, "footer")}
+              className="w-full md:max-w-xl"
+            >
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="email"
+                  value={footerEmail}
+                  onChange={(event) => setFooterEmail(event.target.value)}
+                  placeholder="twoj@email.pl"
+                  autoComplete="email"
+                  className="w-full border-2 border-black px-4 py-3 font-bold text-sm"
+                />
+                <button
+                  type="submit"
+                  disabled={isFooterSubmitting}
+                  className="px-6 py-3 border-2 border-black bg-red-600 text-white font-black uppercase tracking-widest text-xs hover:bg-black disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isFooterSubmitting ? "WYSYLANIE..." : "ZAPISZ MNIE"}
+                </button>
+              </div>
+
+              {footerFeedback && (
+                <p
+                  className={`mt-3 text-xs sm:text-sm font-bold uppercase tracking-wide ${
+                    footerFeedback.type === "success"
+                      ? "text-green-700"
+                      : footerFeedback.type === "info"
+                        ? "text-blue-700"
+                        : "text-red-700"
+                  }`}
+                >
+                  {footerFeedback.message}
+                </p>
+              )}
+            </form>
+          </div>
         </div>
       </section>
 
@@ -292,6 +486,80 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
         fileUrl={activeDocument?.href ?? ""}
         onClose={() => setActiveDocument(null)}
       />
+
+      {isNewsletterModalOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className="fixed inset-0 z-[110] bg-black/70 flex items-center justify-center px-4">
+            <div className="w-full max-w-2xl bg-white border-4 border-black shadow-[10px_10px_0px_#dc2626]">
+              <div className="flex items-center justify-between border-b-4 border-black px-4 py-3">
+                <h2 className="font-black uppercase tracking-widest text-sm sm:text-base">
+                  Dolacz Do Newslettera
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setIsNewsletterModalOpen(false)}
+                  className="border-2 border-black px-3 py-1 font-black text-xs uppercase hover:bg-black hover:text-white"
+                >
+                  Zamknij
+                </button>
+              </div>
+
+              <div className="p-5 sm:p-6 space-y-4">
+                <p className="text-base sm:text-lg font-bold leading-relaxed">
+                  Zostaw e-mail i otrzymuj informacje o terminarzu, wynikach i
+                  waznych ogloszeniach ligi.
+                </p>
+
+                <form
+                  onSubmit={(event) => void handleNewsletterSubmit(event, "modal")}
+                  className="space-y-3"
+                >
+                  <input
+                    type="email"
+                    value={modalEmail}
+                    onChange={(event) => setModalEmail(event.target.value)}
+                    placeholder="Wpisz swoj e-mail"
+                    autoComplete="email"
+                    className="w-full border-2 border-black px-4 py-3 font-bold text-sm"
+                  />
+
+                  <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsNewsletterModalOpen(false)}
+                      className="px-5 py-2 border-2 border-black bg-white font-black uppercase text-xs tracking-widest hover:bg-black hover:text-white"
+                    >
+                      Nie teraz
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isModalSubmitting}
+                      className="px-5 py-2 border-2 border-black bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-black disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {isModalSubmitting ? "WYSYLANIE..." : "Zapisz"}
+                    </button>
+                  </div>
+                </form>
+
+                {modalFeedback && (
+                  <p
+                    className={`text-xs sm:text-sm font-bold uppercase tracking-wide ${
+                      modalFeedback.type === "success"
+                        ? "text-green-700"
+                        : modalFeedback.type === "info"
+                          ? "text-blue-700"
+                          : "text-red-700"
+                    }`}
+                  >
+                    {modalFeedback.message}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </main>
   );
 };
