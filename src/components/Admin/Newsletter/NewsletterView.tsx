@@ -1,21 +1,245 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { MailQueueItem, Subscriber } from "../../../types/admin";
 import { newsletterApi } from "../../../utils/adminSupabase";
 import { useToast } from "../Toast";
 import supabase from "../../../utils/supabase";
 
 const formatDateTime = (value: string | null) => {
-  if (!value) {
-    return "-";
-  }
-
+  if (!value) return "-";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
+  if (Number.isNaN(date.getTime())) return "-";
   return date.toLocaleString();
 };
+
+// ─── AI generation functions ──────────────────────────────────────────────────
+
+type AiGeneratorId = "report" | "promo" | "recap" | "announcement";
+
+interface AiGenerator {
+  id: AiGeneratorId;
+  label: string;
+  description: string;
+  invoke: () => Promise<string>;
+}
+
+const buildGenerators = (): AiGenerator[] => [
+  {
+    id: "report",
+    label: "Sprawozdanie Ligi",
+    description: "AI generuje sprawozdanie z ostatnich wyników ligi",
+    invoke: async () => {
+      const { data, error } = await supabase.functions.invoke(
+        "report-generator",
+        { body: {} },
+      );
+      if (error) throw error;
+      return data.html as string;
+    },
+  },
+  {
+    id: "promo",
+    label: "Promocja / CTA",
+    description: "AI tworzy e-mail promocyjny z wezwaniem do działania",
+    invoke: async () => {
+      const { data, error } = await supabase.functions.invoke(
+        "promo-generator",
+        { body: {} },
+      );
+      if (error) throw error;
+      return data.html as string;
+    },
+  },
+  {
+    id: "recap",
+    label: "Podsumowanie tygodnia",
+    description: "Krótkie AI podsumowanie mijającego tygodnia w lidze",
+    invoke: async () => {
+      const { data, error } = await supabase.functions.invoke(
+        "recap-generator",
+        { body: {} },
+      );
+      if (error) throw error;
+      return data.html as string;
+    },
+  },
+  {
+    id: "announcement",
+    label: "Ogłoszenie",
+    description: "AI szkicuje ogłoszenie o nadchodzącym wydarzeniu",
+    invoke: async () => {
+      const { data, error } = await supabase.functions.invoke(
+        "announcement-generator",
+        { body: {} },
+      );
+      if (error) throw error;
+      return data.html as string;
+    },
+  },
+];
+
+// ─── HTML Editor with Preview ─────────────────────────────────────────────────
+
+type EditorTab = "code" | "preview" | "split";
+
+interface HtmlEditorProps {
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+}
+
+const HtmlEditor = ({ value, onChange, disabled }: HtmlEditorProps) => {
+  const [tab, setTab] = useState<EditorTab>("split");
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Refresh iframe content whenever HTML or tab changes
+  useEffect(() => {
+    if (tab === "code") return;
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
+    if (!doc) return;
+    doc.open();
+    doc.write(value);
+    doc.close();
+  }, [value, tab]);
+
+  const tabs: { id: EditorTab; label: string }[] = [
+    { id: "code", label: "⌨ Kod" },
+    { id: "split", label: "⬛ Split" },
+    { id: "preview", label: "👁 Podgląd" },
+  ];
+
+  return (
+    <div className="border-2 border-black">
+      {/* Tab bar */}
+      <div className="flex border-b-2 border-black bg-gray-100">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={`px-4 py-2 text-xs font-black uppercase tracking-widest border-r-2 border-black transition-colors ${
+              tab === t.id
+                ? "bg-black text-white"
+                : "bg-gray-100 text-black hover:bg-gray-200"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Panes */}
+      <div className={`${tab === "split" ? "grid grid-cols-2" : "flex"} h-80`}>
+        {/* Code pane */}
+        {(tab === "code" || tab === "split") && (
+          <textarea
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            disabled={disabled}
+            spellCheck={false}
+            className={`h-full p-3 text-sm font-mono resize-none focus:outline-none bg-[#1a1a1a] text-green-400 disabled:opacity-60 ${
+              tab === "split" ? "border-r-2 border-black" : "w-full"
+            }`}
+          />
+        )}
+
+        {/* Preview pane */}
+        {(tab === "preview" || tab === "split") && (
+          <div
+            className={`h-full overflow-auto bg-white ${tab === "preview" ? "w-full" : ""}`}
+          >
+            <iframe
+              ref={iframeRef}
+              title="HTML Preview"
+              sandbox="allow-same-origin"
+              className="w-full h-full border-0"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── AI Generator Dropdown ────────────────────────────────────────────────────
+
+interface AiDropdownProps {
+  generators: AiGenerator[];
+  onGenerate: (gen: AiGenerator) => void;
+  isGenerating: boolean;
+  currentId: AiGeneratorId | null;
+  disabled?: boolean;
+}
+
+const AiDropdown = ({
+  generators,
+  onGenerate,
+  isGenerating,
+  currentId,
+  disabled,
+}: AiDropdownProps) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={isGenerating || disabled}
+        className="flex items-center gap-2 px-3 py-1 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {isGenerating ? (
+          <>
+            <span className="inline-block w-3 h-3 border border-white border-r-transparent animate-spin" />
+            Generowanie...
+          </>
+        ) : (
+          <>✦ Generuj AI ▾</>
+        )}
+      </button>
+
+      {open && !isGenerating && (
+        <div className="absolute right-0 top-full mt-1 z-50 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] min-w-[220px]">
+          {generators.map((gen) => (
+            <button
+              key={gen.id}
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onGenerate(gen);
+              }}
+              className={`w-full text-left px-4 py-3 border-b-2 border-black last:border-b-0 hover:bg-black hover:text-white transition-colors ${
+                currentId === gen.id ? "bg-gray-100" : "bg-white"
+              }`}
+            >
+              <p className="text-xs font-black uppercase tracking-widest">
+                {gen.label}
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5 group-hover:text-gray-300">
+                {gen.description}
+              </p>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export const NewsletterView = () => {
   const { showToast } = useToast();
@@ -24,41 +248,39 @@ export const NewsletterView = () => {
   const [queueItems, setQueueItems] = useState<MailQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [lastGeneratorId, setLastGeneratorId] = useState<AiGeneratorId | null>(
+    null,
+  );
 
   const [subject, setSubject] = useState("");
-  const [html, setHtml] = useState("<h1>Czesc!</h1>");
+  const [html, setHtml] = useState(
+    "<h1>Cześć!</h1>\n<p>Treść newslettera...</p>",
+  );
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledAtLocal, setScheduledAtLocal] = useState("");
+
+  const generators = useMemo(() => buildGenerators(), []);
 
   const pendingCount = useMemo(
     () => queueItems.filter((item) => item.status === "pending").length,
     [queueItems],
   );
 
-  const handleGenerateReport = async () => {
-    setIsGeneratingReport(true);
+  const handleGenerate = async (gen: AiGenerator) => {
+    setIsGenerating(true);
+    setLastGeneratorId(gen.id);
     try {
-      const { data, error } = await supabase.functions.invoke(
-        "report-generator",
-        {
-          body: {},
-        },
-      );
-
-      if (error) throw error;
-
-      setHtml(
-        `<h1>Sprawozdanie Ligi Elektryka</h1>\n<p>${(data.report as string).replace(/\n/g, "</p>\n<p>")}</p>`,
-      );
-      showToast("Sprawozdanie wygenerowane!", "success");
+      const result = await gen.invoke();
+      setHtml(result);
+      showToast(`${gen.label} — wygenerowano!`, "success");
     } catch (err) {
       showToast(
-        err instanceof Error ? err.message : "Błąd generowania sprawozdania",
+        err instanceof Error ? err.message : "Błąd generowania",
         "error",
       );
     } finally {
-      setIsGeneratingReport(false);
+      setIsGenerating(false);
     }
   };
 
@@ -72,7 +294,6 @@ export const NewsletterView = () => {
       setSubscribers(subscribersData);
       setQueueItems(queueData);
     } catch (error) {
-      console.error("Failed to load newsletter data:", error);
       showToast(
         error instanceof Error
           ? error.message
@@ -95,7 +316,6 @@ export const NewsletterView = () => {
       showToast("Subject is required", "error");
       return;
     }
-
     if (!html.trim()) {
       showToast("HTML content is required", "error");
       return;
@@ -107,13 +327,11 @@ export const NewsletterView = () => {
         showToast("Select a scheduled date and time", "error");
         return;
       }
-
       const parsedDate = new Date(scheduledAtLocal);
       if (Number.isNaN(parsedDate.getTime())) {
         showToast("Invalid scheduled date", "error");
         return;
       }
-
       scheduledAtIso = parsedDate.toISOString();
     }
 
@@ -131,13 +349,12 @@ export const NewsletterView = () => {
       );
 
       setSubject("");
-      setHtml("<h1>Czesc!</h1>");
+      setHtml("<h1>Cześć!</h1>\n<p>Treść newslettera...</p>");
       setIsScheduled(false);
       setScheduledAtLocal("");
 
       await loadData();
     } catch (error) {
-      console.error("Failed to enqueue newsletter:", error);
       showToast(
         error instanceof Error ? error.message : "Failed to enqueue newsletter",
         "error",
@@ -151,7 +368,7 @@ export const NewsletterView = () => {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <div className="inline-block w-12 h-12 border-2 border-black border-r-transparent animate-spin mb-4"></div>
+          <div className="inline-block w-12 h-12 border-2 border-black border-r-transparent animate-spin mb-4" />
           <p className="font-black uppercase text-sm tracking-widest">
             Loading newsletter...
           </p>
@@ -162,6 +379,7 @@ export const NewsletterView = () => {
 
   return (
     <div className="space-y-6">
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white border-2 border-black p-4">
           <p className="text-xs font-black uppercase tracking-widest text-gray-600">
@@ -183,12 +401,14 @@ export const NewsletterView = () => {
         </div>
       </div>
 
+      {/* Compose form */}
       <div className="bg-white border-2 border-black p-6">
         <h3 className="text-lg font-black uppercase tracking-widest border-b-2 border-black pb-3">
           Create Newsletter Queue
         </h3>
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+          {/* Subject */}
           <div>
             <label className="block text-xs font-black uppercase tracking-widest mb-2">
               Subject
@@ -196,47 +416,40 @@ export const NewsletterView = () => {
             <input
               type="text"
               value={subject}
-              onChange={(event) => setSubject(event.target.value)}
+              onChange={(e) => setSubject(e.target.value)}
               placeholder="Newsletter subject"
               className="w-full border-2 border-black px-3 py-2 text-sm font-semibold"
             />
           </div>
 
+          {/* HTML Editor */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-xs font-black uppercase tracking-widest">
                 HTML Content
               </label>
-              <button
-                type="button"
-                onClick={() => void handleGenerateReport()}
-                disabled={isGeneratingReport || isSubmitting}
-                className="flex items-center gap-2 px-3 py-1 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isGeneratingReport ? (
-                  <>
-                    <span className="inline-block w-3 h-3 border border-white border-r-transparent animate-spin" />
-                    Generowanie...
-                  </>
-                ) : (
-                  <>✦ Generuj AI</>
-                )}
-              </button>
+              <AiDropdown
+                generators={generators}
+                onGenerate={(gen) => void handleGenerate(gen)}
+                isGenerating={isGenerating}
+                currentId={lastGeneratorId}
+                disabled={isSubmitting}
+              />
             </div>
-            <textarea
+            <HtmlEditor
               value={html}
-              onChange={(event) => setHtml(event.target.value)}
-              rows={10}
-              className="w-full border-2 border-black px-3 py-2 text-sm font-mono"
+              onChange={setHtml}
+              disabled={isSubmitting || isGenerating}
             />
           </div>
 
+          {/* Schedule */}
           <div className="border-2 border-black p-4 bg-gray-50 space-y-3">
             <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
               <input
                 type="checkbox"
                 checked={isScheduled}
-                onChange={(event) => setIsScheduled(event.target.checked)}
+                onChange={(e) => setIsScheduled(e.target.checked)}
               />
               Schedule send time
             </label>
@@ -249,7 +462,7 @@ export const NewsletterView = () => {
                 <input
                   type="datetime-local"
                   value={scheduledAtLocal}
-                  onChange={(event) => setScheduledAtLocal(event.target.value)}
+                  onChange={(e) => setScheduledAtLocal(e.target.value)}
                   className="border-2 border-black px-3 py-2 text-sm font-semibold"
                 />
                 <p className="mt-2 text-xs text-gray-600">
@@ -260,6 +473,7 @@ export const NewsletterView = () => {
             )}
           </div>
 
+          {/* Actions */}
           <div className="flex gap-3">
             <button
               type="submit"
@@ -280,6 +494,7 @@ export const NewsletterView = () => {
         </form>
       </div>
 
+      {/* Subscribers table */}
       <div className="bg-white border-2 border-black p-6">
         <h3 className="text-lg font-black uppercase tracking-widest border-b-2 border-black pb-3">
           Subscribers
@@ -312,7 +527,6 @@ export const NewsletterView = () => {
               ))}
             </tbody>
           </table>
-
           {subscribers.length === 0 && (
             <div className="p-4 text-sm text-gray-600">
               No subscribers found.
@@ -321,6 +535,7 @@ export const NewsletterView = () => {
         </div>
       </div>
 
+      {/* Queue table */}
       <div className="bg-white border-2 border-black p-6">
         <h3 className="text-lg font-black uppercase tracking-widest border-b-2 border-black pb-3">
           Email Queue (latest 80)
@@ -381,7 +596,6 @@ export const NewsletterView = () => {
               ))}
             </tbody>
           </table>
-
           {queueItems.length === 0 && (
             <div className="p-4 text-sm text-gray-600">Queue is empty.</div>
           )}
