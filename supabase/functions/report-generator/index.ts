@@ -1,8 +1,32 @@
 // @ts-nocheck
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { GoogleGenAI } from "npm:@google/genai";
+
+const dedent = (strings: TemplateStringsArray, ...values: unknown[]): string => {
+  const raw = strings.reduce((acc, part, index) => {
+    const value = index < values.length ? String(values[index]) : "";
+    return acc + part + value;
+  }, "");
+
+  const lines = raw.replace(/^\n/, "").split("\n");
+  const indents = lines
+    .filter((line) => line.trim().length > 0)
+    .map((line) => line.match(/^\s*/)?.[0].length ?? 0);
+  const minIndent = indents.length > 0 ? Math.min(...indents) : 0;
+
+  return lines.map((line) => line.slice(minIndent)).join("\n").trim();
+};
 
 const modelName = "gemini-3-flash-preview";
+type RequestType = "report" | "promo" | "recap" | "announcement";
+type GenerationMode = "generate" | "rewrite";
+type RewriteStyle = "normalnie" | "smiesznie" | "formalnie" | "krotko";
+
+const noCommercialPolicy = dedent`
+  Zakaz tresci komercyjnych:
+  - nie wspominaj o pieniadzach, cenach, cennikach, oplatach ani platnosciach,
+  - nie wspominaj o znizkach, rabatach, kodach rabatowych ani kuponach,
+  - nie uzywaj jezyka promocji/sprzedazy (np. promocja, oferta specjalna, kup, zamow).
+`;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -65,7 +89,53 @@ const fetchAllData = async (supabase: ReturnType<typeof createAdminClient>) => {
   };
 };
 
-const buildPrompt = (data: Awaited<ReturnType<typeof fetchAllData>>): string => {
+const getRequestInstructions = (requestType: RequestType): string => {
+  if (requestType === "promo") {
+    return [
+      "Typ requestu: ZAPOWIEDZ / ZAANGAZOWANIE",
+      "Stworz newsletter, ktory wzmacnia zaangazowanie kibicow wokol ligi i najblizszych wydarzen.",
+      "Sekcje: mocny naglowek, 3 powody sledzenia rozgrywek, neutralne CTA (przycisk/link placeholder), krotkie podsumowanie wynikow.",
+      "Ton: energiczny, pozytywny, konkretny, bez jezyka sprzedazowego.",
+    ].join("\n");
+  }
+
+  if (requestType === "recap") {
+    return [
+      "Typ requestu: PODSUMOWANIE TYGODNIA",
+      "Stwórz krótkie podsumowanie ostatnich wydarzeń ligi.",
+      "Sekcje: najważniejsze wyniki, top strzelcy tygodnia, co dalej w kalendarzu.",
+      "Ton: rzeczowy i dynamiczny.",
+    ].join("\n");
+  }
+
+  if (requestType === "announcement") {
+    return [
+      "Typ requestu: OGŁOSZENIE",
+      "Stwórz formalno-informacyjne ogłoszenie dla uczestników ligi.",
+      "Sekcje: nagłówek ogłoszenia, najważniejsze informacje organizacyjne, terminy i przypomnienia.",
+      "Ton: jasny, oficjalny, zwięzły.",
+    ].join("\n");
+  }
+
+  return [
+    "Typ requestu: SPRAWOZDANIE LIGI",
+    "Stwórz pełne sprawozdanie sezonowe oparte o dane.",
+    "Sekcje: podsumowanie sezonu, tabela wyników meczów, top strzelcy, nadchodzące mecze, prognoza.",
+  ].join("\n");
+};
+
+const getSubjectHint = (requestType: RequestType): string => {
+  if (requestType === "promo") return "Temat zapowiedzi wydarzen z neutralnym CTA";
+  if (requestType === "recap") return "Temat podsumowujący tydzień rozgrywek";
+  if (requestType === "announcement") return "Temat ogłoszenia organizacyjnego";
+  return "Temat sprawozdania ligowego";
+};
+
+const buildPrompt = (
+  data: Awaited<ReturnType<typeof fetchAllData>>,
+  requestType: RequestType,
+  options?: { logoAwareness?: boolean; logoUrl?: string },
+): string => {
   const completedMatches = data.matches.filter((m) => m.status === "completed");
   const scheduledMatches = data.matches.filter((m) => m.status === "scheduled");
 
@@ -87,17 +157,32 @@ const buildPrompt = (data: Awaited<ReturnType<typeof fetchAllData>>): string => 
     return `- ${t.name} (${teamPlayers.length} graczy)`;
   }).join("\n");
 
-  return `Jesteś sprawozdawcą sportowym dla ligi piłkarskiej "Liga Elektryka" - szkolnej ligi piłki nożnej.
-Na podstawie poniższych danych wygeneruj szczegółowe sprawozdanie w języku polskim.
+  const logoAwarenessText = options?.logoAwareness
+    ? `
+=== AWARENESS LOGO ===
+- Uwzględnij branding ligi spójnie z logo.
+- Wstaw logo na początku treści (sekcja hero) jako <img>.
+- Użyj źródła logo: ${options?.logoUrl || "https://www.ligaelektryka.pl/le_logo.svg"}.
+`
+    : "";
+
+  return `Jesteś copywriterem sportowym dla ligi piłkarskiej "Liga Elektryka" - szkolnej ligi piłki nożnej.
+Na podstawie poniższych danych wygeneruj treść newslettera w języku polskim.
 
 WAŻNE: Odpowiedz WYŁĄCZNIE kodem HTML gotowym do wklejenia w treść e-maila newslettera.
 - Nie dodawaj żadnego tekstu przed ani po kodzie HTML.
 - Nie owijaj w bloki markdown (bez \`\`\`html).
 - Użyj tylko inline CSS (żadnych klas, żadnych <style> bloków) — e-maile tego wymagają.
 - Zacznij od <div style="..."> i zakończ odpowiadającym </div>.
-- Struktura: nagłówek ligi, podsumowanie sezonu, tabela wyników meczów, top strzelcy (lista), nadchodzące mecze, prognoza.
-- Użyj kolorów: tło białe, akcenty czarne (#000), tabele z obramowaniem 1px solid #000, nagłówki bold.
+- Styl wizualny ma przypominać stronę Ligi Elektryka (HomeView): mocny kontrast, brutalistyczne obramowania, czerwony akcent #dc2626 i czerń #000.
+- Użyj kolorów: tło białe, akcenty czerwone i czarne, nagłówki uppercase i bardzo wyraźne.
+- Tabele mają wyglądać jak w aplikacji: grube obramowania, czytelne nagłówki, mocne oddzielenie sekcji.
 - Czcionka: Arial, sans-serif; rozmiar 14px dla tekstu, 20-24px dla nagłówków sekcji.
+- ${noCommercialPolicy}
+
+=== WYTYCZNE DLA TYPU REQUESTU ===
+${getRequestInstructions(requestType)}
+${logoAwarenessText}
 
 === DANE LIGI ===
 
@@ -121,6 +206,154 @@ STATYSTYKI OGÓLNE:
 - Subskrybenci newslettera: ${data.subscribersCount}
 - Grupy fazy pierwszej: ${data.firstStage.length}
 - Grupy fazy drugiej: ${data.secondStage.length}`;
+};
+
+const buildSubjectPrompt = (requestType: RequestType): string => {
+  const today = new Date().toLocaleDateString("pl-PL");
+  return `Wygeneruj JEDEN temat e-maila po polsku dla newslettera Liga Elektryka.
+Wymagania:
+- maksymalnie 72 znaki,
+- bez cudzysłowów,
+- bez emoji,
+- konkretny i klikalny,
+- zgodny z typem: ${requestType} (${getSubjectHint(requestType)}).
+- ${noCommercialPolicy}
+Data: ${today}.
+Zwróć wyłącznie sam temat.`;
+};
+
+const getRewriteToneInstructions = (style: RewriteStyle): string => {
+  if (style === "smiesznie") {
+    return "Styl: wyraznie humorystyczny, ale kulturalny; dodaj kilka lekkich, pilkarskich wstawek z humorem i wyraznie odroznij ton od wersji neutralnej.";
+  }
+  if (style === "formalnie") return "Styl: formalny, profesjonalny, oficjalny.";
+  if (style === "krotko") return "Styl: maksymalnie zwięzły i konkretny.";
+  return "Styl: neutralny, naturalny, czytelny.";
+};
+
+const buildRewritePrompt = (input: {
+  requestType: RequestType;
+  rewriteStyle: RewriteStyle;
+  sourceHtml: string;
+  logoAwareness?: boolean;
+  logoUrl?: string;
+}): string => {
+  const logoBlockInstruction = input.logoAwareness
+    ? `
+- Dodaj blok logo w górnej sekcji treści.
+- Użyj dokładnie tego URL logo: ${input.logoUrl || "https://www.ligaelektryka.pl/le_logo.svg"}
+`
+    : "";
+
+  return dedent`
+    Przepisz poniższy HTML newslettera po polsku, zachowując sens i dane.
+    ${getRewriteToneInstructions(input.rewriteStyle)}
+
+    Wymagania:
+    - zwróć WYŁĄCZNIE HTML (bez markdown),
+    - zachowaj styl mailowy (inline CSS),
+    - utrzymaj strukturę sekcji i czytelność tabel,
+    - zachowaj wszystkie znaczniki <img> z logo obecne w źródłowym HTML (nie usuwaj istniejących logo),
+    - styl wizualny ma pasować do strony Liga Elektryka (mocny kontrast, czarne obramowania, czerwony akcent #dc2626),
+    - ${noCommercialPolicy}
+    ${logoBlockInstruction}
+
+    Typ requestu: ${input.requestType}
+
+    HTML do przepisania:
+    ${input.sourceHtml}
+  `;
+};
+
+const buildRewriteSubjectPrompt = (input: {
+  requestType: RequestType;
+  rewriteStyle: RewriteStyle;
+  sourceSubject: string;
+}): string => {
+  return dedent`
+    Przepisz temat e-maila po polsku.
+    ${getRewriteToneInstructions(input.rewriteStyle)}
+
+    Wymagania:
+    - maksymalnie 72 znaki,
+    - bez cudzysłowów,
+    - bez emoji,
+    - ma być klikalny i konkretny.
+    - ${noCommercialPolicy}
+
+    Typ requestu: ${input.requestType}
+    Obecny temat: ${input.sourceSubject}
+
+    Zwróć wyłącznie temat.
+  `;
+};
+
+const prependLogoToHtml = (html: string, logoUrl: string): string => {
+  const logoBlock = dedent`
+    <div style="text-align:center;margin:0 0 20px 0;">
+      <img src="${logoUrl}" alt="Liga Elektryka" style="max-width:180px;width:100%;height:auto;display:inline-block;" />
+    </div>
+  `;
+  const trimmed = html.trim();
+  if (!trimmed) return logoBlock;
+  return `${logoBlock}\n${trimmed}`;
+};
+
+const extractImageSrcs = (html: string): string[] => {
+  const matches = [...html.matchAll(/<img[^>]*src=["']([^"']+)["'][^>]*>/gi)];
+  const urls = matches
+    .map((match) => match[1]?.trim())
+    .filter((src): src is string => Boolean(src));
+  return Array.from(new Set(urls));
+};
+
+const ensureLogoInHtml = (input: {
+  html: string;
+  logoAwareness: boolean;
+  logoUrl?: string;
+  sourceHtml?: string;
+}): string => {
+  const requiredLogos = new Set<string>();
+
+  if (input.sourceHtml) {
+    for (const src of extractImageSrcs(input.sourceHtml)) {
+      requiredLogos.add(src);
+    }
+  }
+
+  if (input.logoAwareness) {
+    requiredLogos.add(input.logoUrl || "https://www.ligaelektryka.pl/le_logo.svg");
+  }
+
+  let output = input.html;
+  for (const logoUrl of requiredLogos) {
+    if (!output.includes(logoUrl)) {
+      output = prependLogoToHtml(output, logoUrl);
+    }
+  }
+
+  return output;
+};
+
+const sanitizeSubject = (value: string): string =>
+  value
+    .replace(/^"+|"+$/g, "")
+    .replace(/\r?\n/g, " ")
+    .trim()
+    .slice(0, 120);
+
+const stripCommercialLanguage = (value: string): string =>
+  value
+    .replace(/\b(promoc\w*|promo|zni[zż]k\w*|rabat\w*|kod\w*\s+rabat\w*|kod\w*\s+promocyjn\w*|kupon\w*|pieni[aą]dz\w*|cennik\w*|cena\w*|platn\w*|oplat\w*|sprzedaz\w*|ofert\w*)\b/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+const fallbackSubject = (requestType: RequestType): string => {
+  const date = new Date().toLocaleDateString("pl-PL");
+  if (requestType === "promo") return `Liga Elektryka: Zapowiedz wydarzen (${date})`;
+  if (requestType === "recap") return `Liga Elektryka: Podsumowanie tygodnia (${date})`;
+  if (requestType === "announcement") return `Liga Elektryka: Ważne ogłoszenie (${date})`;
+  return `Liga Elektryka: Sprawozdanie i wyniki (${date})`;
 };
 
 // --- Provider call functions ---
@@ -181,33 +414,47 @@ const callGroq = async (prompt: string): Promise<string> => {
   return text;
 };
 
-const callImagen = async (prompt: string): Promise<string> => {
-  const apiKey = getEnv("GEMINI_API_KEY");
-  const ai = new GoogleGenAI({ apiKey });
-  
-  const response = await ai.models.generateImages({
-    model: 'imagen-4.0-generate-001',
-    prompt: 'Robot holding a red skateboard',
-    config: {
-      numberOfImages: 1,
-    },
-  });
-
-
-  const imagePart = response.generatedImages?.[0]?.image;
-  if (!imagePart || !imagePart.imageBytes) {
-    throw new Error("Imagen returned empty response");
-  }
-  
-  return imagePart.imageBytes;
-};
-
 const stripMarkdownFences = (html: string): string =>
   html
     .replace(/^```html\s*/i, "")
     .replace(/^```\s*/i, "")
     .replace(/\s*```$/i, "")
     .trim();
+
+const normalizeNewsletterInnerHtml = (html: string): string => {
+  let normalized = stripMarkdownFences(html);
+
+  const bodyMatch = normalized.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  if (bodyMatch?.[1]) {
+    normalized = bodyMatch[1].trim();
+  }
+
+  const contentCellMatch = normalized.match(
+    /<td[^>]*border-top:\s*2px\s+solid\s+#000000[^>]*>([\s\S]*?)<\/td>/i,
+  );
+  if (contentCellMatch?.[1]) {
+    normalized = contentCellMatch[1].trim();
+  }
+
+  normalized = normalized
+    .replace(/<!doctype[^>]*>/gi, "")
+    .replace(/<\/?html[^>]*>/gi, "")
+    .replace(/<\/?head[^>]*>/gi, "")
+    .replace(/<\/?body[^>]*>/gi, "")
+    .replace(/<meta[^>]*>/gi, "")
+    .replace(/<title[^>]*>[\s\S]*?<\/title>/gi, "")
+    .trim();
+
+  return normalized;
+};
+
+const escapeHtml = (value: string): string =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 
 /**
  * Calls the requested provider. If provider is "gemini" and it fails
@@ -236,52 +483,74 @@ const callLLM = async (
 
 // --- Email template ---
 
-const wrapInEmailTemplate = (innerHtml: string, generatedAt: string): string => `<!DOCTYPE html>
-<html lang="pl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sprawozdanie Ligi Elektryka</title>
-</head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 0;">
-    <tr>
-      <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #000000;">
+const emailStyles = {
+  body: "margin:0;padding:0;background:#ffffff;font-family:Arial,sans-serif;",
+  outerTable: "background:#ffffff;padding:24px 0;",
+  card: "background:#ffffff;border:4px solid #000000;box-shadow:10px 10px 0 #dc2626;",
+  header: "background:#000000;padding:20px 24px;border-bottom:4px solid #dc2626;",
+  badge: "display:inline-block;border:2px solid #ffffff;background:#dc2626;color:#ffffff;padding:4px 8px;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;",
+  title: "margin:10px 0 0;font-size:30px;font-weight:900;color:#ffffff;letter-spacing:1px;text-transform:uppercase;",
+  subtitle: "margin:6px 0 0;font-size:12px;color:#f0f0f0;font-weight:700;",
+  content: "padding:24px;border-top:2px solid #000000;",
+  footer: "padding:16px 24px;border-top:4px solid #000000;background:#fafafa;",
+  footerPrimary: "margin:0;font-size:11px;color:#444444;font-weight:700;",
+  footerSecondary: "margin:8px 0 0;font-size:11px;color:#444444;",
+} as const;
 
-          <!-- Header -->
-          <tr>
-            <td style="background:#000000;padding:28px 32px;">
-              <p style="margin:0;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#ffffff;font-family:Arial,sans-serif;">Newsletter</p>
-              <h1 style="margin:6px 0 0;font-size:28px;font-weight:900;color:#ffffff;font-family:Arial,sans-serif;letter-spacing:1px;">⚡ Liga Elektryka</h1>
-            </td>
-          </tr>
+const renderEmailHeader = (subject: string): string => dedent`
+  <tr>
+    <td style="${emailStyles.header}">
+      <span style="${emailStyles.badge}">NEWSLETTER</span>
+      <h1 style="${emailStyles.title}">LIGA ELEKTRYKA</h1>
+      <p style="${emailStyles.subtitle}">${escapeHtml(subject)}</p>
+    </td>
+  </tr>
+`;
 
-          <!-- Body -->
-          <tr>
-            <td style="padding:32px;">
-              ${innerHtml}
-            </td>
-          </tr>
+const renderEmailFooter = (generatedAt: string): string => dedent`
+  <tr>
+    <td style="${emailStyles.footer}">
+      <p style="${emailStyles.footerPrimary}">
+        Wygenerowano automatycznie · ${new Date(generatedAt).toLocaleString("pl-PL")}
+      </p>
+      <p style="${emailStyles.footerSecondary}">
+        Aby wypisać się z newslettera, odpowiedz na tego e-maila z tytułem "Wypisz mnie".
+      </p>
+    </td>
+  </tr>
+`;
 
-          <!-- Footer -->
-          <tr>
-            <td style="padding:20px 32px;border-top:2px solid #000000;background:#f9f9f9;">
-              <p style="margin:0;font-size:11px;color:#666666;font-family:Arial,sans-serif;">
-                Wygenerowano automatycznie · ${new Date(generatedAt).toLocaleString("pl-PL")}
-              </p>
-              <p style="margin:6px 0 0;font-size:11px;color:#666666;font-family:Arial,sans-serif;">
-                Aby wypisać się z newslettera, odpowiedz na tego e-maila z tytułem "Wypisz mnie".
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+const wrapInEmailTemplate = (
+  innerHtml: string,
+  generatedAt: string,
+  subject: string,
+): string => dedent`
+  <!DOCTYPE html>
+  <html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${escapeHtml(subject)}</title>
+  </head>
+  <body style="${emailStyles.body}">
+    <table width="100%" cellpadding="0" cellspacing="0" style="${emailStyles.outerTable}">
+      <tr>
+        <td align="center">
+          <table width="640" cellpadding="0" cellspacing="0" style="${emailStyles.card}">
+            ${renderEmailHeader(subject)}
+            <tr>
+              <td style="${emailStyles.content}">
+                ${innerHtml}
+              </td>
+            </tr>
+            ${renderEmailFooter(generatedAt)}
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+  </html>
+`;
 
 // --- Main handler ---
 
@@ -289,78 +558,136 @@ const generateReport = async (req: Request): Promise<Response> => {
   const authError = await requireAuthUser(req);
   if (authError) return authError;
 
-  // Parse optional body: { provider?: "groq" | "gemini" }
+  // Parse optional body: { provider?: "groq" | "gemini", request_type?: RequestType, mode?: GenerationMode }
   let provider: "groq" | "gemini" = "groq";
+  let requestType: RequestType = "report";
+  let mode: GenerationMode = "generate";
+  let rewriteStyle: RewriteStyle = "normalnie";
+  let sourceHtml = "";
+  let sourceSubject = "";
+  let logoAwareness = false;
+  let logoUrl: string | undefined;
   try {
     const body = await req.json().catch(() => ({}));
     if (body?.provider === "gemini") provider = "gemini";
+    if (
+      body?.request_type === "report" ||
+      body?.request_type === "promo" ||
+      body?.request_type === "recap" ||
+      body?.request_type === "announcement"
+    ) {
+      requestType = body.request_type;
+    }
+    if (body?.mode === "rewrite") {
+      mode = "rewrite";
+    }
+    if (
+      body?.rewrite_style === "normalnie" ||
+      body?.rewrite_style === "smiesznie" ||
+      body?.rewrite_style === "formalnie" ||
+      body?.rewrite_style === "krotko"
+    ) {
+      rewriteStyle = body.rewrite_style;
+    }
+    if (typeof body?.source_html === "string") {
+      sourceHtml = body.source_html;
+    }
+    if (typeof body?.source_subject === "string") {
+      sourceSubject = body.source_subject;
+    }
+    if (body?.logo_awareness === true) {
+      logoAwareness = true;
+    }
+    if (typeof body?.logo_url === "string" && body.logo_url.trim().length > 0) {
+      logoUrl = body.logo_url.trim();
+    }
   } catch {
     // no body or invalid JSON — use default
   }
 
   const supabase = createAdminClient();
 
-  let data: Awaited<ReturnType<typeof fetchAllData>>;
-  try {
-    data = await fetchAllData(supabase);
-  } catch (err) {
-    return json(500, { error: "Failed to fetch data", details: String(err) });
+  let data: Awaited<ReturnType<typeof fetchAllData>> | null = null;
+  let prompt = "";
+  let subjectPrompt = "";
+
+  if (mode === "rewrite") {
+    const sourceHtmlForRewrite = normalizeNewsletterInnerHtml(sourceHtml);
+    if (!sourceHtmlForRewrite.trim()) {
+      return json(400, { error: "source_html is required in rewrite mode" });
+    }
+
+    prompt = buildRewritePrompt({
+      requestType,
+      rewriteStyle,
+      sourceHtml: sourceHtmlForRewrite,
+      logoAwareness,
+      logoUrl,
+    });
+    subjectPrompt = buildRewriteSubjectPrompt({
+      requestType,
+      rewriteStyle,
+      sourceSubject: sourceSubject.trim() || fallbackSubject(requestType),
+    });
+  } else {
+    try {
+      data = await fetchAllData(supabase);
+    } catch (err) {
+      return json(500, { error: "Failed to fetch data", details: String(err) });
+    }
+
+    prompt = buildPrompt(data, requestType, {
+      logoAwareness,
+      logoUrl,
+    });
+    subjectPrompt = buildSubjectPrompt(requestType);
   }
 
-  const prompt = buildPrompt(data);
-
   let llmResult: Awaited<ReturnType<typeof callLLM>>;
+  let subjectResult: Awaited<ReturnType<typeof callLLM>> | null = null;
   try {
     llmResult = await callLLM(prompt, provider);
+    subjectResult = await callLLM(subjectPrompt, provider);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown LLM error";
     return json(500, { error: "LLM API error", details: message });
   }
 
   const cleanedHtml = stripMarkdownFences(llmResult.rawHtml);
+  const normalizedInnerHtml = mode === "rewrite"
+    ? normalizeNewsletterInnerHtml(cleanedHtml)
+    : cleanedHtml;
+  const htmlWithLogo = ensureLogoInHtml({
+    html: normalizedInnerHtml,
+    logoAwareness,
+    logoUrl,
+    sourceHtml: mode === "rewrite" ? sourceHtml : undefined,
+  });
+  const rawSubject = subjectResult ? stripMarkdownFences(subjectResult.rawHtml) : "";
+  const subject = stripCommercialLanguage(sanitizeSubject(rawSubject)) || fallbackSubject(requestType);
   const generatedAt = new Date().toISOString();
-  const html = wrapInEmailTemplate(cleanedHtml, generatedAt);
+  const sanitizedInnerHtml = stripCommercialLanguage(htmlWithLogo);
+  const html = wrapInEmailTemplate(sanitizedInnerHtml, generatedAt, subject);
 
   return json(200, {
     html,
+    subject,
+    mode,
+    rewrite_style: rewriteStyle,
+    request_type: requestType,
     generated_at: generatedAt,
     provider_used: llmResult.provider_used,
     fallback_used: llmResult.fallback_used,
     stats: {
-      teams: data.teams.length,
-      players: data.players.length,
-      completed_matches: data.matches.filter((m) => m.status === "completed").length,
-      scheduled_matches: data.matches.filter((m) => m.status === "scheduled").length,
-      top_scorer: data.topScorers[0]
+      teams: data?.teams.length ?? null,
+      players: data?.players.length ?? null,
+      completed_matches: data ? data.matches.filter((m) => m.status === "completed").length : null,
+      scheduled_matches: data ? data.matches.filter((m) => m.status === "scheduled").length : null,
+      top_scorer: data?.topScorers?.[0]
         ? `${data.topScorers[0].player_name} (${data.topScorers[0].goals} goli)`
         : null,
     },
   });
-};
-
-const generateImage = async (req: Request): Promise<Response> => {
-  const authError = await requireAuthUser(req);
-  if (authError) return authError;
-
-  let prompt = "A professional sports logo for 'Liga Elektryka', a school football league, modern and energetic style, black and white theme with lightning elements.";
-  try {
-    const body = await req.json().catch(() => ({}));
-    if (body?.prompt) prompt = body.prompt;
-  } catch {
-    // use default
-  }
-
-  try {
-    const base64Image = await callImagen(prompt);
-    return json(200, {
-      image: `data:image/jpeg;base64,${base64Image}`,
-      prompt,
-      generated_at: new Date().toISOString(),
-    });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown Imagen error";
-    return json(500, { error: "Imagen API error", details: message });
-  }
 };
 
 Deno.serve(async (req: Request) => {
@@ -372,13 +699,6 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    if (path === "/report-generator/image") {
-      if (req.method !== "POST") {
-        return json(405, { error: "Method not allowed" });
-      }
-      return await generateImage(req);
-    }
-
     if (req.method === "GET") {
       return json(200, { ok: true, function: "report-generator" });
     }

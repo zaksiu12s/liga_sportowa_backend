@@ -1,7 +1,7 @@
 meta {
-  name: Generate report
+  name: Generate announcement
   type: http
-  seq: 6
+  seq: 10
 }
 
 post {
@@ -17,6 +17,6 @@ headers {
 body:json {
   {
     "provider": "groq",
-    "request_type": "report"
+    "request_type": "announcement"
   }
 }

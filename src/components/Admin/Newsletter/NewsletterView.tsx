@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { MailQueueItem, Subscriber } from "../../../types/admin";
 import { newsletterApi } from "../../../utils/adminSupabase";
 import { useToast } from "../Toast";
-import supabase from "../../../utils/supabase";
 
 const formatDateTime = (value: string | null) => {
   if (!value) return "-";
@@ -11,15 +10,32 @@ const formatDateTime = (value: string | null) => {
   return date.toLocaleString();
 };
 
-// ─── AI generation functions ──────────────────────────────────────────────────
+const toLocalDatetimeInput = (value: string | null): string => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (num: number) => num.toString().padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
 
-type AiGeneratorId = "report" | "promo" | "recap" | "announcement";
+const isEditableQueueItem = (item: MailQueueItem): boolean =>
+  item.status !== "sent" && !item.sent_at;
+
+type AiProvider = "groq" | "gemini";
+type AiRequestType = "report" | "promo" | "recap" | "announcement";
+type RewriteStyle = "normalnie" | "smiesznie" | "formalnie" | "krotko";
+type LogoChoice = "logo1" | "logo2" | "custom";
 
 interface AiGenerator {
-  id: AiGeneratorId;
+  id: AiRequestType;
   label: string;
   description: string;
-  invoke: () => Promise<string>;
+}
+
+interface RewriteOption {
+  id: RewriteStyle;
+  label: string;
+  description: string;
 }
 
 const buildGenerators = (): AiGenerator[] => [
@@ -27,53 +43,45 @@ const buildGenerators = (): AiGenerator[] => [
     id: "report",
     label: "Sprawozdanie Ligi",
     description: "AI generuje sprawozdanie z ostatnich wyników ligi",
-    invoke: async () => {
-      const { data, error } = await supabase.functions.invoke(
-        "report-generator",
-        { body: {} },
-      );
-      if (error) throw error;
-      return data.html as string;
-    },
   },
   {
     id: "promo",
-    label: "Promocja / CTA",
-    description: "AI tworzy e-mail promocyjny z wezwaniem do działania",
-    invoke: async () => {
-      const { data, error } = await supabase.functions.invoke(
-        "promo-generator",
-        { body: {} },
-      );
-      if (error) throw error;
-      return data.html as string;
-    },
+    label: "Zapowiedz / CTA",
+    description:
+      "AI tworzy neutralna zapowiedz wydarzen z wezwaniem do dzialania",
   },
   {
     id: "recap",
     label: "Podsumowanie tygodnia",
     description: "Krótkie AI podsumowanie mijającego tygodnia w lidze",
-    invoke: async () => {
-      const { data, error } = await supabase.functions.invoke(
-        "recap-generator",
-        { body: {} },
-      );
-      if (error) throw error;
-      return data.html as string;
-    },
   },
   {
     id: "announcement",
     label: "Ogłoszenie",
     description: "AI szkicuje ogłoszenie o nadchodzącym wydarzeniu",
-    invoke: async () => {
-      const { data, error } = await supabase.functions.invoke(
-        "announcement-generator",
-        { body: {} },
-      );
-      if (error) throw error;
-      return data.html as string;
-    },
+  },
+];
+
+const rewriteOptions: RewriteOption[] = [
+  {
+    id: "normalnie",
+    label: "Rewrite: Normalnie",
+    description: "Przepisuje newsletter w neutralnym, czytelnym stylu",
+  },
+  {
+    id: "smiesznie",
+    label: "Rewrite: Smiesznie",
+    description: "Nadaje tresci lekki i bardziej rozrywkowy ton",
+  },
+  {
+    id: "formalnie",
+    label: "Rewrite: Formalnie",
+    description: "Przerabia tekst na oficjalny i profesjonalny jezyk",
+  },
+  {
+    id: "krotko",
+    label: "Rewrite: Krotko",
+    description: "Skraca i porzadkuje tresc do najwazniejszych punktow",
   },
 ];
 
@@ -85,9 +93,15 @@ interface HtmlEditorProps {
   value: string;
   onChange: (v: string) => void;
   disabled?: boolean;
+  heightClassName?: string;
 }
 
-const HtmlEditor = ({ value, onChange, disabled }: HtmlEditorProps) => {
+const HtmlEditor = ({
+  value,
+  onChange,
+  disabled,
+  heightClassName = "h-[70vh] min-h-[34rem]",
+}: HtmlEditorProps) => {
   const [tab, setTab] = useState<EditorTab>("split");
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -130,7 +144,9 @@ const HtmlEditor = ({ value, onChange, disabled }: HtmlEditorProps) => {
       </div>
 
       {/* Panes */}
-      <div className={`${tab === "split" ? "grid grid-cols-2" : "flex"} h-80`}>
+      <div
+        className={`${tab === "split" ? "grid grid-cols-2" : "flex"} ${heightClassName}`}
+      >
         {/* Code pane */}
         {(tab === "code" || tab === "split") && (
           <textarea
@@ -162,15 +178,85 @@ const HtmlEditor = ({ value, onChange, disabled }: HtmlEditorProps) => {
   );
 };
 
-// ─── AI Generator Dropdown ────────────────────────────────────────────────────
-
 interface AiDropdownProps {
   generators: AiGenerator[];
   onGenerate: (gen: AiGenerator) => void;
   isGenerating: boolean;
-  currentId: AiGeneratorId | null;
+  currentId: AiRequestType | null;
   disabled?: boolean;
 }
+
+interface RewriteDropdownProps {
+  options: RewriteOption[];
+  onRewrite: (option: RewriteOption) => void;
+  isGenerating: boolean;
+  currentStyle: RewriteStyle;
+  disabled?: boolean;
+}
+
+interface LogoDropdownProps {
+  selected: LogoChoice;
+  onSelect: (choice: LogoChoice) => void;
+  disabled?: boolean;
+}
+
+const logoChoiceLabel = (choice: LogoChoice): string => {
+  if (choice === "logo1") return "LOGO 1";
+  if (choice === "logo2") return "LOGO 2";
+  return "TWOJE LOGO";
+};
+
+const LogoDropdown = ({ selected, onSelect, disabled }: LogoDropdownProps) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const options: LogoChoice[] = ["logo1", "logo2", "custom"];
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={disabled}
+        className="flex items-center gap-2 px-3 py-2 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors disabled:opacity-60"
+      >
+        ✦ {logoChoiceLabel(selected)} ▾
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-50 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] min-w-[220px]">
+          {options.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onSelect(option);
+              }}
+              className={`w-full text-left px-4 py-3 border-b-2 border-black last:border-b-0 hover:bg-black hover:text-white transition-colors ${
+                selected === option ? "bg-gray-100" : "bg-white"
+              }`}
+            >
+              <p className="text-xs font-black uppercase tracking-widest">
+                {logoChoiceLabel(option)}
+              </p>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const AiDropdown = ({
   generators,
@@ -182,7 +268,6 @@ const AiDropdown = ({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -199,7 +284,7 @@ const AiDropdown = ({
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={isGenerating || disabled}
-        className="flex items-center gap-2 px-3 py-1 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        className="flex items-center gap-2 px-3 py-2 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {isGenerating ? (
           <>
@@ -212,7 +297,7 @@ const AiDropdown = ({
       </button>
 
       {open && !isGenerating && (
-        <div className="absolute right-0 top-full mt-1 z-50 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] min-w-[220px]">
+        <div className="absolute right-0 top-full mt-1 z-50 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] min-w-[280px]">
           {generators.map((gen) => (
             <button
               key={gen.id}
@@ -228,8 +313,74 @@ const AiDropdown = ({
               <p className="text-xs font-black uppercase tracking-widest">
                 {gen.label}
               </p>
-              <p className="text-xs text-gray-500 mt-0.5 group-hover:text-gray-300">
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
                 {gen.description}
+              </p>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const RewriteDropdown = ({
+  options,
+  onRewrite,
+  isGenerating,
+  currentStyle,
+  disabled,
+}: RewriteDropdownProps) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={isGenerating || disabled}
+        className="flex items-center gap-2 px-3 py-2 bg-white text-black border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-black hover:text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {isGenerating ? (
+          <>
+            <span className="inline-block w-3 h-3 border border-black border-r-transparent animate-spin" />
+            Rewrite...
+          </>
+        ) : (
+          <>↻ Rewrite AI ▾</>
+        )}
+      </button>
+
+      {open && !isGenerating && (
+        <div className="absolute right-0 top-full mt-1 z-50 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] min-w-[300px]">
+          {options.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onRewrite(option);
+              }}
+              className={`w-full text-left px-4 py-3 border-b-2 border-black last:border-b-0 hover:bg-black hover:text-white transition-colors ${
+                currentStyle === option.id ? "bg-gray-100" : "bg-white"
+              }`}
+            >
+              <p className="text-xs font-black uppercase tracking-widest">
+                {option.label}
+              </p>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                {option.description}
               </p>
             </button>
           ))}
@@ -243,15 +394,22 @@ const AiDropdown = ({
 
 export const NewsletterView = () => {
   const { showToast } = useToast();
+  const logo1Url = "https://www.ligaelektryka.pl/football_league_logo.jpg";
+  const logo2Url = "https://www.ligaelektryka.pl/le_logo.svg";
 
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [queueItems, setQueueItems] = useState<MailQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [lastGeneratorId, setLastGeneratorId] = useState<AiGeneratorId | null>(
-    null,
-  );
+  const [generatingProvider, setGeneratingProvider] =
+    useState<AiProvider | null>(null);
+  const [generatingMode, setGeneratingMode] = useState<
+    "generate" | "rewrite" | null
+  >(null);
+  const [selectedProvider, setSelectedProvider] = useState<AiProvider>("groq");
+  const [selectedRequestType, setSelectedRequestType] =
+    useState<AiRequestType>("report");
+  const generators = useMemo(() => buildGenerators(), []);
 
   const [subject, setSubject] = useState("");
   const [html, setHtml] = useState(
@@ -260,27 +418,184 @@ export const NewsletterView = () => {
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledAtLocal, setScheduledAtLocal] = useState("");
 
-  const generators = useMemo(() => buildGenerators(), []);
+  const [editingQueueId, setEditingQueueId] = useState<string | null>(null);
+  const [editSubject, setEditSubject] = useState("");
+  const [editHtml, setEditHtml] = useState("");
+  const [editScheduledAtLocal, setEditScheduledAtLocal] = useState("");
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [deletingQueueId, setDeletingQueueId] = useState<string | null>(null);
+  const [aiFeedback, setAiFeedback] = useState<{
+    providerRequested: AiProvider;
+    providerUsed: string;
+    requestTypeRequested: AiRequestType;
+    requestTypeUsed: AiRequestType;
+    fallbackUsed: boolean;
+    generatedAt: string | null;
+  } | null>(null);
+  const [selectedLogoChoice, setSelectedLogoChoice] =
+    useState<LogoChoice>("logo1");
+  const [customLogoUrl, setCustomLogoUrl] = useState("");
+  const [selectedRewriteStyle, setSelectedRewriteStyle] =
+    useState<RewriteStyle>("normalnie");
+  const [isAiLogoAwarenessEnabled, setIsAiLogoAwarenessEnabled] =
+    useState(false);
+  const isGeneratingAny = Boolean(generatingProvider);
 
   const pendingCount = useMemo(
     () => queueItems.filter((item) => item.status === "pending").length,
     [queueItems],
   );
 
-  const handleGenerate = async (gen: AiGenerator) => {
-    setIsGenerating(true);
-    setLastGeneratorId(gen.id);
+  const getSelectedLogoSrc = (): string | null => {
+    if (selectedLogoChoice === "logo1") return logo1Url;
+    if (selectedLogoChoice === "logo2") return logo2Url;
+
+    const custom = customLogoUrl.trim();
+    if (!custom) return null;
+    if (!/^https?:\/\//i.test(custom)) return null;
+    return custom;
+  };
+
+  const handleInsertSiteLogo = () => {
+    const activeLogoSrc = getSelectedLogoSrc();
+    if (!activeLogoSrc) {
+      showToast("Dla opcji TWOJE LOGO podaj poprawny URL", "error");
+      return;
+    }
+
+    const logoBlock = [
+      `<div style="text-align:center;margin:0 0 20px 0;">`,
+      `<img src="${activeLogoSrc}" alt="Liga Elektryka" style="max-width:180px;width:100%;height:auto;display:inline-block;" />`,
+      `</div>`,
+    ].join("");
+
+    setHtml((prev) => {
+      const trimmed = prev.trim();
+      return trimmed ? `${logoBlock}\n${trimmed}` : logoBlock;
+    });
+
+    showToast("Dodano wybrane logo do treści newslettera", "success");
+  };
+
+  const handleGenerateBySelection = async (requestedType?: AiRequestType) => {
+    const provider = selectedProvider;
+    const requestType = requestedType ?? selectedRequestType;
+    const requestOption = generators.find(
+      (option) => option.id === requestType,
+    );
+
+    if (!requestOption) {
+      showToast("Nieznany typ requestu AI", "error");
+      return;
+    }
+
+    setGeneratingProvider(provider);
+    setGeneratingMode("generate");
+    setSelectedRequestType(requestType);
     try {
-      const result = await gen.invoke();
-      setHtml(result);
-      showToast(`${gen.label} — wygenerowano!`, "success");
+      const result = await newsletterApi.generateNewsletterContent({
+        provider,
+        requestType,
+        logoAwareness: isAiLogoAwarenessEnabled,
+        logoUrl: isAiLogoAwarenessEnabled
+          ? getSelectedLogoSrc() || undefined
+          : undefined,
+      });
+
+      setSubject(result.subject);
+      setHtml(result.html);
+      setAiFeedback({
+        providerRequested: provider,
+        providerUsed: result.providerUsed,
+        requestTypeRequested: requestType,
+        requestTypeUsed: result.requestTypeUsed,
+        fallbackUsed: result.fallbackUsed,
+        generatedAt: result.generatedAt,
+      });
+
+      if (result.fallbackUsed) {
+        showToast(
+          `Wygenerowano ${requestOption.label}. Wybrany ${provider.toUpperCase()} nie odpowiedział, użyto ${result.providerUsed.toUpperCase()}.`,
+          "info",
+        );
+      } else {
+        showToast(
+          `Wygenerowano ${requestOption.label} przez ${result.providerUsed.toUpperCase()}.`,
+          "success",
+        );
+      }
     } catch (err) {
       showToast(
         err instanceof Error ? err.message : "Błąd generowania",
         "error",
       );
     } finally {
-      setIsGenerating(false);
+      setGeneratingProvider(null);
+      setGeneratingMode(null);
+    }
+  };
+
+  const handleRewriteByStyle = async (style?: RewriteStyle) => {
+    const provider = selectedProvider;
+    const rewriteStyle = style ?? selectedRewriteStyle;
+    const rewriteOption = rewriteOptions.find(
+      (option) => option.id === rewriteStyle,
+    );
+
+    if (!rewriteOption) {
+      showToast("Nieznany styl przepisywania", "error");
+      return;
+    }
+
+    if (!html.trim()) {
+      showToast("Dodaj HTML zanim uzyjesz Rewrite", "error");
+      return;
+    }
+
+    setGeneratingProvider(provider);
+    setGeneratingMode("rewrite");
+    setSelectedRewriteStyle(rewriteStyle);
+    try {
+      const result = await newsletterApi.generateNewsletterContent({
+        provider,
+        requestType: selectedRequestType,
+        mode: "rewrite",
+        rewriteStyle,
+        sourceHtml: html,
+        sourceSubject: subject,
+        logoAwareness: isAiLogoAwarenessEnabled,
+        logoUrl: isAiLogoAwarenessEnabled
+          ? getSelectedLogoSrc() || undefined
+          : undefined,
+      });
+
+      setSubject(result.subject);
+      setHtml(result.html);
+      setAiFeedback({
+        providerRequested: provider,
+        providerUsed: result.providerUsed,
+        requestTypeRequested: selectedRequestType,
+        requestTypeUsed: result.requestTypeUsed,
+        fallbackUsed: result.fallbackUsed,
+        generatedAt: result.generatedAt,
+      });
+
+      if (result.fallbackUsed) {
+        showToast(
+          `Przepisano tresc (${rewriteOption.label}). Uzyto ${result.providerUsed.toUpperCase()} po fallbacku.`,
+          "info",
+        );
+      } else {
+        showToast(`Przepisano tresc: ${rewriteOption.label}.`, "success");
+      }
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : "Blad przepisywania",
+        "error",
+      );
+    } finally {
+      setGeneratingProvider(null);
+      setGeneratingMode(null);
     }
   };
 
@@ -308,6 +623,104 @@ export const NewsletterView = () => {
   useEffect(() => {
     void loadData();
   }, []);
+
+  const startQueueEdit = (item: MailQueueItem) => {
+    if (!isEditableQueueItem(item)) {
+      showToast("Wysłanych emaili nie można edytować.", "error");
+      return;
+    }
+
+    setEditingQueueId(item.id);
+    setEditSubject(item.subject);
+    setEditHtml(item.html);
+    setEditScheduledAtLocal(toLocalDatetimeInput(item.scheduled_at));
+  };
+
+  const resetEditState = () => {
+    setEditingQueueId(null);
+    setEditSubject("");
+    setEditHtml("");
+    setEditScheduledAtLocal("");
+  };
+
+  const handleSaveQueueEdit = async () => {
+    if (!editingQueueId) return;
+
+    if (!editSubject.trim()) {
+      showToast("Subject is required", "error");
+      return;
+    }
+
+    if (!editHtml.trim()) {
+      showToast("HTML content is required", "error");
+      return;
+    }
+
+    if (!editScheduledAtLocal) {
+      showToast("Scheduled date is required", "error");
+      return;
+    }
+
+    const parsedDate = new Date(editScheduledAtLocal);
+    if (Number.isNaN(parsedDate.getTime())) {
+      showToast("Invalid scheduled date", "error");
+      return;
+    }
+
+    setIsSavingEdit(true);
+    try {
+      await newsletterApi.updateScheduledQueueItem({
+        id: editingQueueId,
+        subject: editSubject,
+        html: editHtml,
+        scheduledAt: parsedDate.toISOString(),
+      });
+
+      showToast("Scheduled email updated", "success");
+      resetEditState();
+      await loadData();
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Failed to update scheduled email",
+        "error",
+      );
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  const handleDeleteQueueItem = async (item: MailQueueItem) => {
+    if (!isEditableQueueItem(item)) {
+      showToast("Wysłanych emaili nie można usunąć.", "error");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Usunąć zaplanowany email dla ${item.email}?`,
+    );
+    if (!confirmed) return;
+
+    setDeletingQueueId(item.id);
+    try {
+      await newsletterApi.deleteScheduledQueueItem(item.id);
+      if (editingQueueId === item.id) {
+        resetEditState();
+      }
+      showToast("Scheduled email removed", "success");
+      await loadData();
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete scheduled email",
+        "error",
+      );
+    } finally {
+      setDeletingQueueId(null);
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -352,6 +765,7 @@ export const NewsletterView = () => {
       setHtml("<h1>Cześć!</h1>\n<p>Treść newslettera...</p>");
       setIsScheduled(false);
       setScheduledAtLocal("");
+      setAiFeedback(null);
 
       await loadData();
     } catch (error) {
@@ -408,6 +822,105 @@ export const NewsletterView = () => {
         </h3>
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+          {/* AI tools */}
+          <div className="border-2 border-black p-4 space-y-3 bg-gray-50">
+            <p className="text-xs font-black uppercase tracking-widest">
+              AI Tools
+            </p>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex border-2 border-black overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setSelectedProvider("groq")}
+                  disabled={isGeneratingAny || isSubmitting}
+                  className={`px-3 py-2 text-xs font-black uppercase tracking-widest transition-colors disabled:opacity-60 ${
+                    selectedProvider === "groq"
+                      ? "bg-black text-white"
+                      : "bg-white text-black hover:bg-gray-100"
+                  }`}
+                >
+                  AI GROQ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedProvider("gemini")}
+                  disabled={isGeneratingAny || isSubmitting}
+                  className={`px-3 py-2 text-xs font-black uppercase tracking-widest border-l-2 border-black transition-colors disabled:opacity-60 ${
+                    selectedProvider === "gemini"
+                      ? "bg-black text-white"
+                      : "bg-white text-black hover:bg-gray-100"
+                  }`}
+                >
+                  AI GEMINI
+                </button>
+              </div>
+
+              <AiDropdown
+                generators={generators}
+                onGenerate={(gen) => void handleGenerateBySelection(gen.id)}
+                isGenerating={generatingMode === "generate"}
+                currentId={selectedRequestType}
+                disabled={isSubmitting || isGeneratingAny}
+              />
+
+              <RewriteDropdown
+                options={rewriteOptions}
+                onRewrite={(option) => void handleRewriteByStyle(option.id)}
+                isGenerating={generatingMode === "rewrite"}
+                currentStyle={selectedRewriteStyle}
+                disabled={isSubmitting || isGeneratingAny}
+              />
+            </div>
+
+            {selectedProvider === "gemini" && (
+              <div className="border-2 border-yellow-700 bg-yellow-100 px-3 py-2 text-xs font-bold uppercase tracking-wide text-yellow-900">
+                Warning: Gemini limit in this project is 20 requests per day.
+              </div>
+            )}
+
+            <div className="flex flex-col md:flex-row gap-2 md:items-center">
+              <LogoDropdown
+                selected={selectedLogoChoice}
+                onSelect={setSelectedLogoChoice}
+                disabled={isSubmitting || isGeneratingAny}
+              />
+
+              {selectedLogoChoice === "custom" && (
+                <input
+                  type="url"
+                  value={customLogoUrl}
+                  onChange={(e) => setCustomLogoUrl(e.target.value)}
+                  placeholder="https://twojastrona.pl/logo.png"
+                  className="flex-1 border-2 border-black px-3 py-2 text-sm font-semibold"
+                  disabled={isSubmitting || isGeneratingAny}
+                />
+              )}
+
+              <button
+                type="button"
+                onClick={() => setIsAiLogoAwarenessEnabled((prev) => !prev)}
+                disabled={isSubmitting || isGeneratingAny}
+                className={`px-3 py-2 border-2 border-black font-black text-xs uppercase tracking-widest transition-colors disabled:opacity-60 ${
+                  isAiLogoAwarenessEnabled
+                    ? "bg-black text-white"
+                    : "bg-white text-black hover:bg-black hover:text-white"
+                }`}
+              >
+                AI dopasuj logo
+              </button>
+
+              <button
+                type="button"
+                onClick={handleInsertSiteLogo}
+                disabled={isSubmitting || isGeneratingAny}
+                className="px-3 py-2 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors disabled:opacity-60"
+              >
+                Wstaw logo
+              </button>
+            </div>
+          </div>
+
           {/* Subject */}
           <div>
             <label className="block text-xs font-black uppercase tracking-widest mb-2">
@@ -428,18 +941,35 @@ export const NewsletterView = () => {
               <label className="block text-xs font-black uppercase tracking-widest">
                 HTML Content
               </label>
-              <AiDropdown
-                generators={generators}
-                onGenerate={(gen) => void handleGenerate(gen)}
-                isGenerating={isGenerating}
-                currentId={lastGeneratorId}
-                disabled={isSubmitting}
-              />
             </div>
+
+            {aiFeedback && (
+              <div className="mb-3 border-2 border-black bg-gray-50 px-3 py-2 text-xs text-gray-800 space-y-1">
+                <p className="font-black uppercase tracking-widest">
+                  AI Feedback
+                </p>
+                <p>
+                  Requested: {aiFeedback.providerRequested.toUpperCase()} /{" "}
+                  {aiFeedback.requestTypeRequested.toUpperCase()}
+                </p>
+                <p>
+                  Used: {aiFeedback.providerUsed.toUpperCase()} /{" "}
+                  {aiFeedback.requestTypeUsed.toUpperCase()}
+                </p>
+                <p>Fallback used: {aiFeedback.fallbackUsed ? "YES" : "NO"}</p>
+                <p>
+                  Generated at:{" "}
+                  {aiFeedback.generatedAt
+                    ? formatDateTime(aiFeedback.generatedAt)
+                    : "-"}
+                </p>
+              </div>
+            )}
+
             <HtmlEditor
               value={html}
               onChange={setHtml}
-              disabled={isSubmitting || isGenerating}
+              disabled={isSubmitting || isGeneratingAny}
             />
           </div>
 
@@ -562,6 +1092,9 @@ export const NewsletterView = () => {
                 <th className="text-left px-3 py-2 font-black uppercase text-xs">
                   Created
                 </th>
+                <th className="text-left px-3 py-2 font-black uppercase text-xs">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -592,6 +1125,34 @@ export const NewsletterView = () => {
                   <td className="px-3 py-2 text-gray-700">
                     {formatDateTime(item.created_at)}
                   </td>
+                  <td className="px-3 py-2">
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => startQueueEdit(item)}
+                        disabled={
+                          !isEditableQueueItem(item) ||
+                          isSavingEdit ||
+                          deletingQueueId === item.id
+                        }
+                        className="px-2 py-1 border border-black text-xs font-black uppercase tracking-widest bg-white hover:bg-black hover:text-white disabled:opacity-50"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleDeleteQueueItem(item)}
+                        disabled={
+                          !isEditableQueueItem(item) ||
+                          deletingQueueId === item.id ||
+                          isSavingEdit
+                        }
+                        className="px-2 py-1 border border-black text-xs font-black uppercase tracking-widest bg-white hover:bg-black hover:text-white disabled:opacity-50"
+                      >
+                        {deletingQueueId === item.id ? "Removing..." : "Remove"}
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -600,6 +1161,70 @@ export const NewsletterView = () => {
             <div className="p-4 text-sm text-gray-600">Queue is empty.</div>
           )}
         </div>
+
+        {editingQueueId && (
+          <div className="mt-4 border-2 border-black p-4 bg-gray-50 space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-black uppercase tracking-widest">
+                Edit Scheduled Email
+              </h4>
+              <button
+                type="button"
+                onClick={resetEditState}
+                disabled={isSavingEdit}
+                className="px-3 py-1 border-2 border-black bg-white text-black text-xs font-black uppercase tracking-widest hover:bg-black hover:text-white disabled:opacity-60"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest mb-2">
+                Subject
+              </label>
+              <input
+                type="text"
+                value={editSubject}
+                onChange={(e) => setEditSubject(e.target.value)}
+                className="w-full border-2 border-black px-3 py-2 text-sm font-semibold"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest mb-2">
+                Scheduled At
+              </label>
+              <input
+                type="datetime-local"
+                value={editScheduledAtLocal}
+                onChange={(e) => setEditScheduledAtLocal(e.target.value)}
+                className="border-2 border-black px-3 py-2 text-sm font-semibold"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest mb-2">
+                HTML
+              </label>
+              <HtmlEditor
+                value={editHtml}
+                onChange={setEditHtml}
+                disabled={isSavingEdit}
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => void handleSaveQueueEdit()}
+                disabled={isSavingEdit}
+                className="px-4 py-2 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors disabled:opacity-60"
+              >
+                {isSavingEdit ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

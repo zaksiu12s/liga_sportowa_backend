@@ -15,6 +15,17 @@ type MailerRequest = {
   scheduled_at?: string;
 };
 
+type UpdateQueueRequest = {
+  id?: string;
+  subject?: string;
+  html?: string;
+  scheduled_at?: string;
+};
+
+type DeleteQueueRequest = {
+  id?: string;
+};
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-mailer-token",
@@ -183,6 +194,130 @@ const enqueue = async (req: Request): Promise<Response> => {
   });
 };
 
+const updateScheduledQueueItem = async (req: Request): Promise<Response> => {
+  const authError = await requireAuthUser(req);
+  if (authError) return authError;
+
+  const tokenError = requireOptionalToken(req, "MAILER_ENQUEUE_TOKEN");
+  if (tokenError) return tokenError;
+
+  let body: UpdateQueueRequest;
+  try {
+    body = (await req.json()) as UpdateQueueRequest;
+  } catch {
+    return json(400, { error: "Invalid JSON body" });
+  }
+
+  const id = body.id?.trim();
+  const subject = body.subject?.trim();
+  const html = body.html?.trim();
+  const scheduledAt = body.scheduled_at ? new Date(body.scheduled_at) : null;
+
+  if (!id) return json(400, { error: "Field 'id' is required" });
+  if (!subject) return json(400, { error: "Field 'subject' is required" });
+  if (!html) return json(400, { error: "Field 'html' is required" });
+  if (!scheduledAt || Number.isNaN(scheduledAt.getTime())) {
+    return json(400, { error: "Invalid value for 'scheduled_at'" });
+  }
+
+  const supabase = createAdminClient();
+
+  const { data: queueRow, error: readError } = await supabase
+    .from("mail_queue")
+    .select("id, status, sent_at")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (readError) {
+    return json(500, {
+      error: "Failed to read queue item",
+      details: readError.message,
+    });
+  }
+
+  if (!queueRow) {
+    return json(404, { error: "Queue item not found" });
+  }
+
+  if (queueRow.status === "sent" || queueRow.sent_at) {
+    return json(409, { error: "Sent emails cannot be edited" });
+  }
+
+  const { error: updateError } = await supabase
+    .from("mail_queue")
+    .update({
+      subject,
+      html,
+      scheduled_at: scheduledAt.toISOString(),
+      status: "pending",
+    })
+    .eq("id", id);
+
+  if (updateError) {
+    return json(500, {
+      error: "Failed to update queue item",
+      details: updateError.message,
+    });
+  }
+
+  return json(200, { updated: true, id });
+};
+
+const deleteScheduledQueueItem = async (req: Request): Promise<Response> => {
+  const authError = await requireAuthUser(req);
+  if (authError) return authError;
+
+  const tokenError = requireOptionalToken(req, "MAILER_ENQUEUE_TOKEN");
+  if (tokenError) return tokenError;
+
+  let body: DeleteQueueRequest;
+  try {
+    body = (await req.json()) as DeleteQueueRequest;
+  } catch {
+    return json(400, { error: "Invalid JSON body" });
+  }
+
+  const id = body.id?.trim();
+  if (!id) return json(400, { error: "Field 'id' is required" });
+
+  const supabase = createAdminClient();
+
+  const { data: queueRow, error: readError } = await supabase
+    .from("mail_queue")
+    .select("id, status, sent_at")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (readError) {
+    return json(500, {
+      error: "Failed to read queue item",
+      details: readError.message,
+    });
+  }
+
+  if (!queueRow) {
+    return json(404, { error: "Queue item not found" });
+  }
+
+  if (queueRow.status === "sent" || queueRow.sent_at) {
+    return json(409, { error: "Sent emails cannot be deleted" });
+  }
+
+  const { error: deleteError } = await supabase
+    .from("mail_queue")
+    .delete()
+    .eq("id", id);
+
+  if (deleteError) {
+    return json(500, {
+      error: "Failed to delete queue item",
+      details: deleteError.message,
+    });
+  }
+
+  return json(200, { deleted: true, id });
+};
+
 const sendViaResend = async (
   apiKey: string,
   from: string,
@@ -338,7 +473,13 @@ Deno.serve(async (req: Request) => {
       return json(200, {
         ok: true,
         function: "mailer",
-        routes: ["POST /mailer", "POST /mailer/enqueue", "POST /mailer/process"],
+        routes: [
+          "POST /mailer",
+          "POST /mailer/enqueue",
+          "POST /mailer/process",
+          "POST /mailer/update",
+          "POST /mailer/delete",
+        ],
       });
     }
 
@@ -352,6 +493,14 @@ Deno.serve(async (req: Request) => {
 
     if (route === "process") {
       return await processQueue(req);
+    }
+
+    if (route === "update") {
+      return await updateScheduledQueueItem(req);
+    }
+
+    if (route === "delete") {
+      return await deleteScheduledQueueItem(req);
     }
 
     return json(404, { error: `Unknown route: ${route}` });
