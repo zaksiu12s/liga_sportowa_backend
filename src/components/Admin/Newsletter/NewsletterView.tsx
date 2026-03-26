@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { MailQueueItem, Subscriber } from "../../../types/admin";
 import { newsletterApi } from "../../../utils/adminSupabase";
 import { useToast } from "../Toast";
+import supabase from "../../../utils/supabase";
 
 const formatDateTime = (value: string | null) => {
   if (!value) {
@@ -23,6 +24,7 @@ export const NewsletterView = () => {
   const [queueItems, setQueueItems] = useState<MailQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   const [subject, setSubject] = useState("");
   const [html, setHtml] = useState("<h1>Czesc!</h1>");
@@ -31,8 +33,34 @@ export const NewsletterView = () => {
 
   const pendingCount = useMemo(
     () => queueItems.filter((item) => item.status === "pending").length,
-    [queueItems]
+    [queueItems],
   );
+
+  const handleGenerateReport = async () => {
+    setIsGeneratingReport(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "report-generator",
+        {
+          body: {},
+        },
+      );
+
+      if (error) throw error;
+
+      setHtml(
+        `<h1>Sprawozdanie Ligi Elektryka</h1>\n<p>${(data.report as string).replace(/\n/g, "</p>\n<p>")}</p>`,
+      );
+      showToast("Sprawozdanie wygenerowane!", "success");
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : "Błąd generowania sprawozdania",
+        "error",
+      );
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -49,7 +77,7 @@ export const NewsletterView = () => {
         error instanceof Error
           ? error.message
           : "Failed to load newsletter data",
-        "error"
+        "error",
       );
     } finally {
       setLoading(false);
@@ -99,7 +127,7 @@ export const NewsletterView = () => {
 
       showToast(
         `Queued ${insertedCount} emails${isScheduled ? " (scheduled)" : ""}`,
-        "success"
+        "success",
       );
 
       setSubject("");
@@ -112,7 +140,7 @@ export const NewsletterView = () => {
       console.error("Failed to enqueue newsletter:", error);
       showToast(
         error instanceof Error ? error.message : "Failed to enqueue newsletter",
-        "error"
+        "error",
       );
     } finally {
       setIsSubmitting(false);
@@ -175,9 +203,26 @@ export const NewsletterView = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-black uppercase tracking-widest mb-2">
-              HTML Content
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-black uppercase tracking-widest">
+                HTML Content
+              </label>
+              <button
+                type="button"
+                onClick={() => void handleGenerateReport()}
+                disabled={isGeneratingReport || isSubmitting}
+                className="flex items-center gap-2 px-3 py-1 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isGeneratingReport ? (
+                  <>
+                    <span className="inline-block w-3 h-3 border border-white border-r-transparent animate-spin" />
+                    Generowanie...
+                  </>
+                ) : (
+                  <>✦ Generuj AI</>
+                )}
+              </button>
+            </div>
             <textarea
               value={html}
               onChange={(event) => setHtml(event.target.value)}
@@ -208,7 +253,8 @@ export const NewsletterView = () => {
                   className="border-2 border-black px-3 py-2 text-sm font-semibold"
                 />
                 <p className="mt-2 text-xs text-gray-600">
-                  Worker sends only rows where scheduled_at is earlier or equal to current time.
+                  Worker sends only rows where scheduled_at is earlier or equal
+                  to current time.
                 </p>
               </div>
             )}
@@ -242,22 +288,35 @@ export const NewsletterView = () => {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-100 border-b-2 border-black">
-                <th className="text-left px-3 py-2 font-black uppercase text-xs">Email</th>
-                <th className="text-left px-3 py-2 font-black uppercase text-xs">Signed At</th>
+                <th className="text-left px-3 py-2 font-black uppercase text-xs">
+                  Email
+                </th>
+                <th className="text-left px-3 py-2 font-black uppercase text-xs">
+                  Signed At
+                </th>
               </tr>
             </thead>
             <tbody>
               {subscribers.map((subscriber, index) => (
-                <tr key={subscriber.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                  <td className="px-3 py-2 font-semibold">{subscriber.email}</td>
-                  <td className="px-3 py-2 text-gray-700">{formatDateTime(subscriber.created_at)}</td>
+                <tr
+                  key={subscriber.id}
+                  className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                >
+                  <td className="px-3 py-2 font-semibold">
+                    {subscriber.email}
+                  </td>
+                  <td className="px-3 py-2 text-gray-700">
+                    {formatDateTime(subscriber.created_at)}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
 
           {subscribers.length === 0 && (
-            <div className="p-4 text-sm text-gray-600">No subscribers found.</div>
+            <div className="p-4 text-sm text-gray-600">
+              No subscribers found.
+            </div>
           )}
         </div>
       </div>
@@ -270,17 +329,32 @@ export const NewsletterView = () => {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-100 border-b-2 border-black">
-                <th className="text-left px-3 py-2 font-black uppercase text-xs">Email</th>
-                <th className="text-left px-3 py-2 font-black uppercase text-xs">Subject</th>
-                <th className="text-left px-3 py-2 font-black uppercase text-xs">Status</th>
-                <th className="text-left px-3 py-2 font-black uppercase text-xs">Retries</th>
-                <th className="text-left px-3 py-2 font-black uppercase text-xs">Scheduled</th>
-                <th className="text-left px-3 py-2 font-black uppercase text-xs">Created</th>
+                <th className="text-left px-3 py-2 font-black uppercase text-xs">
+                  Email
+                </th>
+                <th className="text-left px-3 py-2 font-black uppercase text-xs">
+                  Subject
+                </th>
+                <th className="text-left px-3 py-2 font-black uppercase text-xs">
+                  Status
+                </th>
+                <th className="text-left px-3 py-2 font-black uppercase text-xs">
+                  Retries
+                </th>
+                <th className="text-left px-3 py-2 font-black uppercase text-xs">
+                  Scheduled
+                </th>
+                <th className="text-left px-3 py-2 font-black uppercase text-xs">
+                  Created
+                </th>
               </tr>
             </thead>
             <tbody>
               {queueItems.map((item, index) => (
-                <tr key={item.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                <tr
+                  key={item.id}
+                  className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                >
                   <td className="px-3 py-2 font-semibold">{item.email}</td>
                   <td className="px-3 py-2">{item.subject}</td>
                   <td className="px-3 py-2">
@@ -297,8 +371,12 @@ export const NewsletterView = () => {
                     </span>
                   </td>
                   <td className="px-3 py-2">{item.retries}</td>
-                  <td className="px-3 py-2 text-gray-700">{formatDateTime(item.scheduled_at)}</td>
-                  <td className="px-3 py-2 text-gray-700">{formatDateTime(item.created_at)}</td>
+                  <td className="px-3 py-2 text-gray-700">
+                    {formatDateTime(item.scheduled_at)}
+                  </td>
+                  <td className="px-3 py-2 text-gray-700">
+                    {formatDateTime(item.created_at)}
+                  </td>
                 </tr>
               ))}
             </tbody>
