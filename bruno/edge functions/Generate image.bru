@@ -1,0 +1,15 @@
+meta {
+  name: Generate image
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/functions/v1/report-generator/image
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}

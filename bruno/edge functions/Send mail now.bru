@@ -1,0 +1,22 @@
+meta {
+  name: Send mail now
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/functions/v1/mailer
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "subject": "",
+    "html": ""
+  }
+}
