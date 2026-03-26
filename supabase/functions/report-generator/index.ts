@@ -1,8 +1,32 @@
 // @ts-nocheck
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+const dedent = (strings: TemplateStringsArray, ...values: unknown[]): string => {
+  const raw = strings.reduce((acc, part, index) => {
+    const value = index < values.length ? String(values[index]) : "";
+    return acc + part + value;
+  }, "");
+
+  const lines = raw.replace(/^\n/, "").split("\n");
+  const indents = lines
+    .filter((line) => line.trim().length > 0)
+    .map((line) => line.match(/^\s*/)?.[0].length ?? 0);
+  const minIndent = indents.length > 0 ? Math.min(...indents) : 0;
+
+  return lines.map((line) => line.slice(minIndent)).join("\n").trim();
+};
+
 const modelName = "gemini-3-flash-preview";
 type RequestType = "report" | "promo" | "recap" | "announcement";
+type GenerationMode = "generate" | "rewrite";
+type RewriteStyle = "normalnie" | "smiesznie" | "formalnie" | "krotko";
+
+const noCommercialPolicy = dedent`
+  Zakaz tresci komercyjnych:
+  - nie wspominaj o pieniadzach, cenach, cennikach, oplatach ani platnosciach,
+  - nie wspominaj o znizkach, rabatach, kodach rabatowych ani kuponach,
+  - nie uzywaj jezyka promocji/sprzedazy (np. promocja, oferta specjalna, kup, zamow).
+`;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -68,10 +92,10 @@ const fetchAllData = async (supabase: ReturnType<typeof createAdminClient>) => {
 const getRequestInstructions = (requestType: RequestType): string => {
   if (requestType === "promo") {
     return [
-      "Typ requestu: PROMO / CTA",
-      "Stwórz newsletter promocyjny, który zachęca do śledzenia rozgrywek i zapisów do newslettera.",
-      "Sekcje: mocny nagłówek, 3 korzyści dla odbiorcy, CTA (przycisk/link placeholder), krótkie podsumowanie wyników.",
-      "Ton: energiczny, pozytywny, konkretny.",
+      "Typ requestu: ZAPOWIEDZ / ZAANGAZOWANIE",
+      "Stworz newsletter, ktory wzmacnia zaangazowanie kibicow wokol ligi i najblizszych wydarzen.",
+      "Sekcje: mocny naglowek, 3 powody sledzenia rozgrywek, neutralne CTA (przycisk/link placeholder), krotkie podsumowanie wynikow.",
+      "Ton: energiczny, pozytywny, konkretny, bez jezyka sprzedazowego.",
     ].join("\n");
   }
 
@@ -101,7 +125,7 @@ const getRequestInstructions = (requestType: RequestType): string => {
 };
 
 const getSubjectHint = (requestType: RequestType): string => {
-  if (requestType === "promo") return "Temat promocyjny z mocnym CTA";
+  if (requestType === "promo") return "Temat zapowiedzi wydarzen z neutralnym CTA";
   if (requestType === "recap") return "Temat podsumowujący tydzień rozgrywek";
   if (requestType === "announcement") return "Temat ogłoszenia organizacyjnego";
   return "Temat sprawozdania ligowego";
@@ -154,6 +178,7 @@ WAŻNE: Odpowiedz WYŁĄCZNIE kodem HTML gotowym do wklejenia w treść e-maila 
 - Użyj kolorów: tło białe, akcenty czerwone i czarne, nagłówki uppercase i bardzo wyraźne.
 - Tabele mają wyglądać jak w aplikacji: grube obramowania, czytelne nagłówki, mocne oddzielenie sekcji.
 - Czcionka: Arial, sans-serif; rozmiar 14px dla tekstu, 20-24px dla nagłówków sekcji.
+- ${noCommercialPolicy}
 
 === WYTYCZNE DLA TYPU REQUESTU ===
 ${getRequestInstructions(requestType)}
@@ -192,8 +217,96 @@ Wymagania:
 - bez emoji,
 - konkretny i klikalny,
 - zgodny z typem: ${requestType} (${getSubjectHint(requestType)}).
+- ${noCommercialPolicy}
 Data: ${today}.
 Zwróć wyłącznie sam temat.`;
+};
+
+const getRewriteToneInstructions = (style: RewriteStyle): string => {
+  if (style === "smiesznie") return "Styl: lekko humorystyczny, z wyczuciem, bez cringu.";
+  if (style === "formalnie") return "Styl: formalny, profesjonalny, oficjalny.";
+  if (style === "krotko") return "Styl: maksymalnie zwięzły i konkretny.";
+  return "Styl: neutralny, naturalny, czytelny.";
+};
+
+const buildRewritePrompt = (input: {
+  requestType: RequestType;
+  rewriteStyle: RewriteStyle;
+  sourceHtml: string;
+  logoAwareness?: boolean;
+  logoUrl?: string;
+}): string => {
+  const logoBlockInstruction = input.logoAwareness
+    ? `
+- Dodaj blok logo w górnej sekcji treści.
+- Użyj dokładnie tego URL logo: ${input.logoUrl || "https://www.ligaelektryka.pl/le_logo.svg"}
+`
+    : "";
+
+  return dedent`
+    Przepisz poniższy HTML newslettera po polsku, zachowując sens i dane.
+    ${getRewriteToneInstructions(input.rewriteStyle)}
+
+    Wymagania:
+    - zwróć WYŁĄCZNIE HTML (bez markdown),
+    - zachowaj styl mailowy (inline CSS),
+    - utrzymaj strukturę sekcji i czytelność tabel,
+    - styl wizualny ma pasować do strony Liga Elektryka (mocny kontrast, czarne obramowania, czerwony akcent #dc2626),
+    - ${noCommercialPolicy}
+    ${logoBlockInstruction}
+
+    Typ requestu: ${input.requestType}
+
+    HTML do przepisania:
+    ${input.sourceHtml}
+  `;
+};
+
+const buildRewriteSubjectPrompt = (input: {
+  requestType: RequestType;
+  rewriteStyle: RewriteStyle;
+  sourceSubject: string;
+}): string => {
+  return dedent`
+    Przepisz temat e-maila po polsku.
+    ${getRewriteToneInstructions(input.rewriteStyle)}
+
+    Wymagania:
+    - maksymalnie 72 znaki,
+    - bez cudzysłowów,
+    - bez emoji,
+    - ma być klikalny i konkretny.
+    - ${noCommercialPolicy}
+
+    Typ requestu: ${input.requestType}
+    Obecny temat: ${input.sourceSubject}
+
+    Zwróć wyłącznie temat.
+  `;
+};
+
+const prependLogoToHtml = (html: string, logoUrl: string): string => {
+  const logoBlock = dedent`
+    <div style="text-align:center;margin:0 0 20px 0;">
+      <img src="${logoUrl}" alt="Liga Elektryka" style="max-width:180px;width:100%;height:auto;display:inline-block;" />
+    </div>
+  `;
+  const trimmed = html.trim();
+  if (!trimmed) return logoBlock;
+  return `${logoBlock}\n${trimmed}`;
+};
+
+const ensureLogoInHtml = (input: {
+  html: string;
+  logoAwareness: boolean;
+  logoUrl?: string;
+}): string => {
+  if (!input.logoAwareness) return input.html;
+  const logoUrl = input.logoUrl || "https://www.ligaelektryka.pl/le_logo.svg";
+  if (input.html.includes(logoUrl)) {
+    return input.html;
+  }
+  return prependLogoToHtml(input.html, logoUrl);
 };
 
 const sanitizeSubject = (value: string): string =>
@@ -203,9 +316,15 @@ const sanitizeSubject = (value: string): string =>
     .trim()
     .slice(0, 120);
 
+const stripCommercialLanguage = (value: string): string =>
+  value
+    .replace(/\b(promoc\w*|promo|zni[zż]k\w*|rabat\w*|kod\w*\s+rabat\w*|kod\w*\s+promocyjn\w*|kupon\w*|pieni[aą]dz\w*|cennik\w*|cena\w*|platn\w*|oplat\w*|sprzedaz\w*|ofert\w*)\b/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
 const fallbackSubject = (requestType: RequestType): string => {
   const date = new Date().toLocaleDateString("pl-PL");
-  if (requestType === "promo") return `Liga Elektryka: Najnowsze info i zapowiedzi (${date})`;
+  if (requestType === "promo") return `Liga Elektryka: Zapowiedz wydarzen (${date})`;
   if (requestType === "recap") return `Liga Elektryka: Podsumowanie tygodnia (${date})`;
   if (requestType === "announcement") return `Liga Elektryka: Ważne ogłoszenie (${date})`;
   return `Liga Elektryka: Sprawozdanie i wyniki (${date})`;
@@ -276,6 +395,14 @@ const stripMarkdownFences = (html: string): string =>
     .replace(/\s*```$/i, "")
     .trim();
 
+const escapeHtml = (value: string): string =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 /**
  * Calls the requested provider. If provider is "gemini" and it fails
  * (any error, including quota/429), automatically falls back to Groq.
@@ -303,53 +430,74 @@ const callLLM = async (
 
 // --- Email template ---
 
-const wrapInEmailTemplate = (innerHtml: string, generatedAt: string, subject: string): string => `<!DOCTYPE html>
-<html lang="pl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${subject}</title>
-</head>
-<body style="margin:0;padding:0;background:#ffffff;font-family:Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:24px 0;">
-    <tr>
-      <td align="center">
-        <table width="640" cellpadding="0" cellspacing="0" style="background:#ffffff;border:4px solid #000000;box-shadow:10px 10px 0 #dc2626;">
+const emailStyles = {
+  body: "margin:0;padding:0;background:#ffffff;font-family:Arial,sans-serif;",
+  outerTable: "background:#ffffff;padding:24px 0;",
+  card: "background:#ffffff;border:4px solid #000000;box-shadow:10px 10px 0 #dc2626;",
+  header: "background:#000000;padding:20px 24px;border-bottom:4px solid #dc2626;",
+  badge: "display:inline-block;border:2px solid #ffffff;background:#dc2626;color:#ffffff;padding:4px 8px;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;",
+  title: "margin:10px 0 0;font-size:30px;font-weight:900;color:#ffffff;letter-spacing:1px;text-transform:uppercase;",
+  subtitle: "margin:6px 0 0;font-size:12px;color:#f0f0f0;font-weight:700;",
+  content: "padding:24px;border-top:2px solid #000000;",
+  footer: "padding:16px 24px;border-top:4px solid #000000;background:#fafafa;",
+  footerPrimary: "margin:0;font-size:11px;color:#444444;font-weight:700;",
+  footerSecondary: "margin:8px 0 0;font-size:11px;color:#444444;",
+} as const;
 
-          <!-- Header -->
-          <tr>
-            <td style="background:#000000;padding:20px 24px;border-bottom:4px solid #dc2626;">
-              <span style="display:inline-block;border:2px solid #ffffff;background:#dc2626;color:#ffffff;padding:4px 8px;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;">NEWSLETTER</span>
-              <h1 style="margin:10px 0 0;font-size:30px;font-weight:900;color:#ffffff;letter-spacing:1px;text-transform:uppercase;">LIGA ELEKTRYKA</h1>
-              <p style="margin:6px 0 0;font-size:12px;color:#f0f0f0;font-weight:700;">${subject}</p>
-            </td>
-          </tr>
+const renderEmailHeader = (subject: string): string => dedent`
+  <tr>
+    <td style="${emailStyles.header}">
+      <span style="${emailStyles.badge}">NEWSLETTER</span>
+      <h1 style="${emailStyles.title}">LIGA ELEKTRYKA</h1>
+      <p style="${emailStyles.subtitle}">${escapeHtml(subject)}</p>
+    </td>
+  </tr>
+`;
 
-          <!-- Body -->
-          <tr>
-            <td style="padding:24px;border-top:2px solid #000000;">
-              ${innerHtml}
-            </td>
-          </tr>
+const renderEmailFooter = (generatedAt: string): string => dedent`
+  <tr>
+    <td style="${emailStyles.footer}">
+      <p style="${emailStyles.footerPrimary}">
+        Wygenerowano automatycznie · ${new Date(generatedAt).toLocaleString("pl-PL")}
+      </p>
+      <p style="${emailStyles.footerSecondary}">
+        Aby wypisać się z newslettera, odpowiedz na tego e-maila z tytułem "Wypisz mnie".
+      </p>
+    </td>
+  </tr>
+`;
 
-          <!-- Footer -->
-          <tr>
-            <td style="padding:16px 24px;border-top:4px solid #000000;background:#fafafa;">
-              <p style="margin:0;font-size:11px;color:#444444;font-weight:700;">
-                Wygenerowano automatycznie · ${new Date(generatedAt).toLocaleString("pl-PL")}
-              </p>
-              <p style="margin:8px 0 0;font-size:11px;color:#444444;">
-                Aby wypisać się z newslettera, odpowiedz na tego e-maila z tytułem "Wypisz mnie".
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+const wrapInEmailTemplate = (
+  innerHtml: string,
+  generatedAt: string,
+  subject: string,
+): string => dedent`
+  <!DOCTYPE html>
+  <html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${escapeHtml(subject)}</title>
+  </head>
+  <body style="${emailStyles.body}">
+    <table width="100%" cellpadding="0" cellspacing="0" style="${emailStyles.outerTable}">
+      <tr>
+        <td align="center">
+          <table width="640" cellpadding="0" cellspacing="0" style="${emailStyles.card}">
+            ${renderEmailHeader(subject)}
+            <tr>
+              <td style="${emailStyles.content}">
+                ${innerHtml}
+              </td>
+            </tr>
+            ${renderEmailFooter(generatedAt)}
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+  </html>
+`;
 
 // --- Main handler ---
 
@@ -357,9 +505,13 @@ const generateReport = async (req: Request): Promise<Response> => {
   const authError = await requireAuthUser(req);
   if (authError) return authError;
 
-  // Parse optional body: { provider?: "groq" | "gemini", request_type?: RequestType }
+  // Parse optional body: { provider?: "groq" | "gemini", request_type?: RequestType, mode?: GenerationMode }
   let provider: "groq" | "gemini" = "groq";
   let requestType: RequestType = "report";
+  let mode: GenerationMode = "generate";
+  let rewriteStyle: RewriteStyle = "normalnie";
+  let sourceHtml = "";
+  let sourceSubject = "";
   let logoAwareness = false;
   let logoUrl: string | undefined;
   try {
@@ -373,6 +525,23 @@ const generateReport = async (req: Request): Promise<Response> => {
     ) {
       requestType = body.request_type;
     }
+    if (body?.mode === "rewrite") {
+      mode = "rewrite";
+    }
+    if (
+      body?.rewrite_style === "normalnie" ||
+      body?.rewrite_style === "smiesznie" ||
+      body?.rewrite_style === "formalnie" ||
+      body?.rewrite_style === "krotko"
+    ) {
+      rewriteStyle = body.rewrite_style;
+    }
+    if (typeof body?.source_html === "string") {
+      sourceHtml = body.source_html;
+    }
+    if (typeof body?.source_subject === "string") {
+      sourceSubject = body.source_subject;
+    }
     if (body?.logo_awareness === true) {
       logoAwareness = true;
     }
@@ -385,18 +554,40 @@ const generateReport = async (req: Request): Promise<Response> => {
 
   const supabase = createAdminClient();
 
-  let data: Awaited<ReturnType<typeof fetchAllData>>;
-  try {
-    data = await fetchAllData(supabase);
-  } catch (err) {
-    return json(500, { error: "Failed to fetch data", details: String(err) });
-  }
+  let data: Awaited<ReturnType<typeof fetchAllData>> | null = null;
+  let prompt = "";
+  let subjectPrompt = "";
 
-  const prompt = buildPrompt(data, requestType, {
-    logoAwareness,
-    logoUrl,
-  });
-  const subjectPrompt = buildSubjectPrompt(requestType);
+  if (mode === "rewrite") {
+    if (!sourceHtml.trim()) {
+      return json(400, { error: "source_html is required in rewrite mode" });
+    }
+
+    prompt = buildRewritePrompt({
+      requestType,
+      rewriteStyle,
+      sourceHtml,
+      logoAwareness,
+      logoUrl,
+    });
+    subjectPrompt = buildRewriteSubjectPrompt({
+      requestType,
+      rewriteStyle,
+      sourceSubject: sourceSubject.trim() || fallbackSubject(requestType),
+    });
+  } else {
+    try {
+      data = await fetchAllData(supabase);
+    } catch (err) {
+      return json(500, { error: "Failed to fetch data", details: String(err) });
+    }
+
+    prompt = buildPrompt(data, requestType, {
+      logoAwareness,
+      logoUrl,
+    });
+    subjectPrompt = buildSubjectPrompt(requestType);
+  }
 
   let llmResult: Awaited<ReturnType<typeof callLLM>>;
   let subjectResult: Awaited<ReturnType<typeof callLLM>> | null = null;
@@ -409,24 +600,32 @@ const generateReport = async (req: Request): Promise<Response> => {
   }
 
   const cleanedHtml = stripMarkdownFences(llmResult.rawHtml);
+  const htmlWithLogo = ensureLogoInHtml({
+    html: cleanedHtml,
+    logoAwareness,
+    logoUrl,
+  });
   const rawSubject = subjectResult ? stripMarkdownFences(subjectResult.rawHtml) : "";
-  const subject = sanitizeSubject(rawSubject) || fallbackSubject(requestType);
+  const subject = stripCommercialLanguage(sanitizeSubject(rawSubject)) || fallbackSubject(requestType);
   const generatedAt = new Date().toISOString();
-  const html = wrapInEmailTemplate(cleanedHtml, generatedAt, subject);
+  const sanitizedInnerHtml = stripCommercialLanguage(htmlWithLogo);
+  const html = wrapInEmailTemplate(sanitizedInnerHtml, generatedAt, subject);
 
   return json(200, {
     html,
     subject,
+    mode,
+    rewrite_style: rewriteStyle,
     request_type: requestType,
     generated_at: generatedAt,
     provider_used: llmResult.provider_used,
     fallback_used: llmResult.fallback_used,
     stats: {
-      teams: data.teams.length,
-      players: data.players.length,
-      completed_matches: data.matches.filter((m) => m.status === "completed").length,
-      scheduled_matches: data.matches.filter((m) => m.status === "scheduled").length,
-      top_scorer: data.topScorers[0]
+      teams: data?.teams.length ?? null,
+      players: data?.players.length ?? null,
+      completed_matches: data ? data.matches.filter((m) => m.status === "completed").length : null,
+      scheduled_matches: data ? data.matches.filter((m) => m.status === "scheduled").length : null,
+      top_scorer: data?.topScorers?.[0]
         ? `${data.topScorers[0].player_name} (${data.topScorers[0].goals} goli)`
         : null,
     },

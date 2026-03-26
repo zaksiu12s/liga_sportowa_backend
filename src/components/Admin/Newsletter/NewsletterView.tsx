@@ -23,6 +23,8 @@ const isEditableQueueItem = (item: MailQueueItem): boolean =>
 
 type AiProvider = "groq" | "gemini";
 type AiRequestType = "report" | "promo" | "recap" | "announcement";
+// Rewrite AI disabled:
+// type RewriteStyle = "normalnie" | "smiesznie" | "formalnie" | "krotko";
 type LogoChoice = "logo1" | "logo2" | "custom";
 
 interface AiGenerator {
@@ -30,6 +32,13 @@ interface AiGenerator {
   label: string;
   description: string;
 }
+
+// Rewrite AI disabled:
+// interface RewriteOption {
+//   id: RewriteStyle;
+//   label: string;
+//   description: string;
+// }
 
 const buildGenerators = (): AiGenerator[] => [
   {
@@ -39,8 +48,9 @@ const buildGenerators = (): AiGenerator[] => [
   },
   {
     id: "promo",
-    label: "Promocja / CTA",
-    description: "AI tworzy e-mail promocyjny z wezwaniem do działania",
+    label: "Zapowiedz / CTA",
+    description:
+      "AI tworzy neutralna zapowiedz wydarzen z wezwaniem do dzialania",
   },
   {
     id: "recap",
@@ -53,6 +63,30 @@ const buildGenerators = (): AiGenerator[] => [
     description: "AI szkicuje ogłoszenie o nadchodzącym wydarzeniu",
   },
 ];
+
+// Rewrite AI disabled:
+// const rewriteOptions: RewriteOption[] = [
+//   {
+//     id: "normalnie",
+//     label: "Rewrite: Normalnie",
+//     description: "Przepisuje newsletter w neutralnym, czytelnym stylu",
+//   },
+//   {
+//     id: "smiesznie",
+//     label: "Rewrite: Smiesznie",
+//     description: "Nadaje tresci lekki i bardziej rozrywkowy ton",
+//   },
+//   {
+//     id: "formalnie",
+//     label: "Rewrite: Formalnie",
+//     description: "Przerabia tekst na oficjalny i profesjonalny jezyk",
+//   },
+//   {
+//     id: "krotko",
+//     label: "Rewrite: Krotko",
+//     description: "Skraca i porzadkuje tresc do najwazniejszych punktow",
+//   },
+// ];
 
 // ─── HTML Editor with Preview ─────────────────────────────────────────────────
 
@@ -154,6 +188,15 @@ interface AiDropdownProps {
   currentId: AiRequestType | null;
   disabled?: boolean;
 }
+
+// Rewrite AI disabled:
+// interface RewriteDropdownProps {
+//   options: RewriteOption[];
+//   onRewrite: (option: RewriteOption) => void;
+//   isGenerating: boolean;
+//   currentStyle: RewriteStyle;
+//   disabled?: boolean;
+// }
 
 interface LogoDropdownProps {
   selected: LogoChoice;
@@ -285,6 +328,66 @@ const AiDropdown = ({
   );
 };
 
+// Rewrite AI disabled:
+// const RewriteDropdown = ({
+//   options,
+//   onRewrite,
+//   isGenerating,
+//   currentStyle,
+//   disabled,
+// }: RewriteDropdownProps) => {
+//   const [open, setOpen] = useState(false);
+//   const ref = useRef<HTMLDivElement>(null);
+//
+//   useEffect(() => {
+//     const handler = (e: MouseEvent) => {
+//       if (ref.current && !ref.current.contains(e.target as Node)) {
+//         setOpen(false);
+//       }
+//     };
+//     document.addEventListener("mousedown", handler);
+//     return () => document.removeEventListener("mousedown", handler);
+//   }, []);
+//
+//   return (
+//     <div ref={ref} className="relative">
+//       <button
+//         type="button"
+//         onClick={() => setOpen((v) => !v)}
+//         disabled={isGenerating || disabled}
+//         className="flex items-center gap-2 px-3 py-2 bg-white text-black border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-black hover:text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+//       >
+//         ↻ Rewrite AI ▾
+//       </button>
+//
+//       {open && !isGenerating && (
+//         <div className="absolute right-0 top-full mt-1 z-50 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] min-w-[300px]">
+//           {options.map((option) => (
+//             <button
+//               key={option.id}
+//               type="button"
+//               onClick={() => {
+//                 setOpen(false);
+//                 onRewrite(option);
+//               }}
+//               className={`w-full text-left px-4 py-3 border-b-2 border-black last:border-b-0 hover:bg-black hover:text-white transition-colors ${
+//                 currentStyle === option.id ? "bg-gray-100" : "bg-white"
+//               }`}
+//             >
+//               <p className="text-xs font-black uppercase tracking-widest">
+//                 {option.label}
+//               </p>
+//               <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+//                 {option.description}
+//               </p>
+//             </button>
+//           ))}
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export const NewsletterView = () => {
@@ -327,6 +430,9 @@ export const NewsletterView = () => {
   const [selectedLogoChoice, setSelectedLogoChoice] =
     useState<LogoChoice>("logo1");
   const [customLogoUrl, setCustomLogoUrl] = useState("");
+  // Rewrite AI disabled:
+  // const [selectedRewriteStyle, setSelectedRewriteStyle] =
+  //   useState<RewriteStyle>("normalnie");
   const [isAiLogoAwarenessEnabled, setIsAiLogoAwarenessEnabled] =
     useState(false);
 
@@ -421,6 +527,69 @@ export const NewsletterView = () => {
       setGeneratingProvider(null);
     }
   };
+
+  // Rewrite AI disabled:
+  // const handleRewriteByStyle = async (style?: RewriteStyle) => {
+  //   const provider = selectedProvider;
+  //   const rewriteStyle = style ?? selectedRewriteStyle;
+  //   const rewriteOption = rewriteOptions.find(
+  //     (option) => option.id === rewriteStyle,
+  //   );
+  //
+  //   if (!rewriteOption) {
+  //     showToast("Nieznany styl przepisywania", "error");
+  //     return;
+  //   }
+  //
+  //   if (!html.trim()) {
+  //     showToast("Dodaj HTML zanim uzyjesz Rewrite", "error");
+  //     return;
+  //   }
+  //
+  //   setGeneratingProvider(provider);
+  //   setSelectedRewriteStyle(rewriteStyle);
+  //   try {
+  //     const result = await newsletterApi.generateNewsletterContent({
+  //       provider,
+  //       requestType: selectedRequestType,
+  //       mode: "rewrite",
+  //       rewriteStyle,
+  //       sourceHtml: html,
+  //       sourceSubject: subject,
+  //       logoAwareness: isAiLogoAwarenessEnabled,
+  //       logoUrl: isAiLogoAwarenessEnabled
+  //         ? getSelectedLogoSrc() || undefined
+  //         : undefined,
+  //     });
+  //
+  //     setSubject(result.subject);
+  //     setHtml(result.html);
+  //     setAiFeedback({
+  //       providerRequested: provider,
+  //       providerUsed: result.providerUsed,
+  //       requestTypeRequested: selectedRequestType,
+  //       requestTypeUsed: result.requestTypeUsed,
+  //       fallbackUsed: result.fallbackUsed,
+  //       generatedAt: result.generatedAt,
+  //     });
+  //
+  //     if (result.fallbackUsed) {
+  //       showToast(
+  //         `Przepisano tresc (${rewriteOption.label}). Uzyto ${result.providerUsed.toUpperCase()} po fallbacku.`,
+  //         "info",
+  //       );
+  //     } else {
+  //       showToast(`Przepisano tresc: ${rewriteOption.label}.`, "success");
+  //     }
+  //   } catch (err) {
+  //     showToast(
+  //       err instanceof Error ? err.message : "Blad przepisywania",
+  //       "error",
+  //     );
+  //   } finally {
+  //     setGeneratingProvider(null);
+  //   }
+  // };
 
   const loadData = async () => {
     try {
@@ -645,71 +814,67 @@ export const NewsletterView = () => {
         </h3>
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-          {/* Subject */}
-          <div>
-            <label className="block text-xs font-black uppercase tracking-widest mb-2">
-              Subject
-            </label>
-            <input
-              type="text"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="Newsletter subject"
-              className="w-full border-2 border-black px-3 py-2 text-sm font-semibold"
-            />
-          </div>
+          {/* AI tools */}
+          <div className="border-2 border-black p-4 space-y-3 bg-gray-50">
+            <p className="text-xs font-black uppercase tracking-widest">
+              AI Tools
+            </p>
 
-          {/* HTML Editor */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs font-black uppercase tracking-widest">
-                HTML Content
-              </label>
-              <div className="flex items-center gap-2 flex-wrap justify-end">
-                <div className="inline-flex border-2 border-black overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedProvider("groq")}
-                    disabled={Boolean(generatingProvider) || isSubmitting}
-                    className={`px-3 py-2 text-xs font-black uppercase tracking-widest transition-colors disabled:opacity-60 ${
-                      selectedProvider === "groq"
-                        ? "bg-black text-white"
-                        : "bg-white text-black hover:bg-gray-100"
-                    }`}
-                  >
-                    AI GROQ
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedProvider("gemini")}
-                    disabled={Boolean(generatingProvider) || isSubmitting}
-                    className={`px-3 py-2 text-xs font-black uppercase tracking-widest border-l-2 border-black transition-colors disabled:opacity-60 ${
-                      selectedProvider === "gemini"
-                        ? "bg-black text-white"
-                        : "bg-white text-black hover:bg-gray-100"
-                    }`}
-                  >
-                    AI GEMINI
-                  </button>
-                </div>
-
-                <AiDropdown
-                  generators={generators}
-                  onGenerate={(gen) => void handleGenerateBySelection(gen.id)}
-                  isGenerating={Boolean(generatingProvider)}
-                  currentId={selectedRequestType}
-                  disabled={isSubmitting}
-                />
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex border-2 border-black overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setSelectedProvider("groq")}
+                  disabled={Boolean(generatingProvider) || isSubmitting}
+                  className={`px-3 py-2 text-xs font-black uppercase tracking-widest transition-colors disabled:opacity-60 ${
+                    selectedProvider === "groq"
+                      ? "bg-black text-white"
+                      : "bg-white text-black hover:bg-gray-100"
+                  }`}
+                >
+                  AI GROQ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedProvider("gemini")}
+                  disabled={Boolean(generatingProvider) || isSubmitting}
+                  className={`px-3 py-2 text-xs font-black uppercase tracking-widest border-l-2 border-black transition-colors disabled:opacity-60 ${
+                    selectedProvider === "gemini"
+                      ? "bg-black text-white"
+                      : "bg-white text-black hover:bg-gray-100"
+                  }`}
+                >
+                  AI GEMINI
+                </button>
               </div>
+
+              <AiDropdown
+                generators={generators}
+                onGenerate={(gen) => void handleGenerateBySelection(gen.id)}
+                isGenerating={Boolean(generatingProvider)}
+                currentId={selectedRequestType}
+                disabled={isSubmitting}
+              />
+
+              {/* Rewrite AI disabled */}
+              {/*
+              <RewriteDropdown
+                options={rewriteOptions}
+                onRewrite={(option) => void handleRewriteByStyle(option.id)}
+                isGenerating={Boolean(generatingProvider)}
+                currentStyle={selectedRewriteStyle}
+                disabled={isSubmitting}
+              />
+              */}
             </div>
 
             {selectedProvider === "gemini" && (
-              <div className="mb-3 border-2 border-yellow-700 bg-yellow-100 px-3 py-2 text-xs font-bold uppercase tracking-wide text-yellow-900">
+              <div className="border-2 border-yellow-700 bg-yellow-100 px-3 py-2 text-xs font-bold uppercase tracking-wide text-yellow-900">
                 Warning: Gemini limit in this project is 20 requests per day.
               </div>
             )}
 
-            <div className="mb-3 flex flex-col md:flex-row gap-2 md:items-center">
+            <div className="flex flex-col md:flex-row gap-2 md:items-center">
               <LogoDropdown
                 selected={selectedLogoChoice}
                 onSelect={setSelectedLogoChoice}
@@ -737,7 +902,7 @@ export const NewsletterView = () => {
                     : "bg-white text-black hover:bg-black hover:text-white"
                 }`}
               >
-                Awareness AI z logo
+                AI dopasuj logo
               </button>
 
               <button
@@ -746,8 +911,31 @@ export const NewsletterView = () => {
                 disabled={isSubmitting || Boolean(generatingProvider)}
                 className="px-3 py-2 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors disabled:opacity-60"
               >
-                Wstaw
+                Wstaw logo
               </button>
+            </div>
+          </div>
+
+          {/* Subject */}
+          <div>
+            <label className="block text-xs font-black uppercase tracking-widest mb-2">
+              Subject
+            </label>
+            <input
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="Newsletter subject"
+              className="w-full border-2 border-black px-3 py-2 text-sm font-semibold"
+            />
+          </div>
+
+          {/* HTML Editor */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-black uppercase tracking-widest">
+                HTML Content
+              </label>
             </div>
 
             {aiFeedback && (

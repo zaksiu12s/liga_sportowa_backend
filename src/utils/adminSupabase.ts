@@ -939,6 +939,10 @@ export const newsletterApi = {
   async generateNewsletterContent(input: {
     provider: "groq" | "gemini";
     requestType: "report" | "promo" | "recap" | "announcement";
+    mode?: "generate" | "rewrite";
+    rewriteStyle?: "normalnie" | "smiesznie" | "formalnie" | "krotko";
+    sourceHtml?: string;
+    sourceSubject?: string;
     logoAwareness?: boolean;
     logoUrl?: string;
   }): Promise<{
@@ -956,6 +960,10 @@ export const newsletterApi = {
       body: {
         provider,
         request_type: requestType,
+        mode: input.mode || "generate",
+        rewrite_style: input.rewriteStyle,
+        source_html: input.sourceHtml,
+        source_subject: input.sourceSubject,
         logo_awareness: Boolean(input.logoAwareness),
         logo_url: input.logoUrl,
       },
