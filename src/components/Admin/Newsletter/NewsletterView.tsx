@@ -24,14 +24,33 @@ const isEditableQueueItem = (item: MailQueueItem): boolean =>
 type AiProvider = "groq" | "gemini";
 type AiRequestType = "report" | "promo" | "recap" | "announcement";
 
-const AI_REQUEST_OPTIONS: Array<{
+interface AiGenerator {
   id: AiRequestType;
   label: string;
-}> = [
-  { id: "report", label: "Sprawozdanie Ligi" },
-  { id: "promo", label: "Promocja / CTA" },
-  { id: "recap", label: "Podsumowanie tygodnia" },
-  { id: "announcement", label: "Ogłoszenie" },
+  description: string;
+}
+
+const buildGenerators = (): AiGenerator[] => [
+  {
+    id: "report",
+    label: "Sprawozdanie Ligi",
+    description: "AI generuje sprawozdanie z ostatnich wyników ligi",
+  },
+  {
+    id: "promo",
+    label: "Promocja / CTA",
+    description: "AI tworzy e-mail promocyjny z wezwaniem do działania",
+  },
+  {
+    id: "recap",
+    label: "Podsumowanie tygodnia",
+    description: "Krótkie AI podsumowanie mijającego tygodnia w lidze",
+  },
+  {
+    id: "announcement",
+    label: "Ogłoszenie",
+    description: "AI szkicuje ogłoszenie o nadchodzącym wydarzeniu",
+  },
 ];
 
 // ─── HTML Editor with Preview ─────────────────────────────────────────────────
@@ -127,6 +146,80 @@ const HtmlEditor = ({
   );
 };
 
+interface AiDropdownProps {
+  generators: AiGenerator[];
+  onGenerate: (gen: AiGenerator) => void;
+  isGenerating: boolean;
+  currentId: AiRequestType | null;
+  disabled?: boolean;
+}
+
+const AiDropdown = ({
+  generators,
+  onGenerate,
+  isGenerating,
+  currentId,
+  disabled,
+}: AiDropdownProps) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={isGenerating || disabled}
+        className="flex items-center gap-2 px-3 py-2 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {isGenerating ? (
+          <>
+            <span className="inline-block w-3 h-3 border border-white border-r-transparent animate-spin" />
+            Generowanie...
+          </>
+        ) : (
+          <>✦ Generuj AI ▾</>
+        )}
+      </button>
+
+      {open && !isGenerating && (
+        <div className="absolute right-0 top-full mt-1 z-50 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] min-w-[280px]">
+          {generators.map((gen) => (
+            <button
+              key={gen.id}
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onGenerate(gen);
+              }}
+              className={`w-full text-left px-4 py-3 border-b-2 border-black last:border-b-0 hover:bg-black hover:text-white transition-colors ${
+                currentId === gen.id ? "bg-gray-100" : "bg-white"
+              }`}
+            >
+              <p className="text-xs font-black uppercase tracking-widest">
+                {gen.label}
+              </p>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                {gen.description}
+              </p>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export const NewsletterView = () => {
@@ -141,6 +234,7 @@ export const NewsletterView = () => {
   const [selectedProvider, setSelectedProvider] = useState<AiProvider>("groq");
   const [selectedRequestType, setSelectedRequestType] =
     useState<AiRequestType>("report");
+  const generators = useMemo(() => buildGenerators(), []);
 
   const [subject, setSubject] = useState("");
   const [html, setHtml] = useState(
@@ -169,10 +263,10 @@ export const NewsletterView = () => {
     [queueItems],
   );
 
-  const handleGenerateBySelection = async () => {
+  const handleGenerateBySelection = async (requestedType?: AiRequestType) => {
     const provider = selectedProvider;
-    const requestType = selectedRequestType;
-    const requestOption = AI_REQUEST_OPTIONS.find(
+    const requestType = requestedType ?? selectedRequestType;
+    const requestOption = generators.find(
       (option) => option.id === requestType,
     );
 
@@ -182,6 +276,7 @@ export const NewsletterView = () => {
     }
 
     setGeneratingProvider(provider);
+    setSelectedRequestType(requestType);
     try {
       const result = await newsletterApi.generateNewsletterContent({
         provider,
@@ -463,43 +558,40 @@ export const NewsletterView = () => {
                 HTML Content
               </label>
               <div className="flex items-center gap-2 flex-wrap justify-end">
-                <select
-                  value={selectedProvider}
-                  onChange={(e) =>
-                    setSelectedProvider(e.target.value as AiProvider)
-                  }
-                  disabled={Boolean(generatingProvider) || isSubmitting}
-                  className="border-2 border-black bg-white px-2 py-1 text-xs font-black uppercase tracking-widest"
-                >
-                  <option value="groq">AI GROQ</option>
-                  <option value="gemini">AI GEMINI</option>
-                </select>
+                <div className="inline-flex border-2 border-black overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedProvider("groq")}
+                    disabled={Boolean(generatingProvider) || isSubmitting}
+                    className={`px-3 py-2 text-xs font-black uppercase tracking-widest transition-colors disabled:opacity-60 ${
+                      selectedProvider === "groq"
+                        ? "bg-black text-white"
+                        : "bg-white text-black hover:bg-gray-100"
+                    }`}
+                  >
+                    AI GROQ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedProvider("gemini")}
+                    disabled={Boolean(generatingProvider) || isSubmitting}
+                    className={`px-3 py-2 text-xs font-black uppercase tracking-widest border-l-2 border-black transition-colors disabled:opacity-60 ${
+                      selectedProvider === "gemini"
+                        ? "bg-black text-white"
+                        : "bg-white text-black hover:bg-gray-100"
+                    }`}
+                  >
+                    AI GEMINI
+                  </button>
+                </div>
 
-                <select
-                  value={selectedRequestType}
-                  onChange={(e) =>
-                    setSelectedRequestType(e.target.value as AiRequestType)
-                  }
-                  disabled={Boolean(generatingProvider) || isSubmitting}
-                  className="border-2 border-black bg-white px-2 py-1 text-xs font-black uppercase tracking-widest"
-                >
-                  {AI_REQUEST_OPTIONS.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-
-                <button
-                  type="button"
-                  onClick={() => void handleGenerateBySelection()}
-                  disabled={Boolean(generatingProvider) || isSubmitting}
-                  className="px-3 py-1 bg-black text-white border-2 border-black font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors disabled:opacity-60"
-                >
-                  {generatingProvider
-                    ? `Generowanie ${generatingProvider.toUpperCase()}...`
-                    : "Generuj AI"}
-                </button>
+                <AiDropdown
+                  generators={generators}
+                  onGenerate={(gen) => void handleGenerateBySelection(gen.id)}
+                  isGenerating={Boolean(generatingProvider)}
+                  currentId={selectedRequestType}
+                  disabled={isSubmitting}
+                />
               </div>
             </div>
 
