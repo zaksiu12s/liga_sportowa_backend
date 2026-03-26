@@ -85,6 +85,26 @@ export interface Match {
   away_team?: Team;
 }
 
+export interface Subscriber {
+  id: string;
+  email: string;
+  created_at: string;
+}
+
+export interface MailQueueItem {
+  id: string;
+  email: string;
+  subject: string;
+  html: string;
+  status: "pending" | "sent" | "failed" | string;
+  retries: number;
+  sent_at: string | null;
+  opened_at: string | null;
+  clicked_at: string | null;
+  created_at: string;
+  scheduled_at: string | null;
+}
+
 export type AdminView =
   | "dashboard"
   | "teams"
@@ -92,7 +112,8 @@ export type AdminView =
   | "players"
   | "stages"
   | "top-scorers"
-  | "navigation";
+  | "navigation"
+  | "newsletter";
 
 export interface AuthState {
   user: AdminUser | null;

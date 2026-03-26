@@ -1,4 +1,13 @@
-import type { Team, Match, Player, StageGroup, TeamStats, FinalStageMatch } from "../types/admin";
+import type {
+  Team,
+  Match,
+  Player,
+  StageGroup,
+  TeamStats,
+  FinalStageMatch,
+  Subscriber,
+  MailQueueItem,
+} from "../types/admin";
 import supabase from "./supabase";
 import { generateRoundRobinMatches, MATCH_SCHEDULES } from "./matchGenerator";
 
@@ -887,5 +896,146 @@ export const topScorersApi = {
       goals: number;
       school: string;
     }>;
+  },
+};
+
+// NEWSLETTER OPERATIONS
+export const newsletterApi = {
+  getMailerBaseUrl(): string {
+    const customUrl = import.meta.env.VITE_MAILER_FUNCTION_URL as string | undefined;
+    if (customUrl && customUrl.trim().length > 0) {
+      return customUrl.replace(/\/$/, "");
+    }
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+    if (!supabaseUrl) {
+      throw new Error("Missing VITE_SUPABASE_URL environment variable");
+    }
+
+    return `${supabaseUrl.replace(/\/$/, "")}/functions/v1/mailer`;
+  },
+
+  async getSubscribers(): Promise<Subscriber[]> {
+    const { data, error } = await (supabase as any)
+      .from("subscribers")
+      .select("id, email, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return (data || []) as Subscriber[];
+  },
+
+  async getQueue(limit = 100): Promise<MailQueueItem[]> {
+    const { data, error } = await (supabase as any)
+      .from("mail_queue")
+      .select("id, email, subject, html, status, retries, sent_at, opened_at, clicked_at, created_at, scheduled_at")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return (data || []) as MailQueueItem[];
+  },
+
+  async enqueueToAllSubscribers(input: {
+    subject: string;
+    html: string;
+    scheduledAt?: string;
+  }): Promise<number> {
+    const subject = input.subject.trim();
+    const html = input.html.trim();
+
+    if (!subject) {
+      throw new Error("Subject is required");
+    }
+
+    if (!html) {
+      throw new Error("HTML content is required");
+    }
+
+    const scheduledAtIso = input.scheduledAt
+      ? new Date(input.scheduledAt).toISOString()
+      : undefined;
+
+    const functionUrl = `${newsletterApi.getMailerBaseUrl()}/enqueue`;
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const accessToken = session?.access_token;
+    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+    const authToken = accessToken || anonKey;
+
+    const baseMailerUrl = newsletterApi.getMailerBaseUrl();
+    const endpointCandidates = Array.from(
+      new Set([
+        functionUrl,
+        baseMailerUrl,
+      ])
+    );
+
+    const requestPayload = JSON.stringify({
+      subject,
+      html,
+      ...(scheduledAtIso ? { scheduled_at: scheduledAtIso } : {}),
+    });
+
+    let lastEndpointError = "";
+
+    for (const endpoint of endpointCandidates) {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(anonKey ? { apikey: anonKey } : {}),
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        },
+        body: requestPayload,
+      });
+
+      if (response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as {
+          queued?: number;
+          inserted?: number;
+          sent?: number;
+        };
+
+        if (typeof payload.queued === "number") return payload.queued;
+        if (typeof payload.inserted === "number") return payload.inserted;
+        if (typeof payload.sent === "number") return payload.sent;
+
+        const subscribers = await newsletterApi.getSubscribers();
+        return subscribers.length;
+      }
+
+      const errorText = await response.text().catch(() => "Unknown enqueue error");
+      lastEndpointError = `${endpoint} -> ${response.status}: ${errorText}`;
+
+      // 401/403 suggests auth issue and next candidate likely won't help.
+      if (response.status === 401 || response.status === 403) {
+        break;
+      }
+    }
+
+    // Fallback path for setups without /enqueue endpoint enabled.
+    const subscribers = await newsletterApi.getSubscribers();
+    if (subscribers.length === 0) {
+      throw new Error(
+        `Enqueue failed: ${lastEndpointError || "unknown endpoint error"}. No subscribers found for fallback queue insert.`
+      );
+    }
+
+    const queueRows = subscribers.map((subscriber) => ({
+      email: subscriber.email,
+      subject,
+      html,
+      status: "pending",
+      scheduled_at: scheduledAtIso || new Date().toISOString(),
+    }));
+
+    const { error } = await (supabase as any)
+      .from("mail_queue")
+      .insert(queueRows);
+
+    if (error) throw error;
+    return queueRows.length;
   },
 };
