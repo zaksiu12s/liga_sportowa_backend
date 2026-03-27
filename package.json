@@ -13,7 +13,10 @@
     "deploy-github-depracated": "gh-pages -d dist",
     "push-prod": "git checkout prod && git reset --hard master && git push origin prod --force && git checkout master",
     "supabase-download": "supabase functions download mailer && supabase functions download report-generator",
-    "supabase-deploy": "supabase functions deploy mailer && supabase functions deploy report-generator"
+    "supabase-deploy": "supabase functions deploy mailer && supabase functions deploy report-generator",
+    "supabase-start": "supabase start",
+    "supabase-link": "supabase link --project-ref vqtdjmmsuuucozxfeaiw",
+    "supabase-sync": "supabase db pull"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.98.0",

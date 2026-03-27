@@ -26,3 +26,8 @@ dist-ssr
 # Other
 .env
 assets_private
+
+supabase/*
+!supabase/config.toml
+!supabase/functions/
+!supabase/functions/**
