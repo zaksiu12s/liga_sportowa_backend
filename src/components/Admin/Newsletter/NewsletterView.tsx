@@ -38,6 +38,67 @@ interface RewriteOption {
   description: string;
 }
 
+interface NewsletterSnippet {
+  id: string;
+  label: string;
+  description: string;
+  html: string;
+}
+
+interface PaletteColor {
+  token: string;
+  hex: string;
+  usage: string;
+}
+
+const defaultMailLogoUrl = "https://www.ligaelektryka.pl/le_logo.svg";
+
+const buildDefaultNewsletterHtml = (logoUrl: string): string =>
+  [
+    '<!doctype html>',
+    '<html lang="pl">',
+    "<head>",
+    '  <meta charset="utf-8" />',
+    '  <meta name="viewport" content="width=device-width,initial-scale=1" />',
+    '  <title>Liga Elektryka Newsletter</title>',
+    "</head>",
+    '<body style="margin:0;padding:24px;background:#f9f9f9;font-family:\'Public Sans\',Arial,sans-serif;color:#1b1b1b;">',
+    '  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:720px;margin:0 auto;">',
+    "    <tr>",
+    '      <td style="background:#ffffff;border:4px solid #000000;box-shadow:10px 10px 0 #dc2626;padding:28px;">',
+    '        <div style="text-align:center;margin:0 0 20px 0;">',
+    `          <img src="${logoUrl}" alt="Liga Elektryka" style="max-width:180px;width:100%;height:auto;display:inline-block;" />`,
+    "        </div>",
+    '        <div style="display:inline-block;border:2px solid #000000;background:#000000;color:#ffffff;padding:6px 12px;font-family:\'Lexend\',Arial,sans-serif;font-size:11px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;">',
+    "          NEWSLETTER",
+    "        </div>",
+    '        <h1 style="margin:16px 0 0 0;font-family:\'Lexend\',Arial,sans-serif;font-size:34px;line-height:1.05;font-weight:900;text-transform:uppercase;">',
+    "          Nie Przegapisz Już Kolejnych",
+    '          <span style="display:block;color:#dc2626;">Informacji O Lidze</span>',
+    "        </h1>",
+    '        <p style="margin:16px 0 0 0;font-size:16px;line-height:1.6;font-weight:700;color:#474747;">',
+    "          Mecze, wyniki, ciekawostki i najważniejsze ogłoszenia prosto na",
+    "          Twoja skrzynkę. Zero spamu, tylko konkret.",
+    "        </p>",
+    '        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:24px 0 0 0;">',
+    "          <tr>",
+    '            <td style="background:#dc2626;border:2px solid #000000;">',
+    '              <a href="https://ligaelektryka.pl" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:12px 20px;font-size:12px;font-family:\'Lexend\',Arial,sans-serif;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;">Zobacz Aktualnosci</a>',
+    "            </td>",
+    "          </tr>",
+    "        </table>",
+    '        <hr style="border:0;border-top:2px solid #000000;margin:24px 0;" />',
+    '        <p style="margin:0;font-size:13px;line-height:1.6;color:#474747;">',
+    "          Otrzymujesz ta wiadomosc, poniewaz zapisales(-as) sie do",
+    "          newslettera Ligi Elektryka.",
+    "        </p>",
+    "      </td>",
+    "    </tr>",
+    "  </table>",
+    "</body>",
+    "</html>",
+  ].join("\n");
+
 const buildGenerators = (): AiGenerator[] => [
   {
     id: "report",
@@ -83,6 +144,111 @@ const rewriteOptions: RewriteOption[] = [
     label: "Rewrite: Krotko",
     description: "Skraca i porzadkuje tresc do najwazniejszych punktow",
   },
+];
+
+const newsletterSnippets: NewsletterSnippet[] = [
+  {
+    id: "section",
+    label: "Sekcja",
+    description: "Kontener sekcji zgodny z brandingiem",
+    html: [
+      '<div style="background:#ffffff;border:2px solid #000000;padding:24px;margin:0 0 16px 0;">',
+      '<h2 style="margin:0 0 10px 0;font-size:20px;line-height:1.2;font-family:\'Lexend\',Arial,sans-serif;color:#1b1b1b;">Nagłówek sekcji</h2>',
+      '<p style="margin:0;font-size:15px;line-height:1.6;font-family:\'Public Sans\',Arial,sans-serif;color:#474747;">Treść sekcji newslettera.</p>',
+      "</div>",
+    ].join("\n"),
+  },
+  {
+    id: "card",
+    label: "Card / Div",
+    description: "Prosty blok informacyjny",
+    html: [
+      '<div style="background:#f3f3f3;border:2px solid #000000;padding:16px;margin:0 0 16px 0;">',
+      '<p style="margin:0;font-size:14px;line-height:1.6;font-family:\'Public Sans\',Arial,sans-serif;color:#1b1b1b;">Tu możesz wstawić krótką informację, wynik meczu albo CTA.</p>',
+      "</div>",
+    ].join("\n"),
+  },
+  {
+    id: "buttonPrimary",
+    label: "Button Primary",
+    description: "Czarny przycisk jak w panelu",
+    html: [
+      '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 16px 0;">',
+      "  <tr>",
+      '    <td style="background:#000000;border:2px solid #000000;">',
+      '      <a href="https://ligaelektryka.pl" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:12px 20px;font-size:12px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;font-family:\'Lexend\',Arial,sans-serif;color:#ffffff;text-decoration:none;">Zobacz szczegóły</a>',
+      "    </td>",
+      "  </tr>",
+      "</table>",
+    ].join("\n"),
+  },
+  {
+    id: "buttonSecondary",
+    label: "Button Secondary",
+    description: "Biały przycisk z czarną ramką",
+    html: [
+      '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 16px 0;">',
+      "  <tr>",
+      '    <td style="background:#ffffff;border:2px solid #000000;">',
+      '      <a href="https://ligaelektryka.pl" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:12px 20px;font-size:12px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;font-family:\'Lexend\',Arial,sans-serif;color:#000000;text-decoration:none;">Sprawdź terminarz</a>',
+      "    </td>",
+      "  </tr>",
+      "</table>",
+    ].join("\n"),
+  },
+  {
+    id: "divider",
+    label: "Divider",
+    description: "Oddzielenie sekcji",
+    html: '<hr style="border:0;border-top:2px solid #000000;margin:20px 0;" />',
+  },
+  {
+    id: "badge",
+    label: "Badge",
+    description: "Tag statusu lub kategorii",
+    html: [
+      '<span style="display:inline-block;padding:6px 10px;border:2px solid #be0037;background:#ffc6c8;color:#40000c;font-size:11px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;font-family:\'Lexend\',Arial,sans-serif;">NOWOŚĆ</span>',
+    ].join("\n"),
+  },
+  {
+    id: "homeNewsletterPanel",
+    label: "Home: Newsletter Panel",
+    description: "Div jak sekcja newsletter na HomeView",
+    html: [
+      '<div style="background:#ffffff;border:4px solid #000000;box-shadow:10px 10px 0 #dc2626;padding:24px;margin:0 0 16px 0;">',
+      '  <span style="display:inline-block;border:2px solid #000000;background:#000000;color:#ffffff;padding:6px 12px;font-family:\'Lexend\',Arial,sans-serif;font-size:11px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;">NEWSLETTER</span>',
+      '  <h2 style="margin:16px 0 0 0;font-family:\'Lexend\',Arial,sans-serif;font-size:30px;line-height:1.05;font-weight:900;text-transform:uppercase;color:#1b1b1b;">',
+      "    Nie Przegapisz Już Kolejnych",
+      '    <span style="display:block;color:#dc2626;">Informacji O Lidze</span>',
+      "  </h2>",
+      '  <p style="margin:14px 0 0 0;font-family:\'Public Sans\',Arial,sans-serif;font-size:15px;line-height:1.6;font-weight:700;color:#474747;">',
+      "    Mecze, wyniki, ciekawostki i najwazniejsze ogloszenia prosto na Twoja skrzynke.",
+      "  </p>",
+      "</div>",
+    ].join("\n"),
+  },
+  {
+    id: "homeNewsletterPromoCard",
+    label: "Home: Promo Div",
+    description: "Czerwony blok jak akcenty na HomeView",
+    html: [
+      '<div style="background:#dc2626;color:#ffffff;border:2px solid #000000;padding:20px;margin:0 0 16px 0;">',
+      '  <h3 style="margin:0;font-family:\'Lexend\',Arial,sans-serif;font-size:26px;line-height:1.05;font-weight:900;text-transform:uppercase;">Nowy Sezon 2026</h3>',
+      '  <p style="margin:12px 0 0 0;font-family:\'Public Sans\',Arial,sans-serif;font-size:14px;line-height:1.6;font-weight:700;">Sprawdz terminarz, wyniki i relacje meczowe.</p>',
+      "</div>",
+    ].join("\n"),
+  },
+];
+
+const appPalette: PaletteColor[] = [
+  { token: "background", hex: "#f9f9f9", usage: "Tło newslettera" },
+  { token: "surface", hex: "#ffffff", usage: "Białe sekcje / cards" },
+  { token: "primary", hex: "#000000", usage: "Nagłówki, border, CTA" },
+  { token: "secondary", hex: "#be0037", usage: "Akcent brandowy" },
+  { token: "secondary-container", hex: "#ffc6c8", usage: "Badge / alert soft" },
+  { token: "tertiary-container", hex: "#e21e49", usage: "Mocny highlight" },
+  { token: "on-background", hex: "#1b1b1b", usage: "Tekst główny" },
+  { token: "on-surface-variant", hex: "#474747", usage: "Tekst pomocniczy" },
 ];
 
 // ─── HTML Editor with Preview ─────────────────────────────────────────────────
@@ -412,9 +578,10 @@ export const NewsletterView = () => {
   const generators = useMemo(() => buildGenerators(), []);
 
   const [subject, setSubject] = useState("");
-  const [html, setHtml] = useState(
-    "<h1>Cześć!</h1>\n<p>Treść newslettera...</p>",
+  const [html, setHtml] = useState(() =>
+    buildDefaultNewsletterHtml(defaultMailLogoUrl),
   );
+  const [isBuilderVisible, setIsBuilderVisible] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledAtLocal, setScheduledAtLocal] = useState("");
 
@@ -475,6 +642,27 @@ export const NewsletterView = () => {
     });
 
     showToast("Dodano wybrane logo do treści newslettera", "success");
+  };
+
+  const handleInsertSnippet = (snippet: NewsletterSnippet) => {
+    setHtml((prev) => {
+      const trimmed = prev.trim();
+      return trimmed ? `${trimmed}\n\n${snippet.html}` : snippet.html;
+    });
+    showToast(`Dodano snippet: ${snippet.label}`, "success");
+  };
+
+  const handleCopyColor = async (color: PaletteColor) => {
+    try {
+      if (!navigator?.clipboard?.writeText) {
+        showToast("Clipboard API niedostępne w tej przeglądarce", "error");
+        return;
+      }
+      await navigator.clipboard.writeText(color.hex);
+      showToast(`Skopiowano ${color.token}: ${color.hex}`, "success");
+    } catch {
+      showToast("Nie udało się skopiować koloru", "error");
+    }
   };
 
   const handleGenerateBySelection = async (requestedType?: AiRequestType) => {
@@ -762,7 +950,7 @@ export const NewsletterView = () => {
       );
 
       setSubject("");
-      setHtml("<h1>Cześć!</h1>\n<p>Treść newslettera...</p>");
+      setHtml(buildDefaultNewsletterHtml(defaultMailLogoUrl));
       setIsScheduled(false);
       setScheduledAtLocal("");
       setAiFeedback(null);
@@ -933,6 +1121,106 @@ export const NewsletterView = () => {
               placeholder="Newsletter subject"
               className="w-full border-2 border-black px-3 py-2 text-sm font-semibold"
             />
+          </div>
+
+          {/* Builder helpers */}
+          <div className="border-2 border-black p-4 bg-gray-50 space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-black uppercase tracking-widest">
+                Newsletter Builder
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsBuilderVisible((prev) => !prev)}
+                className={`px-3 py-2 border-2 border-black text-xs font-black uppercase tracking-widest transition-colors ${
+                  isBuilderVisible
+                    ? "bg-black text-white"
+                    : "bg-white text-black hover:bg-black hover:text-white"
+                }`}
+              >
+                {isBuilderVisible ? "Ukryj Buildery" : "Pokaż Buildery"}
+              </button>
+            </div>
+
+            {!isBuilderVisible && (
+              <p className="text-xs text-gray-600 italic">
+                Narzędzia wspomagające budowę newslettera
+              </p>
+            )}
+
+            {isBuilderVisible && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {newsletterSnippets.map((snippet) => (
+                    <button
+                      key={snippet.id}
+                      type="button"
+                      onClick={() => handleInsertSnippet(snippet)}
+                      disabled={isSubmitting || isGeneratingAny}
+                      className="text-left p-3 border-2 border-black bg-white hover:bg-black hover:text-white transition-colors disabled:opacity-60"
+                    >
+                      <p className="text-xs font-black uppercase tracking-widest">
+                        + {snippet.label}
+                      </p>
+                      <p className="text-xs mt-1 text-gray-600 hover:text-inherit leading-relaxed">
+                        {snippet.description}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-xs font-black uppercase tracking-widest">
+                    Color Palette (z aplikacji)
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {appPalette.map((color) => (
+                      <button
+                        key={color.token}
+                        type="button"
+                        onClick={() => void handleCopyColor(color)}
+                        className="w-full border-2 border-black p-2 bg-white hover:bg-gray-100 text-left"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            aria-hidden
+                            className="inline-block w-6 h-6 border-2 border-black"
+                            style={{ backgroundColor: color.hex }}
+                          />
+                          <div>
+                            <p className="text-xs font-black uppercase tracking-widest">
+                              {color.token}
+                            </p>
+                            <p className="text-xs text-gray-700">
+                              {color.hex} • {color.usage}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border-2 border-black bg-white p-3 text-xs leading-relaxed">
+                  <p className="font-black uppercase tracking-widest mb-1">
+                    Tailwind CSS for Email
+                  </p>
+                  <p className="text-gray-700">
+                    Żeby mail wyglądał prawie identycznie jak strona, użyj
+                    Tailwind dla emaili i inlinera CSS (same klasy Tailwind nie
+                    działają stabilnie w klientach pocztowych).
+                  </p>
+                  <a
+                    href="https://maizzle.com/docs/tailwindcss/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block mt-2 font-black uppercase tracking-widest text-black underline"
+                  >
+                    Maizzle / Tailwind Email Docs
+                  </a>
+                </div>
+              </>
+            )}
           </div>
 
           {/* HTML Editor */}
