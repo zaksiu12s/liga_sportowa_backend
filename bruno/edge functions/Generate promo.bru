@@ -1,0 +1,22 @@
+meta {
+  name: Generate promo
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/functions/v1/report-generator
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "provider": "groq",
+    "request_type": "promo"
+  }
+}

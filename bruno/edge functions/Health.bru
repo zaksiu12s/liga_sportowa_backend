@@ -1,0 +1,15 @@
+meta {
+  name: Health
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/functions/v1/report-generator
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
