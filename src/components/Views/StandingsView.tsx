@@ -69,31 +69,31 @@ const StandingsView = () => {
     return merged.sort(compareTeams);
   }, [activeGroup, stageGroups, teamsLookup]);
 
-  const bestThirdPlaceIds = useMemo(() => {
-    const thirdPlaceTeams = stageGroups
-      .map((group) => {
-        const merged = (group.teams?.teams || []).map((team) => ({
-          id: team.id,
-          name: teamsLookup.get(team.id)?.name || "NIEZNANA",
-          points: team.points,
-          goals_for: team.goals_for,
-          goals_against: team.goals_against,
-        }));
+  // const bestThirdPlaceIds = useMemo(() => {
+  //   const thirdPlaceTeams = stageGroups
+  //     .map((group) => {
+  //       const merged = (group.teams?.teams || []).map((team) => ({
+  //         id: team.id,
+  //         name: teamsLookup.get(team.id)?.name || "NIEZNANA",
+  //         points: team.points,
+  //         goals_for: team.goals_for,
+  //         goals_against: team.goals_against,
+  //       }));
 
-        const sorted = [...merged].sort(compareTeams);
-        return sorted[2] || null;
-      })
-      .filter((team): team is TeamStats => Boolean(team));
+  //       const sorted = [...merged].sort(compareTeams);
+  //       return sorted[2] || null;
+  //     })
+  //     .filter((team): team is TeamStats => Boolean(team));
 
-    return new Set(
-      [...thirdPlaceTeams]
-        .sort(compareTeams)
-        .slice(0, 2)
-        .map((team) => team.id),
-    );
-  }, [stageGroups, teamsLookup]);
+  //   return new Set(
+  //     [...thirdPlaceTeams]
+  //       .sort(compareTeams)
+  //       .slice(0, 2)
+  //       .map((team) => team.id),
+  //   );
+  // }, [stageGroups, teamsLookup]);
 
-  const groupsLoading = !data;
+  // const groupsLoading = !data;
   const loading = !data;
 
   useEffect(() => {
