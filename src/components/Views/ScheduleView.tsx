@@ -121,7 +121,7 @@ const ScheduleView = () => {
         </span>
       </header>
 
-      {/* Filter Section */}
+      {/* Filter Section */}{/* */}
       <section className="mb-8 md:mb-12">
         <div className="flex flex-wrap gap-0 border-2 border-black bg-white">
           <button
@@ -133,7 +133,7 @@ const ScheduleView = () => {
           >
             ETAP 1
           </button>
-          <button
+          {/* <button
             onClick={() => setActiveStage("2")}
             className={`flex-1 min-w-[60px] py-3 md:py-4 px-3 md:px-6 font-black uppercase text-xs md:text-sm text-center border-r-2 border-black transition-none ${activeStage === "2"
               ? "bg-black text-white"
@@ -141,8 +141,8 @@ const ScheduleView = () => {
               }`}
           >
             ETAP 2
-          </button>
-          <button
+          </button> */}
+          {/* <button
             onClick={() => setActiveStage("finals")}
             className={`flex-1 min-w-[60px] py-3 md:py-4 px-3 md:px-6 font-black uppercase text-xs md:text-sm text-center transition-none ${activeStage === "finals"
               ? "bg-black text-white"
@@ -150,7 +150,7 @@ const ScheduleView = () => {
               }`}
           >
             FINAŁY
-          </button>
+          </button> */}
         </div>
 
         <div className="mt-3 flex flex-wrap gap-0 border-2 border-black bg-white">

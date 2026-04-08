@@ -86,7 +86,10 @@ const StandingsView = () => {
       .filter((team): team is TeamStats => Boolean(team));
 
     return new Set(
-      [...thirdPlaceTeams].sort(compareTeams).slice(0, 2).map((team) => team.id),
+      [...thirdPlaceTeams]
+        .sort(compareTeams)
+        .slice(0, 2)
+        .map((team) => team.id),
     );
   }, [stageGroups, teamsLookup]);
 
@@ -119,7 +122,7 @@ const StandingsView = () => {
       {/* Stage Selection */}
       <section className="mb-12 md:mb-16">
         <div className="flex items-start md:items-center gap-2 md:gap-4 mb-5 md:mb-7 flex-wrap">
-          {[1, 2].map((s) => (
+          {[1].map((s) => (
             <button
               key={s}
               onClick={() => setActiveStage(s as 1 | 2)}
@@ -136,8 +139,8 @@ const StandingsView = () => {
             {activeStage === 1 ? "FAZA GRUPOWA" : "TOP 8"}
           </h2>
         </div>
-
-        {/* Group Selection */}
+        
+        {/* Group Selection */}{/* 
         <div className="flex flex-wrap gap-2 md:gap-4 mb-6 md:mb-8">
           {groupsLoading ? (
             <div className="text-gray-500 font-black text-sm md:text-base">
@@ -163,7 +166,7 @@ const StandingsView = () => {
             </div>
           )}
         </div>
-
+          */}
         {/* Standings Table */}
         <div className="border-2 border-black bg-white overflow-hidden">
           {/* Table Header */}
@@ -207,16 +210,12 @@ const StandingsView = () => {
                     <tr
                       key={row.id}
                       className={`border-b-2 border-black hover:bg-gray-50 ${
-                        idx === 0 || idx === 1
+                        idx === 0 || idx === 1 || idx === 2 || idx === 3
                           ? "text-red-700 font-extrabold text-sm md:text-base"
-                          : activeStage === 1 && idx === 2 && bestThirdPlaceIds.has(row.id)
-                            ? "text-red-600 font-bold text-xs md:text-sm"
-                            : "font-bold text-xs md:text-sm"
+                          : "font-bold text-xs md:text-sm"
                       }`}
                     >
-                      <td className="p-2 md:p-4 text-center">
-                        {idx + 1}
-                      </td>
+                      <td className="p-2 md:p-4 text-center">{idx + 1}</td>
                       <td className="p-2 md:p-4 truncate">{row.name}</td>
                       <td className="p-2 md:p-4 text-center">{row.points}</td>
                       <td className="p-2 md:p-4 text-center font-mono">
