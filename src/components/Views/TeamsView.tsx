@@ -117,12 +117,12 @@ const TeamsView = () => {
           {groups.map((group) => (
             <section key={group}>
               {/* Group Header with Line */}
-              <div className="flex items-center gap-0 mb-6 md:mb-8">
+              {/* <div className="flex items-center gap-0 mb-6 md:mb-8">
                 <div className="bg-white text-black pr-4 py-2 md:pr-6 md:py-3 font-black text-xl md:text-base uppercase tracking-widest flex-shrink-0">
                   GRUPA {group}
                 </div>
                 <div className="flex-grow h-0.5 md:h-0.5 bg-black"></div>
-              </div>
+              </div> */}
 
               {/* Teams Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
