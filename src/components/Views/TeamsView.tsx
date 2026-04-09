@@ -57,7 +57,7 @@ const TeamsView = () => {
     });
 
     const teamsWithPlayers: TeamWithPlayers[] = data.teams
-      .filter((team: Team) => !/TEAM\s*[a-z]/i.test(team.name))
+      .filter((team: Team) => !/^TEAM [A-Z]$/i.test(team.name))
       .map((team: Team) => ({
         id: team.id,
         name: team.name,

@@ -23,6 +23,30 @@ export const teamsApi = {
     return (data || []) as Team[];
   },
 
+  async getAllWithPlayerCount(): Promise<Array<Team & { player_count: number }>> {
+    const [teamsResult, playersResult] = await Promise.all([
+      supabase.from("teams").select("*").order("created_at", { ascending: false }),
+      // 'players' table is not included in the generated Supabase types, so `as any` is required here.
+      (supabase as any).from("players").select("team_id"),
+    ]);
+
+    if (teamsResult.error) throw teamsResult.error;
+
+    const countByTeamId = new Map<string, number>();
+    if (!playersResult.error && playersResult.data) {
+      for (const player of playersResult.data as Array<{ team_id: string | null }>) {
+        if (player.team_id) {
+          countByTeamId.set(player.team_id, (countByTeamId.get(player.team_id) || 0) + 1);
+        }
+      }
+    }
+
+    return ((teamsResult.data || []) as Team[]).map((team) => ({
+      ...team,
+      player_count: countByTeamId.get(team.id) || 0,
+    }));
+  },
+
   async create(team: Omit<Team, "id" | "created_at">): Promise<Team> {
     const { data, error } = await supabase
       .from("teams")

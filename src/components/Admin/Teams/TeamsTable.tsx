@@ -5,8 +5,10 @@ import { Modal } from "../Modal";
 import { TeamForm } from "./TeamForm";
 import { useToast } from "../Toast";
 
+type TeamWithPlayerCount = Team & { player_count: number };
+
 export const TeamsTable = () => {
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [teams, setTeams] = useState<TeamWithPlayerCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | undefined>();
@@ -15,14 +17,14 @@ export const TeamsTable = () => {
 
   useEffect(() => {
     fetchTeams();
-    const unsubscribe = teamsApi.subscribe(setTeams);
+    const unsubscribe = teamsApi.subscribe(() => fetchTeams());
     return unsubscribe;
   }, []);
 
   const fetchTeams = async () => {
     try {
       setLoading(true);
-      const data = await teamsApi.getAll();
+      const data = await teamsApi.getAllWithPlayerCount();
       setTeams(data);
     } catch (error) {
       showToast(
@@ -50,6 +52,7 @@ export const TeamsTable = () => {
         showToast("Team created successfully", "success");
       }
       setIsModalOpen(false);
+      await fetchTeams();
     } catch (error) {
       showToast(
         error instanceof Error ? error.message : "Failed to save team",
@@ -65,6 +68,7 @@ export const TeamsTable = () => {
     try {
       await teamsApi.delete(id);
       showToast("Team deleted successfully", "success");
+      await fetchTeams();
     } catch (error) {
       showToast(
         error instanceof Error ? error.message : "Failed to delete team",
@@ -84,6 +88,8 @@ export const TeamsTable = () => {
     );
   }
 
+  const emptyTeamsCount = teams.filter((t) => t.player_count === 0).length;
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-6">
@@ -98,12 +104,21 @@ export const TeamsTable = () => {
         </button>
       </div>
 
+      {emptyTeamsCount > 0 && (
+        <div className="p-3 bg-yellow-50 border-2 border-yellow-500 text-yellow-900 text-sm font-semibold">
+          ⚠ {emptyTeamsCount} team{emptyTeamsCount !== 1 ? "s" : ""} with no players detected. These may be placeholder or duplicate entries — review and delete them if needed.
+        </div>
+      )}
+
       <div className="bg-white border-2 border-black overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b-2 border-black bg-gray-100">
               <th className="text-left px-4 py-3 font-black text-xs uppercase">
                 Name
+              </th>
+              <th className="text-center px-4 py-3 font-black text-xs uppercase">
+                Players
               </th>
               <th className="text-center px-4 py-3 font-black text-xs uppercase">
                 Actions
@@ -114,9 +129,24 @@ export const TeamsTable = () => {
             {teams.map((team, idx) => (
               <tr
                 key={team.id}
-                className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                className={
+                  team.player_count === 0
+                    ? "bg-yellow-50 border-l-4 border-l-yellow-500"
+                    : idx % 2 === 0
+                    ? "bg-white"
+                    : "bg-gray-50"
+                }
               >
                 <td className="px-4 py-3 font-semibold">{team.name}</td>
+                <td className="px-4 py-3 text-center">
+                  {team.player_count === 0 ? (
+                    <span className="inline-block px-2 py-0.5 bg-yellow-200 border border-yellow-500 text-yellow-900 font-black text-xs uppercase">
+                      0 — BRAK
+                    </span>
+                  ) : (
+                    <span className="font-semibold">{team.player_count}</span>
+                  )}
+                </td>
                 <td className="px-4 py-3 flex gap-2 justify-center">
                   <button
                     onClick={() => handleOpenModal(team)}
