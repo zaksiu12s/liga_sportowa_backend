@@ -56,13 +56,13 @@ const TeamsView = () => {
       });
     });
 
-    const teamsWithPlayers: TeamWithPlayers[] = data.teams.map(
-      (team: Team) => ({
+    const teamsWithPlayers: TeamWithPlayers[] = data.teams
+      .filter((team: Team) => !/TEAM\s*[a-z]/i.test(team.name))
+      .map((team: Team) => ({
         id: team.id,
         name: team.name,
         players: playersMap.get(team.id) || [],
-      }),
-    );
+      }));
 
     const grouped: GroupedTeams = {};
     teamsWithPlayers.forEach((team) => {

@@ -48,9 +48,8 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
   const [modalEmail, setModalEmail] = useState("");
   const [isFooterSubmitting, setIsFooterSubmitting] = useState(false);
   const [isModalSubmitting, setIsModalSubmitting] = useState(false);
-  const [footerFeedback, setFooterFeedback] = useState<NewsletterFeedback | null>(
-    null,
-  );
+  const [footerFeedback, setFooterFeedback] =
+    useState<NewsletterFeedback | null>(null);
   const [modalFeedback, setModalFeedback] = useState<NewsletterFeedback | null>(
     null,
   );
@@ -154,7 +153,8 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
     return `${dateNum} ${monthName.toUpperCase()} ${year} | ${time}`;
   };
 
-  const teamsCount = data?.teams.length || 0;
+  const teamsCount =
+    data?.teams.filter((team) => !/TEAM\s*[a-z]/i.test(team.name)).length || 0;
   const matchesCount = data?.matches.length || 0;
   const loading = !data;
 
@@ -170,8 +170,10 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
     event.preventDefault();
 
     const email = source === "footer" ? footerEmail : modalEmail;
-    const setSubmitting = source === "footer" ? setIsFooterSubmitting : setIsModalSubmitting;
-    const setFeedback = source === "footer" ? setFooterFeedback : setModalFeedback;
+    const setSubmitting =
+      source === "footer" ? setIsFooterSubmitting : setIsModalSubmitting;
+    const setFeedback =
+      source === "footer" ? setFooterFeedback : setModalFeedback;
 
     if (!email.trim()) {
       setFeedback({ type: "error", message: "Podaj adres e-mail." });
@@ -427,7 +429,9 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
               <span className="inline-flex items-center gap-2 border-2 border-black bg-black text-white px-3 py-1 font-black uppercase tracking-widest text-xs">
-                <span className="material-symbols-outlined text-base">mail</span>
+                <span className="material-symbols-outlined text-base">
+                  mail
+                </span>
                 NEWSLETTER
               </span>
               <h2 className="mt-4 text-3xl sm:text-4xl font-black uppercase tracking-tighter leading-[0.95]">
@@ -512,7 +516,9 @@ const HomeView = ({ onNavigate }: HomeViewProps) => {
                 </p>
 
                 <form
-                  onSubmit={(event) => void handleNewsletterSubmit(event, "modal")}
+                  onSubmit={(event) =>
+                    void handleNewsletterSubmit(event, "modal")
+                  }
                   className="space-y-3"
                 >
                   <input

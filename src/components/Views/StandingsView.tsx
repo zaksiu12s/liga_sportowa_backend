@@ -139,8 +139,9 @@ const StandingsView = () => {
             {activeStage === 1 ? "FAZA GRUPOWA" : "TOP 8"}
           </h2>
         </div>
-        
-        {/* Group Selection */}{/* 
+
+        {/* Group Selection */}
+        {/* 
         <div className="flex flex-wrap gap-2 md:gap-4 mb-6 md:mb-8">
           {groupsLoading ? (
             <div className="text-gray-500 font-black text-sm md:text-base">
@@ -206,23 +207,25 @@ const StandingsView = () => {
                     </tr>
                   ))
                 ) : teams.length > 0 ? (
-                  teams.map((row, idx) => (
-                    <tr
-                      key={row.id}
-                      className={`border-b-2 border-black hover:bg-gray-50 ${
-                        idx === 0 || idx === 1 || idx === 2 || idx === 3
-                          ? "text-red-700 font-extrabold text-sm md:text-base"
-                          : "font-bold text-xs md:text-sm"
-                      }`}
-                    >
-                      <td className="p-2 md:p-4 text-center">{idx + 1}</td>
-                      <td className="p-2 md:p-4 truncate">{row.name}</td>
-                      <td className="p-2 md:p-4 text-center">{row.points}</td>
-                      <td className="p-2 md:p-4 text-center font-mono">
-                        {row.goals_for}:{row.goals_against}
-                      </td>
-                    </tr>
-                  ))
+                  teams
+                    .filter((row) => !/^TEAM [A-Z]$/i.test(row.name))
+                    .map((row, idx) => (
+                      <tr
+                        key={row.id}
+                        className={`border-b-2 border-black hover:bg-gray-50 ${
+                          idx === 0 || idx === 1 || idx === 2 || idx === 3
+                            ? "text-red-700 font-extrabold text-sm md:text-base"
+                            : "font-bold text-xs md:text-sm"
+                        }`}
+                      >
+                        <td className="p-2 md:p-4 text-center">{idx + 1}</td>
+                        <td className="p-2 md:p-4 truncate">{row.name}</td>
+                        <td className="p-2 md:p-4 text-center">{row.points}</td>
+                        <td className="p-2 md:p-4 text-center font-mono">
+                          {row.goals_for}:{row.goals_against}
+                        </td>
+                      </tr>
+                    ))
                 ) : (
                   <tr>
                     <td
