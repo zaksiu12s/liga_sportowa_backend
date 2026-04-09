@@ -75,7 +75,7 @@ const Footer = () => {
 
   const handleOpenSourceCode = () => {
     window.open(
-      "https://github.com/zaksiu12s/liga_sportowa_backend",
+      "https://github.com/zsem-ns/liga_sportowa_backend",
       "_blank",
       "noopener,noreferrer",
     );

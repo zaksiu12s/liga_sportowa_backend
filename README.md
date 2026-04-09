@@ -33,7 +33,7 @@ Projekt charakteryzuje się surowym, minimalistycznym stylem:
 
 1. Sklonuj repozytorium:
    ```bash
-   git clone https://github.com/zaksiu12s/liga_sportowa_backend.git
+   git clone https://github.com/zsem-ns/liga_sportowa_backend.git
    ```
 2. Zainstaluj zależności:
    ```bash
