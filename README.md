@@ -49,6 +49,11 @@ Projekt charakteryzuje się surowym, minimalistycznym stylem:
    npm run dev
    ```
 
+## 🔒 Bezpieczeństwo
+
+- Zasady bezpieczeństwa i checklista: `SECURITY.md`
+- Instrukcje Supabase/Edge Functions: `HOW_TO_SUPABASE.md`
+
 ## 📂 Struktura Projektu
 
 - `src/components/Layout/`: Główne elementy nawigacyjne (Navbar, Footer).

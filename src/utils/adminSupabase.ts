@@ -901,6 +901,25 @@ export const topScorersApi = {
 
 // NEWSLETTER OPERATIONS
 export const newsletterApi = {
+  async getEdgeAuthHeaders(): Promise<Record<string, string>> {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const accessToken = session?.access_token;
+    if (!accessToken) {
+      throw new Error("You must be logged in as admin to perform this action");
+    }
+
+    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+
+    return {
+      "Content-Type": "application/json",
+      ...(anonKey ? { apikey: anonKey } : {}),
+      Authorization: `Bearer ${accessToken}`,
+    };
+  },
+
   getMailerBaseUrl(): string {
     const customUrl = import.meta.env.VITE_MAILER_FUNCTION_URL as string | undefined;
     if (customUrl && customUrl.trim().length > 0) {
@@ -1021,12 +1040,7 @@ export const newsletterApi = {
       : undefined;
 
     const functionUrl = `${newsletterApi.getMailerBaseUrl()}/enqueue`;
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    const accessToken = session?.access_token;
-    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
-    const authToken = accessToken || anonKey;
+    const headers = await newsletterApi.getEdgeAuthHeaders();
 
     const baseMailerUrl = newsletterApi.getMailerBaseUrl();
     const endpointCandidates = Array.from(
@@ -1047,11 +1061,7 @@ export const newsletterApi = {
     for (const endpoint of endpointCandidates) {
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(anonKey ? { apikey: anonKey } : {}),
-          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-        },
+        headers,
         body: requestPayload,
       });
 
@@ -1079,28 +1089,9 @@ export const newsletterApi = {
       }
     }
 
-    // Fallback path for setups without /enqueue endpoint enabled.
-    const subscribers = await newsletterApi.getSubscribers();
-    if (subscribers.length === 0) {
-      throw new Error(
-        `Enqueue failed: ${lastEndpointError || "unknown endpoint error"}. No subscribers found for fallback queue insert.`
-      );
-    }
-
-    const queueRows = subscribers.map((subscriber) => ({
-      email: subscriber.email,
-      subject,
-      html,
-      status: "pending",
-      scheduled_at: scheduledAtIso || new Date().toISOString(),
-    }));
-
-    const { error } = await (supabase as any)
-      .from("mail_queue")
-      .insert(queueRows);
-
-    if (error) throw error;
-    return queueRows.length;
+    throw new Error(
+      `Enqueue failed. ${lastEndpointError || "Unknown edge function error"}`
+    );
   },
 
   async updateScheduledQueueItem(input: {
@@ -1122,21 +1113,12 @@ export const newsletterApi = {
       throw new Error("Invalid scheduled date");
     }
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    const accessToken = session?.access_token;
-    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
-    const authToken = accessToken || anonKey;
+    const headers = await newsletterApi.getEdgeAuthHeaders();
 
     const updateEndpoint = `${newsletterApi.getMailerBaseUrl()}/update`;
     const updateResponse = await fetch(updateEndpoint, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(anonKey ? { apikey: anonKey } : {}),
-        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-      },
+      headers,
       body: JSON.stringify({
         id,
         subject,
@@ -1149,50 +1131,20 @@ export const newsletterApi = {
       return;
     }
 
-    const { data: queueItem, error: fetchError } = await (supabase as any)
-      .from("mail_queue")
-      .select("id, status, sent_at")
-      .eq("id", id)
-      .maybeSingle();
-
-    if (fetchError) throw fetchError;
-    if (!queueItem) throw new Error("Queue item not found");
-    if (queueItem.status === "sent" || queueItem.sent_at) {
-      throw new Error("Sent emails cannot be edited");
-    }
-
-    const { error: updateError } = await (supabase as any)
-      .from("mail_queue")
-      .update({
-        subject,
-        html,
-        scheduled_at: scheduledAt.toISOString(),
-        status: "pending",
-      })
-      .eq("id", id);
-
-    if (updateError) throw updateError;
+    const errorText = await updateResponse.text().catch(() => "Unknown update error");
+    throw new Error(`Update failed (${updateResponse.status}): ${errorText}`);
   },
 
   async deleteScheduledQueueItem(id: string): Promise<void> {
     const queueId = id.trim();
     if (!queueId) throw new Error("Queue item id is required");
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    const accessToken = session?.access_token;
-    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
-    const authToken = accessToken || anonKey;
+    const headers = await newsletterApi.getEdgeAuthHeaders();
 
     const deleteEndpoint = `${newsletterApi.getMailerBaseUrl()}/delete`;
     const deleteResponse = await fetch(deleteEndpoint, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(anonKey ? { apikey: anonKey } : {}),
-        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-      },
+      headers,
       body: JSON.stringify({ id: queueId }),
     });
 
@@ -1200,23 +1152,7 @@ export const newsletterApi = {
       return;
     }
 
-    const { data: queueItem, error: fetchError } = await (supabase as any)
-      .from("mail_queue")
-      .select("id, status, sent_at")
-      .eq("id", queueId)
-      .maybeSingle();
-
-    if (fetchError) throw fetchError;
-    if (!queueItem) throw new Error("Queue item not found");
-    if (queueItem.status === "sent" || queueItem.sent_at) {
-      throw new Error("Sent emails cannot be deleted");
-    }
-
-    const { error: deleteError } = await (supabase as any)
-      .from("mail_queue")
-      .delete()
-      .eq("id", queueId);
-
-    if (deleteError) throw deleteError;
+    const errorText = await deleteResponse.text().catch(() => "Unknown delete error");
+    throw new Error(`Delete failed (${deleteResponse.status}): ${errorText}`);
   },
 };

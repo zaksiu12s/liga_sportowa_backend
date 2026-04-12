@@ -38,6 +38,15 @@ Contains public navbar visibility configuration controlled from the admin panel.
 - `matches.home_team_id` -> `teams.id` (fkey name: `matches_home_team_id_fkey`)
 - `matches.away_team_id` -> `teams.id` (fkey name: `matches_away_team_id_fkey`)
 
+## Security Notes
+- Keep Row Level Security enabled for all public schema tables exposed to client APIs.
+- For public read tables (for example standings/statistics), create explicit `SELECT` policies and avoid broad write policies.
+- Edge Functions should enforce auth in code (`requireAuthUser`) and use dedicated secret headers for cron/process endpoints.
+
+## Performance Notes
+- Add covering indexes for foreign keys used in joins/filters (`matches.home_team_id`, `matches.away_team_id`, `players.team_id`, `final_stage.home_team_id`, `final_stage.away_team_id`).
+- Review and remove redundant permissive RLS policies to reduce policy evaluation overhead.
+
 ## Sorting Logic
 - **Standings (teams)**: Ordered by `points` (desc) and then `goals_for` (desc).
 - **Schedule (matches)**:

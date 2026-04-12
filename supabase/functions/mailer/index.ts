@@ -80,6 +80,23 @@ const requireOptionalToken = (
   return null;
 };
 
+const requireConfiguredToken = (
+  req: Request,
+  envKey: "MAILER_PROCESS_TOKEN",
+): Response | null => {
+  const configuredToken = Deno.env.get(envKey);
+  if (!configuredToken) {
+    return json(500, { error: `Missing required environment variable: ${envKey}` });
+  }
+
+  const providedToken = req.headers.get("x-mailer-token");
+  if (providedToken !== configuredToken) {
+    return json(401, { error: "Unauthorized" });
+  }
+
+  return null;
+};
+
 const createAdminClient = () => {
   const supabaseUrl = getEnv("SUPABASE_URL");
   const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
@@ -358,7 +375,7 @@ const sendViaResend = async (
 };
 
 const processQueue = async (req: Request): Promise<Response> => {
-  const tokenError = requireOptionalToken(req, "MAILER_PROCESS_TOKEN");
+  const tokenError = requireConfiguredToken(req, "MAILER_PROCESS_TOKEN");
   if (tokenError) {
     return tokenError;
   }
