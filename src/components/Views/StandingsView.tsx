@@ -9,16 +9,19 @@ interface TeamStats {
   goals_for: number;
   goals_against: number;
   points: number;
+  matches_played: number;
 }
 
 const compareTeams = (a: TeamStats, b: TeamStats) => {
   if (b.points !== a.points) return b.points - a.points;
 
+  if (a.matches_played !== b.matches_played)
+    return a.matches_played - b.matches_played;
+
   const goalDiffA = a.goals_for - a.goals_against;
   const goalDiffB = b.goals_for - b.goals_against;
 
-  if (goalDiffB !== goalDiffA) return goalDiffB - goalDiffA;
-  return b.goals_for - a.goals_for;
+  return goalDiffB - goalDiffA;
 };
 
 const StandingsView = () => {
@@ -58,16 +61,28 @@ const StandingsView = () => {
     );
     const stageTeams = selectedGroup?.teams?.teams || [];
 
-    const merged = stageTeams.map((team) => ({
-      id: team.id,
-      name: teamsLookup.get(team.id)?.name || "NIEZNANA",
-      points: team.points,
-      goals_for: team.goals_for,
-      goals_against: team.goals_against,
-    }));
+    const merged = stageTeams.map((team) => {
+      const matchesPlayed = (data?.matches || []).filter((match) => {
+        const isTeamInMatch =
+          match.home_team_id === team.id || match.away_team_id === team.id;
+        const status = match.status === "finished";
+        const isFirstStage = match.stage == (activeStage == 1 ? "first_stage" : (activeStage == 2 ? "second_stage" : ""));
+        const isGroupA = match.group === activeGroup;
+        return isTeamInMatch && status && isFirstStage && isGroupA;
+      }).length;
+
+      return {
+        id: team.id,
+        name: teamsLookup.get(team.id)?.name || "NIEZNANA",
+        points: team.points,
+        goals_for: team.goals_for,
+        goals_against: team.goals_against,
+        matches_played: matchesPlayed,
+      };
+    });
 
     return merged.sort(compareTeams);
-  }, [activeGroup, stageGroups, teamsLookup]);
+  }, [activeGroup, stageGroups, teamsLookup, activeStage, data?.matches]);
 
   // const bestThirdPlaceIds = useMemo(() => {
   //   const thirdPlaceTeams = stageGroups
@@ -177,13 +192,14 @@ const StandingsView = () => {
             </h3>
           </div>
 
-          {/* Table Content */}
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-full">
               <thead>
                 <tr className="bg-gray-100 font-black text-xs md:text-sm uppercase tracking-widest border-b-2 border-black">
                   <th className="p-2 md:p-4 text-center min-w-[40px]">POZ</th>
                   <th className="p-2 md:p-4 min-w-[150px]">DRUŻYNA</th>
+                  <th className="p-2 md:p-4 text-center min-w-[50px]">MECZE</th>
                   <th className="p-2 md:p-4 text-center min-w-[50px]">PKT</th>
                   <th className="p-2 md:p-4 text-center min-w-[60px]">BZ:BS</th>
                 </tr>
@@ -197,6 +213,9 @@ const StandingsView = () => {
                       </td>
                       <td className="p-2 md:p-4">
                         <Skeleton className="h-4 w-32" />
+                      </td>
+                      <td className="p-2 md:p-4">
+                        <Skeleton className="h-4 w-8 mx-auto" />
                       </td>
                       <td className="p-2 md:p-4">
                         <Skeleton className="h-4 w-8 mx-auto" />
@@ -220,6 +239,9 @@ const StandingsView = () => {
                       >
                         <td className="p-2 md:p-4 text-center">{idx + 1}</td>
                         <td className="p-2 md:p-4 truncate">{row.name}</td>
+                        <td className="p-2 md:p-4 text-center">
+                          {row.matches_played}
+                        </td>
                         <td className="p-2 md:p-4 text-center">{row.points}</td>
                         <td className="p-2 md:p-4 text-center font-mono">
                           {row.goals_for}:{row.goals_against}
@@ -229,7 +251,7 @@ const StandingsView = () => {
                 ) : (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={5}
                       className="py-12 md:py-20 text-center text-gray-400 text-sm md:text-base"
                     >
                       BRAK DANYCH
@@ -238,6 +260,95 @@ const StandingsView = () => {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-3 p-4">
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="border-2 border-black bg-white p-4 space-y-2"
+                >
+                  <Skeleton className="h-6 w-32" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              ))
+            ) : teams.length > 0 ? (
+              teams
+                .filter((row) => !/^TEAM [A-Z]$/i.test(row.name))
+                .map((row, idx) => (
+                  <article
+                    key={row.id}
+                    className={`border-2 border-black bg-white p-4 ${
+                      idx === 0 || idx === 1 || idx === 2 || idx === 3
+                        ? "border-red-700 bg-red-50"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div>
+                        <div
+                          className={`inline-flex items-center justify-center min-w-[44px] px-2 h-9 font-black text-sm border-2 border-black ${
+                            idx === 0 || idx === 1 || idx === 2 || idx === 3
+                              ? "bg-red-600 text-white"
+                              : "bg-white text-black"
+                          }`}
+                        >
+                          {String(idx + 1).padStart(2, "0")}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-black leading-none">
+                          {row.points}
+                        </div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-gray-600">
+                          PKT
+                        </div>
+                      </div>
+                    </div>
+                    <h3 className="font-black uppercase text-base leading-tight break-words mb-2">
+                      {row.name}
+                    </h3>
+                    <div className="grid grid-cols-3 gap-2 text-xs font-bold">
+                      <div className="border-t-2 border-black pt-2">
+                        <div className="text-lg font-black">
+                          {row.matches_played}
+                        </div>
+                        <div className="text-[10px] uppercase tracking-widest text-gray-600">
+                          MECZE
+                        </div>
+                      </div>
+                      <div className="border-t-2 border-black pt-2 text-center">
+                        <div className="text-lg font-black">
+                          {row.goals_for}
+                        </div>
+                        <div className="text-[10px] uppercase tracking-widest text-gray-600 leading-tight">
+                          Bramki
+                          <br />
+                          Zdobyte
+                        </div>
+                      </div>
+                      <div className="border-t-2 border-black pt-2 text-right">
+                        <div className="text-lg font-black">
+                          {row.goals_against}
+                        </div>
+                        <div className="text-[10px] uppercase tracking-widest text-gray-600 leading-tight">
+                          Bramki
+                          <br />
+                          Stracone
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                ))
+            ) : (
+              <div className="border-2 border-black bg-gray-100 p-6 text-center">
+                <p className="font-black uppercase text-gray-500">
+                  BRAK DANYCH
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
