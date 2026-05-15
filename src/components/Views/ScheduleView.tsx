@@ -6,7 +6,8 @@ import type { PublicPlayer } from "../../types/publicData";
 interface Goal {
   time: number;
   team_id: string;
-  player_id: string;
+  player_id?: string;
+  own_goal?: boolean;
 }
 
 const hasTwoPartName = (name: string | null | undefined) => {
@@ -414,16 +415,20 @@ const ScheduleView = () => {
                                   .filter((g: Goal) => g.team_id === match.home_team_id)
                                   .sort((a: Goal, b: Goal) => a.time - b.time)
                                   .map((goal: Goal, idx: number) => {
-                                    const player = allPlayers.get(goal.player_id);
+                                    const player = goal.player_id ? allPlayers.get(goal.player_id) : undefined;
+                                    const isOwn = goal.own_goal;
                                     return (
                                       <li
                                         key={idx}
                                         className="flex justify-between items-center gap-2"
                                       >
-                                        <span className="font-bold truncate">
-                                          {player
-                                            ? `${player.first_name} ${player.last_name}`
-                                            : "Nieznany"}
+                                        <span className="font-bold truncate flex items-center">
+                                          <span>{isOwn || !player ? "" : `${player.first_name} ${player.last_name}`}</span>
+                                          {isOwn && (
+                                            <span className="inline-flex items-center px-2 py-0.5 border border-red-600 text-[10px] font-black uppercase tracking-widest text-red-700 bg-red-50 flex-shrink-0">
+                                            Bramka samobójcza
+                                            </span>
+                                          )}
                                         </span>
                                         <span className="text-gray-600 font-bold flex-shrink-0">
                                           {goal.time}'
@@ -453,16 +458,20 @@ const ScheduleView = () => {
                                   .filter((g: Goal) => g.team_id === match.away_team_id)
                                   .sort((a: Goal, b: Goal) => a.time - b.time)
                                   .map((goal: Goal, idx: number) => {
-                                    const player = allPlayers.get(goal.player_id);
+                                    const player = goal.player_id ? allPlayers.get(goal.player_id) : undefined;
+                                    const isOwn = goal.own_goal;
                                     return (
                                       <li
                                         key={idx}
                                         className="flex justify-between items-center gap-2"
                                       >
-                                        <span className="font-bold truncate">
-                                          {player
-                                            ? `${player.first_name} ${player.last_name}`
-                                            : "Nieznany"}
+                                        <span className="font-bold truncate flex items-center">
+                                          <span>{isOwn || !player ? "" : `${player.first_name} ${player.last_name}`}</span>
+                                          {isOwn && (
+                                            <span className="inline-flex items-center px-2 py-0.5 border border-red-600 text-[10px] font-black uppercase tracking-widest text-red-700 bg-red-50 flex-shrink-0">
+                                              Bramka samobójcza
+                                            </span>
+                                          )}
                                         </span>
                                         <span className="text-gray-600 font-bold flex-shrink-0">
                                           {goal.time}'

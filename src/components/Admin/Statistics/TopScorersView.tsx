@@ -28,15 +28,17 @@ export const TopScorersView = () => {
       // Fetch directly from top_scorers table (pre-calculated)
       const scorers = await topScorersApi.getAll();
 
-      const mapped = scorers.map((scorer) => ({
-        id: scorer.id,
-        playerId: scorer.player_id,
-        playerName: scorer.player_name,
-        teamId: scorer.team_id,
-        teamName: scorer.team_name,
-        goals: scorer.goals,
-        school: scorer.school,
-      }));
+      const mapped = scorers
+        .filter((scorer) => Boolean(scorer.player_id) && scorer.player_name !== "Unknown")
+        .map((scorer) => ({
+          id: scorer.id,
+          playerId: scorer.player_id,
+          playerName: scorer.player_name,
+          teamId: scorer.team_id,
+          teamName: scorer.team_name,
+          goals: scorer.goals,
+          school: scorer.school,
+        }));
 
       setTopScorers(mapped);
     } catch (error) {
@@ -106,7 +108,7 @@ export const TopScorersView = () => {
                   <td className="px-4 py-2 text-xs uppercase">
                     {scorer.school}
                   </td>
-                  <td className="px-4 py-2 text-center text-xs font-black text-lg">
+                  <td className="px-4 py-2 text-center text-lg font-black">
                     {scorer.goals}
                   </td>
                 </tr>

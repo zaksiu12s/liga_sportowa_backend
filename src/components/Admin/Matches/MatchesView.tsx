@@ -250,7 +250,11 @@ export const MatchesView = () => {
     }
   };
 
-  const handleUpdateScore = async (scoreHome: number, scoreAway: number, goalScorers?: { goals: Array<{ team_id: string; player_id: string; time: number }> }) => {
+  const handleUpdateScore = async (
+    scoreHome: number,
+    scoreAway: number,
+    goalScorers?: { goals: Array<{ team_id: string; player_id?: string; time: number; own_goal?: boolean }> }
+  ) => {
     if (!selectedMatch) return;
     try {
       await matchesApi.updateMatchScore(selectedMatch.id, scoreHome, scoreAway, goalScorers);

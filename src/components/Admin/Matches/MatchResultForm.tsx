@@ -5,7 +5,11 @@ import { playersApi } from "../../../utils/adminSupabase";
 
 interface MatchResultFormProps {
   match: Match;
-  onSubmit: (scoreHome: number, scoreAway: number, goalScorers?: { goals: Array<{ team_id: string; player_id: string; time: number }> }) => Promise<void>;
+  onSubmit: (
+    scoreHome: number,
+    scoreAway: number,
+    goalScorers?: { goals: Array<{ team_id: string; player_id?: string; time: number; own_goal?: boolean }> }
+  ) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -14,6 +18,7 @@ interface GoalEntry {
   team_id: string;
   player_id: string;
   time: number;
+  own?: boolean;
 }
 
 export const MatchResultForm = ({
@@ -41,6 +46,7 @@ export const MatchResultForm = ({
         team_id: goal.team_id || "",
         player_id: goal.player_id || "",
         time: goal.time || 0,
+        own: goal.own_goal || false,
       }));
       setGoals(existingGoals);
     }
@@ -56,42 +62,39 @@ export const MatchResultForm = ({
   };
 
   const handleAddGoal = () => {
-    setGoals([
-      ...goals,
+    setGoals((currentGoals) => [
+      ...currentGoals,
       {
         id: Math.random().toString(36).substr(2, 9),
         team_id: match.home_team_id || "",
         player_id: "",
         time: 0,
+        own: false,
       },
     ]);
   };
 
   const handleRemoveGoal = (goalId: string) => {
-    setGoals(goals.filter((g) => g.id !== goalId));
+    setGoals((currentGoals) => currentGoals.filter((g) => g.id !== goalId));
   };
 
   const handleGoalChange = (
     goalId: string,
-    field: "team_id" | "player_id" | "time",
-    value: string | number
+    field: "team_id" | "player_id" | "time" | "own",
+    value: string | number | boolean
   ) => {
-    setGoals(
-      goals.map((g) => (g.id === goalId ? { ...g, [field]: value } : g))
+    setGoals((currentGoals) =>
+      currentGoals.map((g) => (g.id === goalId ? { ...g, [field]: value } : g))
     );
-  };
-
-  const getTeamPlayers = (teamId: string) => {
-    return players.filter((p) => p.team_id === teamId);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate that all goals have required fields
-    const invalidGoals = goals.filter(g => !g.team_id || !g.player_id);
+    const invalidGoals = goals.filter((g) => !g.team_id || (!g.own && !g.player_id));
     if (invalidGoals.length > 0) {
-      showToast("All goals must have team and player selected", "error");
+      showToast("All goals must have a team selected", "error");
       return;
     }
 
@@ -111,13 +114,14 @@ export const MatchResultForm = ({
 
     setLoading(true);
     try {
-      const goalScorersData = {
-        goals: goals.map((g) => ({
-          team_id: g.team_id,
-          player_id: g.player_id,
-          time: Number(g.time),
-        })),
-      };
+        const goalScorersData = {
+          goals: goals.map((g) => ({
+            team_id: g.team_id,
+              player_id: g.own ? undefined : g.player_id,
+            time: Number(g.time),
+            own_goal: Boolean(g.own),
+          })),
+        };
 
       console.log("Submitting match result:", {
         scoreHome,
@@ -235,7 +239,31 @@ export const MatchResultForm = ({
             {goals.map((goal, idx) => (
               <div key={goal.id} className="bg-white border-2 border-blue-300 p-3 space-y-2">
                 <div className="flex justify-between items-start">
-                  <div className="font-black text-xs uppercase">Goal {idx + 1}</div>
+                  <div>
+                    <div className="font-black text-xs uppercase">Goal {idx + 1}</div>
+                    <label className="inline-flex items-center text-xs gap-2 mt-1">
+                      <input
+                        type="checkbox"
+                        checked={!!goal.own}
+                        onChange={(e) => {
+                          setGoals((currentGoals) =>
+                            currentGoals.map((currentGoal) =>
+                              currentGoal.id === goal.id
+                                ? {
+                                    ...currentGoal,
+                                    own: e.target.checked,
+                                    player_id: e.target.checked ? "" : currentGoal.player_id,
+                                  }
+                                : currentGoal
+                            )
+                          );
+                        }}
+                        disabled={loading}
+                        className="w-4 h-4"
+                      />
+                      <span className="font-bold">Own goal (samobój)</span>
+                    </label>
+                  </div>
                   <button
                     type="button"
                     onClick={() => handleRemoveGoal(goal.id)}
@@ -270,27 +298,34 @@ export const MatchResultForm = ({
                     </select>
                   </div>
 
-                  {/* Player */}
-                  <div>
-                    <label className="block text-xs font-black uppercase mb-1">
-                      Player *
-                    </label>
-                    <select
-                      value={goal.player_id}
-                      onChange={(e) =>
-                        handleGoalChange(goal.id, "player_id", e.target.value)
-                      }
-                      className="w-full px-2 py-1 border-2 border-black text-xs bg-white"
-                      disabled={loading || !goal.team_id}
-                    >
-                      <option value="">-- Select --</option>
-                      {getTeamPlayers(goal.team_id).map((player) => (
-                        <option key={player.id} value={player.id}>
-                          {player.first_name} {player.last_name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {!goal.own ? (
+                    <div>
+                      <label className="block text-xs font-black uppercase mb-1">
+                        Player *
+                      </label>
+                      <select
+                        value={goal.player_id}
+                        onChange={(e) =>
+                          handleGoalChange(goal.id, "player_id", e.target.value)
+                        }
+                        className="w-full px-2 py-1 border-2 border-black text-xs bg-white"
+                        disabled={loading || !goal.team_id}
+                      >
+                        <option value="">-- Select --</option>
+                        {players
+                          .filter((p) => p.team_id === goal.team_id)
+                          .map((player) => (
+                            <option key={player.id} value={player.id}>
+                              {player.first_name} {player.last_name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-red-400 bg-red-50 px-3 py-2 text-xs font-black uppercase tracking-widest text-red-700 flex items-center justify-center text-center">
+                      Own goal only
+                    </div>
+                  )}
 
                   {/* Time */}
                   <div>

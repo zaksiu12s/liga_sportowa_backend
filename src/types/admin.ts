@@ -75,8 +75,9 @@ export interface Match {
   goal_scorers?: {
     goals: Array<{
       team_id: string;
-      player_id: string;
+      player_id?: string;
       time: number;
+      own_goal?: boolean;
     }>;
   } | null;
   created_at: string;

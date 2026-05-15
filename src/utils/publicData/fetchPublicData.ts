@@ -274,6 +274,7 @@ export const fetchPublicData = async (): Promise<FetchPublicDataResult> => {
       warnings.push(`top_scorers: ${error.message}`);
     } else {
       snapshot.topScorers = ((data || []) as any[])
+        .filter((row) => Boolean(row.player_id) && row.player_name !== "Unknown")
         .map((row) => ({
           id: toString(row.id),
           player_id: toString(row.player_id),
