@@ -23,7 +23,8 @@ export interface PublicMatch {
     goals?: Array<{
       time: number;
       team_id: string;
-      player_id: string;
+      player_id?: string;
+      own_goal?: boolean;
     }>;
   } | null;
   home_team?: { name: string } | null;

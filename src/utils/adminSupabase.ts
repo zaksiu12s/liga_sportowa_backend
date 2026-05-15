@@ -421,7 +421,7 @@ export const matchesApi = {
     matchId: string,
     scoreHome: number,
     scoreAway: number,
-    goalScorers?: { goals: Array<{ team_id: string; player_id: string; time: number }> }
+    goalScorers?: { goals: Array<{ team_id: string; player_id?: string; time: number; own_goal?: boolean }> }
   ): Promise<Match> {
     // Get match details
     const { data: match, error: matchError } = await (supabase as any)
